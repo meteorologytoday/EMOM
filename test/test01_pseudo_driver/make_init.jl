@@ -1,4 +1,4 @@
-include(normpath(joinpath(@__DIR__, "HOOM", "src", "models", "HOOM", "HOOM.jl")))
+include(normpath(joinpath(@__DIR__, "EMOM", "src", "models", "EMOM", "EMOM.jl")))
 
 using NCDatasets
 
@@ -38,7 +38,7 @@ end
 
 
 
-ocn = HOOM.Ocean(
+ocn = EMOM.Ocean(
     gridinfo_file = domain_file,
     Nx       = Nx,
     Ny       = Ny,
@@ -59,6 +59,6 @@ ocn = HOOM.Ocean(
     do_convective_adjustment = true,
 )
 
-HOOM.takeSnapshot(ocn, output_file)
+EMOM.takeSnapshot(ocn, output_file)
 
 

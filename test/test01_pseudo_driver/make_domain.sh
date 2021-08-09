@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ref_file=domain.lnd.fv4x5_gx3v7.091218.nc
+ref_file=CESM_domains/domain.lnd.fv4x5_gx3v7.091218.nc
 
 file_with_mask=domain.ocn.fv4x5_gx3v7.091218.nc
 file_without_mask=domain.ocn_aqua.fv4x5_gx3v7.091218.nc

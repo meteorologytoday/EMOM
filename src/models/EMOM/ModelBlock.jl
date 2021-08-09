@@ -28,7 +28,7 @@ mutable struct ModelBlock
         mb.dt = dt
         mb.co = co
 
-        for (k, (varref, grid_type)) in HOOM.getDynamicVariableList(mb; varsets=[:ALL,])
+        for (k, (varref, grid_type)) in getDynamicVariableList(mb; varsets=[:ALL,])
             regVariable!(dt, k, grid_type, varref) 
         end
 

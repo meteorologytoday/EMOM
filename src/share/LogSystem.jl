@@ -1,4 +1,3 @@
-
 module LogSystem
 
     using Formatting

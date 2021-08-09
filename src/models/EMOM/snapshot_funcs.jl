@@ -56,7 +56,7 @@ Usage: It output netcdf file that is a copy of variables in the given DataTable
 """
 function takeSnapshot(
     timestamp     :: AbstractCFDateTime,
-    mb            :: HOOM.ModelBlock,
+    mb            :: EMOM.ModelBlock,
     filename      :: AbstractString,   # Field
     missing_value :: Float64=1e20,
 )
@@ -68,7 +68,7 @@ end
 #=
 function takeSnapshot(
     timestamp     :: AbstractCFDateTime,
-    mb            :: HOOM.ModelBlock,
+    mb            :: EMOM.ModelBlock,
     filename      :: AbstractString,   # Field
     filename_cfg  :: AbstractString;   # Configuration
     missing_value :: Float64=1e20,
@@ -87,7 +87,7 @@ function takeSnapshot(
         ds.attrib["_FillValue"] = missing_value
         ds.attrib["timestamp"] = timestamp_str
 
-        varnames = keys(HOOM.getDynamicVariableList(mb; varsets = [:ALL,]))
+        varnames = keys(EMOM.getDynamicVariableList(mb; varsets = [:ALL,]))
         for (varname, data_unit) in data_table.data_units
 
             data_unit = data_table.data_units[varname]

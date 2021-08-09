@@ -6,11 +6,10 @@ using Distributed
 using SharedArrays
 using MPI
 
-if !(:ModelClockSystem in names(Main))
+if !(:LogSystem in names(Main))
     include(normpath(joinpath(dirname(@__FILE__), "..", "share", "LogSystem.jl")))
 end
 using .LogSystem
-
 
 if !(:ModelClockSystem in names(Main))
     include(normpath(joinpath(dirname(@__FILE__), "..", "share", "ModelClockSystem.jl")))
@@ -25,9 +24,6 @@ using .ConfigCheck
 if !(:appendLine in names(Main))
     include(normpath(joinpath(dirname(@__FILE__), "..", "share", "AppendLine.jl")))
 end
-
-
-
 
 function runModel(
     OMMODULE      :: Any,
