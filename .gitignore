@@ -26,4 +26,4 @@ Manifest.toml
 *.nc
 *.swp
 *.tmp
-
+*.jld2

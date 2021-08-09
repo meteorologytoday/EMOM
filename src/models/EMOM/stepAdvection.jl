@@ -2,7 +2,7 @@ function stepAdvection!(
     mb :: ModelBlock,
     Δt :: Float64,
 )
-
+    
     ev = mb.ev
     fi = mb.fi
     tmpfi = mb.tmpfi
@@ -10,7 +10,6 @@ function stepAdvection!(
     cfg = ev.config
     for x = 1:2
 
-        _oldx   = view(fi._X_, :, x)
         _intmx  = view(tmpfi._INTMX_, :, x)
         _xflx_U = view(fi._Xflx_U_, :, x)
         _xflx_V = view(fi._Xflx_V_, :, x)
@@ -21,7 +20,7 @@ function stepAdvection!(
             _xflx_V,
             _xflx_W,
 
-            _oldx,
+            _intmx,
  
             fi._u,
             fi._v,
@@ -32,6 +31,7 @@ function stepAdvection!(
             0.0,
             Δt,
             
+            co.wksp, 
         )  
    
         _ADVx_ = view(fi._ADVX_, :, x)
@@ -42,7 +42,7 @@ function stepAdvection!(
             + co.amo.T_DIVz_W * _xflx_W
         )
 
-        @. _intmx = _oldx + Δt * _ADVx_
+        @. _intmx += Δt * _ADVx_
 
     end
 

@@ -36,8 +36,12 @@ function runModel(
 
     comm = MPI.COMM_WORLD
     rank = MPI.Comm_rank(comm)
+    ntask = MPI.Comm_size(comm)
 
     writeLog("===== [ Master Created ] =====")
+    writeLog("Number of total tasks       : {:d}", ntask)
+    writeLog("Number of total worker tasks: {:d}", ntask-1)
+
 
     MPI.Barrier(comm)
 

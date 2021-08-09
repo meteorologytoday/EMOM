@@ -27,6 +27,10 @@ function getCompleteVariableList(
             "Q_FRZMLTPOT"        => ( mb.fi.Q_FRZMLTPOT,  :sT ),
             "CHKTEMP"            => ( mb.tmpfi.sv[:CHKTEMP],  :sT ),
             "CHKSALT"            => ( mb.tmpfi.sv[:CHKSALT],  :sT ),
+
+            "INTMTEMP"           => ( mb.tmpfi.sv[:INTMTEMP], :T),
+            "INTMSALT"           => ( mb.tmpfi.sv[:INTMSALT], :T),
+
         )
         
         if mb.fi.datastream != nothing 

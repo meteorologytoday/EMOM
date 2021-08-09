@@ -6,7 +6,8 @@ function stepColumn!(
     fi    = mb.fi
     tmpfi = mb.tmpfi
     co    = mb.co
-    cfg   = mb.ev.config
+    ev    = mb.ev
+    cfg   = ev.config
 
     # *** Diffusion and restoring ***
     # (b_t+1 - b_t) / dt =  OP1 * b_t+1 + OP2 * (b_t+1 - b_target) + const
@@ -103,15 +104,35 @@ function stepColumn!(
         RHS_TEMP .+= Δt * co.amo.T_mask_T * view( fi.datastream["QFLX_TEMP"] , :) / ρcp_sw
         RHS_SALT .+= Δt * co.amo.T_mask_T * view( fi.datastream["QFLX_SALT"] , :) 
     end
-   
-    F_EBM_TEMP = lu( I - Δt * op_TEMP )
-    F_EBM_SALT = lu( I - Δt * op_SALT )
 
-    tmpfi.sv[:NEWTEMP][:] = F_EBM_TEMP \ RHS_TEMP
-    tmpfi.sv[:NEWSALT][:] = F_EBM_SALT \ RHS_SALT
- 
+    #F_EBM_TEMP = lu( I - Δt * op_TEMP )
+    #F_EBM_SALT = lu( I - Δt * op_SALT )
 
+    #tmpfi.sv[:NEWTEMP][:] = F_EBM_TEMP \ RHS_TEMP
+    #tmpfi.sv[:NEWSALT][:] = F_EBM_SALT \ RHS_SALT
 
+    #tmpfi.sv[:NEWTEMP][:] = RHS_TEMP
+    #tmpfi.sv[:NEWSALT][:] = RHS_SALT
+
+    beg_idx = 0
+    jmp = ev.Nz
+    for i=1:(ev.Nx*ev.Ny)
+        rng = beg_idx+1:beg_idx+jmp
+        sub_op_TEMP  = view(op_TEMP, rng, rng)
+        sub_op_SALT  = view(op_SALT, rng, rng)
+
+        sub_RHS_TEMP = view(RHS_TEMP, rng)
+        sub_RHS_SALT = view(RHS_SALT, rng) 
+
+        F_EBM_TEMP = lu( I - Δt * sub_op_TEMP )
+        F_EBM_SALT = lu( I - Δt * sub_op_SALT )
+        
+        tmpfi.sv[:NEWTEMP][rng] = F_EBM_TEMP \ sub_RHS_TEMP
+        tmpfi.sv[:NEWSALT][rng] = F_EBM_SALT \ sub_RHS_SALT
+        
+        beg_idx += jmp
+    end
+    
     # Recompute source and sink of tracers due to weak restoring
     if cfg[:weak_restoring] == :on
         tmpfi._WKRSTΔX_[:, 1] = tmpfi._NEWX_[:, 1] - reshape(fi.datastream["WKRST_TEMP"], :)
@@ -140,7 +161,8 @@ function stepColumn!(
     fi.Q_FRZHEAT                              .= 0
     fi.Q_FRZHEAT[sfc_below_frz_mask_sT]       .= fi.Q_FRZMLTPOT[sfc_below_frz_mask_sT]
     fi.Q_FRZMLTPOT_NEG[sfc_above_frz_mask_sT] .= fi.Q_FRZMLTPOT[sfc_above_frz_mask_sT]
-    
+   
+    #= 
     # It is possible that some of the Q_FRZHEAT and Q_FRZMLTPOT_NEG are not positive and negative anymore because
     # the mask is the old one while the Δ_TEMP is the new one. So in order to be consistent
     # with the energy, I will overwrite these values with zeros.
@@ -150,5 +172,6 @@ function stepColumn!(
 
     if any(fi.Q_FRZMLTPOT_NEG .> 0)
         throw(ErrorException("[1] Something is wrong when computing freeze melt potential."))
-    end    
+    end
+    =# 
 end

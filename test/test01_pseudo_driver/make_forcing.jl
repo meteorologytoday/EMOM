@@ -4,6 +4,11 @@ using Dates
 
 output_file = "forcing.nc"
 domain_file = "domain.ocn_aqua.fv4x5_gx3v7.091218.nc"
+
+#output_file = "forcing_gx1v6.nc"
+#domain_file = "CESM_domains/domain.ocn.gx1v6.090206.nc"
+
+
 z_w = collect(Float64, 0:-10:-350)
 
 
@@ -36,20 +41,22 @@ QFLX_SALT = zeros(Float64, Nx, Ny, Nz, 12)
 
 
 for t=1:12
+
+    c = cos.(deg2rad.(lat))
     HMXL[:, :, t] = 50.0 .+ 25.0 * sin.(2*deg2rad.(lon) .+ deg2rad.(lat) .- 2π/365 * mid_of_mon[t])
     WKRST_TEMP[:, :, :, t] = ( 20.0 .+
-         5.0 * reshape( (1.0 .+ sin.(2*deg2rad.(lon) .+ deg2rad.(lat) .- 2π/365 * mid_of_mon[t]) ) / 2.0, Nx, Ny, 1 ) .* reshape(exp.(z_w[1:end-1] / 100.0), 1, 1, :)
+         5.0 * reshape( c .* (1.0 .+ sin.(2*deg2rad.(lon) .+ deg2rad.(lat) .- 2π/365 * mid_of_mon[t]) ) / 2.0, Nx, Ny, 1 ) .* reshape(exp.(z_w[1:end-1] / 100.0), 1, 1, :)
     )
     WKRST_SALT[:, :, :, t] = ( 34.0 .+
-         5.0 * reshape( (1.0 .+ sin.(2*deg2rad.(lon) .+ deg2rad.(lat) .- 2π/365 * mid_of_mon[t]) ) / 2.0, Nx, Ny, 1 ) .* reshape(exp.(z_w[1:end-1] / 100.0), 1, 1, :)
+         5.0 * reshape( c .* (1.0 .+ sin.(2*deg2rad.(lon) .+ deg2rad.(lat) .- 2π/365 * mid_of_mon[t]) ) / 2.0, Nx, Ny, 1 ) .* reshape(exp.(z_w[1:end-1] / 100.0), 1, 1, :)
     )
 
     QFLX_TEMP[:, :, :, t] = ( 15 .+
-         5.0 * reshape( (1.0 .+ sin.(5*deg2rad.(lon) .+ 2*deg2rad.(lat) .- 5π/365 * mid_of_mon[t]) ) / 2.0, Nx, Ny, 1 ) .* reshape(exp.(z_w[1:end-1] / 100.0), 1, 1, :)
+         5.0 * reshape( c .* (1.0 .+ sin.(5*deg2rad.(lon) .+ 2*deg2rad.(lat) .- 5π/365 * mid_of_mon[t]) ) / 2.0, Nx, Ny, 1 ) .* reshape(exp.(z_w[1:end-1] / 100.0), 1, 1, :)
     )
 
     QFLX_SALT[:, :, :, t] = ( 5 .+
-         5.0 * reshape( (1.0 .+ sin.(5*deg2rad.(lon) .+ 2*deg2rad.(lat) .- 5π/365 * mid_of_mon[t]) ) / 2.0, Nx, Ny, 1 ) .* reshape(exp.(z_w[1:end-1] / 100.0), 1, 1, :)
+         5.0 * reshape( c .* (1.0 .+ sin.(5*deg2rad.(lon) .+ 2*deg2rad.(lat) .- 5π/365 * mid_of_mon[t]) ) / 2.0, Nx, Ny, 1 ) .* reshape(exp.(z_w[1:end-1] / 100.0), 1, 1, :)
     )
 
 

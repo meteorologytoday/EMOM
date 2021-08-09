@@ -7,34 +7,53 @@ mutable struct Env
     Ny :: Integer
     Nz :: Integer
 
+    cdata_varnames :: AbstractArray{String}
+
     function Env(
         config;
         sub_yrng = nothing,
     )
        
         writeLog("Validating config: :MODEL_CORE") 
-        validated_config = validateConfigEntries(config, getConfigDescriptor()[:MODEL_CORE]) 
+        config = validateConfigEntries(config, getConfigDescriptor()[:MODEL_CORE]) 
            
         # mask =>   lnd = 0, ocn = 1
         gf = PolelikeCoordinate.CurvilinearSphericalGridFile(
-            validated_config[:domain_file];
+            config[:domain_file];
             R  = 6371229.0,
             Ω  = 2π / (86400 / (1 + 365/365)),
         )
 
         Nx = gf.Nx
         Ny = (sub_yrng == nothing) ? gf.Ny : length(sub_yrng)
-        Nz = length(validated_config[:z_w]) - 1
+        Nz = length(config[:z_w]) - 1
+
+        cdata_varnames = []
+
+        if config[:MLD_scheme] == :datastream
+            push!(cdata_varnames, "HMXL")
+        end
+
+        if config[:Qflx] == :on
+            push!(cdata_varnames, "QFLX_TEMP")
+            push!(cdata_varnames, "QFLX_SALT")
+        end
+        
+        if config[:weak_restoring] == :on || config[:Qflx_finding] == :on
+            push!(cdata_varnames, "WKRST_TEMP")
+            push!(cdata_varnames, "WKRST_SALT")
+        end
 
         return new(
             
-            validated_config,
+            config,
  
             sub_yrng,        
             Nx,
             Ny,
             Nz,
 
+            cdata_varnames,
         )
     end
 

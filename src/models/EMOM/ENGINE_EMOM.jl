@@ -135,7 +135,7 @@ module ENGINE_EMOM
 
                     master_ev = EMOM.Env(core_config)
                     master_mb = EMOM.ModelBlock(master_ev; init_core=false)
-                    master_mb.fi.sv[:TEMP][end-5:end, :, :]  .= -10000
+                    #master_mb.fi.sv[:TEMP][end-5:end, :, :]  .= -10000
                     #=
                     master_mb.fi.sv[:TEMP][:, :, :]  .= 10
                     master_mb.fi.sv[:TEMP][1, 20, :] .= 30
@@ -158,10 +158,13 @@ module ENGINE_EMOM
             end
         end
 
+        if is_master
+            writeLog("The following datastream variables are used: {:s}.", join(master_ev.cdata_varnames, ", "))
+        end
         # Create plans
         if is_master
             jdi = JobDistributionInfo(nworkers = comm_size - 1, Ny = master_ev.Ny; overlap=3)
-            printJobDistributionInfo(jdi)
+            #printJobDistributionInfo(jdi)
         end
      
         # First, broadcast ev and create plan 
@@ -212,7 +215,7 @@ module ENGINE_EMOM
                 "TAUY_north",
             ),
 
-            :state   => (
+            :output_state   => (
                 "TEMP",
                 "SALT",
                 "UVEL",
@@ -224,11 +227,18 @@ module ENGINE_EMOM
                 "TAUY",
                 "ADVT",
                 "HMXL",
+                "Q_FRZMLTPOT",
             ),
 
-            :bnd_state   => (
+            :thermo_state   => (
                 "TEMP",
                 "SALT",
+            ),
+
+
+            :intm_state => (
+                "INTMTEMP",
+                "INTMSALT",
             )
 
         )
@@ -439,7 +449,7 @@ module ENGINE_EMOM
         MPI.Barrier(comm)
 
         syncField!(
-            MD.sync_data[:state],
+            MD.sync_data[:thermo_state],
             MD.jdi,
             :M2S,
             :BLOCK,
@@ -458,10 +468,8 @@ module ENGINE_EMOM
         comm = MPI.COMM_WORLD
         rank = MPI.Comm_rank(comm)
         is_master = rank == 0
-
-        if ! is_master
-            EMOM.updateDatastream!(MD.mb, MD.clock)
-        end
+        
+        Δt_float = Float64(Δt.value)
 
         syncField!(
             MD.sync_data[:forcing],
@@ -470,39 +478,39 @@ module ENGINE_EMOM
             :BLOCK,
         )
 
-        syncField!(
-            MD.sync_data[:bnd_state],
-            MD.jdi,
-            :M2S,
-            :BND,
-        ) 
-
-        Δt_float = Float64(Δt.value)
-        
         if ! is_master
-            #MD.mb.fi.sv[:UVEL] .= (2π / 86400 / 20) * MD.mb.co.gd.R * cos.(MD.mb.co.gd.ϕ_T)
+            
+            EMOM.reset!(MD.mb.co.wksp)
+            EMOM.updateDatastream!(MD.mb, MD.clock)
             EMOM.updateBuoyancy!(MD.mb)
             EMOM.checkBudget!(MD.mb, Δt_float; stage=:BEFORE_STEPPING)
             EMOM.setupForcing!(MD.mb)
+
         end
         
-        substeps = 1
+        substeps = MD.mb.ev.config[:substeps]
+        if ! is_master
+            # Because substep in stepAdvection updates _INTMX_
+            # based on _INTMX_ itself, we need to copy it first.
+            MD.mb.tmpfi._INTMX_ .= MD.mb.fi._X_
+        end 
         for substep = 1:substeps
-        
+
             if ! is_master
+                EMOM.reset!(MD.mb.co.wksp)
                 EMOM.stepAdvection!(MD.mb, Δt_float/substeps)
                 EMOM.checkBudget!(MD.mb, Δt_float; stage=:SUBSTEP_AFTER_ADV, substeps=substeps)
             end
 
             syncField!(
-                MD.sync_data[:bnd_state],
+                MD.sync_data[:intm_state],
                 MD.jdi,
                 :S2M,
                 :BND,
             )
 
             syncField!(
-                MD.sync_data[:bnd_state],
+                MD.sync_data[:intm_state],
                 MD.jdi,
                 :M2S,
                 :BND,
@@ -518,11 +526,19 @@ module ENGINE_EMOM
         end
         
         syncField!(
-            MD.sync_data[:state],
+            MD.sync_data[:output_state],
             MD.jdi,
             :S2M,
             :BLOCK,
         )
+
+        syncField!(
+            MD.sync_data[:thermo_state],
+            MD.jdi,
+            :M2S,
+            :BND,
+        ) 
+
 
     end
 

@@ -59,9 +59,9 @@ module EMOM
 
     @hinclude("entry_list.jl")
 
-    @hinclude("Leonard1979.jl")
     @hinclude("VerticalDiffusion.jl")
 
+    @hinclude("Workspace.jl")
     @hinclude("Env.jl")
     @hinclude("TempField.jl")
     @hinclude("Field.jl")
@@ -69,7 +69,7 @@ module EMOM
     
     @hinclude("ModelBlock.jl")
 
-
+    @hinclude("Leonard1979.jl")
     @hinclude("setupForcing.jl")
     @hinclude("stepAdvection.jl")
     @hinclude("stepColumn.jl")

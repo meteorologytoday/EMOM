@@ -1,4 +1,6 @@
 mutable struct Core
+    
+    wksp      :: Workspace
 
     gf        :: Union{PolelikeCoordinate.GridFile, Nothing}
 
@@ -17,12 +19,16 @@ mutable struct Core
 
     cdatam     :: Union{CyclicDataManager, Nothing}
 
+
+
     function Core(
         ev :: Env,
         fi :: Field,
     )
 
         cfg = ev.config
+
+        wksp = Workspace(Nx=ev.Nx, Ny=ev.Ny, Nz=ev.Nz)
 
         gf = PolelikeCoordinate.CurvilinearSphericalGridFile(
             cfg[:domain_file];
@@ -112,36 +118,17 @@ mutable struct Core
         mtx[:T_sfcmask_T] = spdiagm(0 => amo.T_mask_T * reshape(sfcmask_T, :))
 
 
-
-        cdata_varnames = []
-
-        if cfg[:MLD_scheme] == :datastream
-            push!(cdata_varnames, "HMXL")
-        end
-
-        if cfg[:Qflx] == :on
-            push!(cdata_varnames, "QFLX_TEMP")
-            push!(cdata_varnames, "QFLX_SALT")
-        end
-        
-        if cfg[:weak_restoring] == :on || cfg[:Qflx_finding] == :on
-            push!(cdata_varnames, "WKRST_TEMP")
-            push!(cdata_varnames, "WKRST_SALT")
-        end
-
-        if length(cdata_varnames) == 0
+        if length(ev.cdata_varnames) == 0
             cdatam = nothing
         else
 
-            println("The Following datastream will be activated: ", cdata_varnames)
-            
             if cfg[:cdata_file] == ""
                 throw(ErrorException("Some config require cyclic data forcing file"))
             else
                 cdatam = CyclicDataManager(;
                     timetype     = getproperty(CFTime, Symbol(cfg[:timetype])),
                     filename     = cfg[:cdata_file],
-                    varnames     = cdata_varnames,
+                    varnames     = ev.cdata_varnames,
                     beg_time     = cfg[:cdata_beg_time],
                     end_time     = cfg[:cdata_end_time],
                     align_time   = cfg[:cdata_align_time],
@@ -157,7 +144,12 @@ mutable struct Core
             mtx[:T_invτwk_TEMP_T] = - amo.T_mask_T * spdiagm(0 => ones(Float64, amo.bmo.T_pts)) / cfg[:τwk_TEMP]
             mtx[:T_invτwk_SALT_T] = - amo.T_mask_T * spdiagm(0 => ones(Float64, amo.bmo.T_pts)) / cfg[:τwk_SALT]
         end
+
+        #println("Smallest Δx^2: ", minimum(gd_slab.Δx_T)^2.0, "; Smallest Δy^2: ", minimum(gd_slab.Δy_T)^2.0)
+
         return new(
+            wksp,
+
             gf,
             gd,
             gd_slab,

@@ -77,10 +77,13 @@ function getSugarView(
     Nx, Ny, Nz = ev.Nx, ev.Ny, ev.Nz
 
     return sv = Dict(
-        :CHKTEMP => reshape(view(tmpfi._CHKX_, :, 1), 1, Nx, Ny),
-        :CHKSALT => reshape(view(tmpfi._CHKX_, :, 2), 1, Nx, Ny),
-        :NEWTEMP => reshape(view(tmpfi._NEWX_, :, 1), Nz, Nx, Ny),
-        :NEWSALT => reshape(view(tmpfi._NEWX_, :, 2), Nz, Nx, Ny),
+        :CHKTEMP  => reshape(view(tmpfi._CHKX_, :, 1), 1, Nx, Ny),
+        :CHKSALT  => reshape(view(tmpfi._CHKX_, :, 2), 1, Nx, Ny),
+        :NEWTEMP  => reshape(view(tmpfi._NEWX_, :, 1), Nz, Nx, Ny),
+        :NEWSALT  => reshape(view(tmpfi._NEWX_, :, 2), Nz, Nx, Ny),
+        :INTMTEMP => reshape(view(tmpfi._INTMX_, :, 1), Nz, Nx, Ny),
+        :INTMSALT => reshape(view(tmpfi._INTMX_, :, 2), Nz, Nx, Ny),
     )
+
 
 end
