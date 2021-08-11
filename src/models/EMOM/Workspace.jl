@@ -21,7 +21,7 @@ mutable struct Workspace
     function Workspace(;
         Nx :: Int64,
         Ny :: Int64,
-        Nz :: Int64;
+        Nz :: Int64,
         warning_cnt = 20,
     )
 

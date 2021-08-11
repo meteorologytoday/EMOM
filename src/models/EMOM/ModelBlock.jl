@@ -1,5 +1,9 @@
 mutable struct ModelBlock
 
+    # TempField means the variable will not be in the 
+    # snapshot. It can still be output in the hist file
+    # but only for debugging usage.
+
     ev   :: Env
     fi   :: Field
     tmpfi :: TempField

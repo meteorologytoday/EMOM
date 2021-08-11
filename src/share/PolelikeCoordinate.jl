@@ -130,7 +130,7 @@ module PolelikeCoordinate
                 throw(ErrorException("Unknown `angle_unit`: " * angle_unit))
             end
 
-            println("Compute vectors and sides")
+            #println("Compute vectors and sides")
             # First, compute the needed vectors and sides
 
             permuted_vs_λ = permutedims(vs_λ, [2,3,1])
@@ -152,7 +152,7 @@ module PolelikeCoordinate
             ds3 = mapslices(norm, u3; dims=[1,])[1, :, :]
             ds4 = mapslices(norm, u4; dims=[1,])[1, :, :]
 
-            println("size of ds1: ", size(ds1))
+            #println("size of ds1: ", size(ds1))
 
             #=
             @time for j = 1:Ny
@@ -216,7 +216,7 @@ module PolelikeCoordinate
             end
 
 
-            println("Compute grid curved angle on T grid")
+            #println("Compute grid curved angle on T grid")
             for i=1:Nx, j=1:Ny
                 
                 α_t[i, j], cosα_t[i, j], sinα_t[i, j] = computeα(
@@ -227,7 +227,7 @@ module PolelikeCoordinate
 
             end
             
-            println("Compute grid curved angle on UV grid")
+            #println("Compute grid curved angle on UV grid")
             for i=1:Nx, j=1:Ny+1
                 
                 if j == 1
@@ -274,7 +274,7 @@ module PolelikeCoordinate
             z_W = cvt13(z_w, Nx, Ny)
             z_UV = cvt13(z_t, Nx, Ny+1)
 
-            println("Nz, Nx, Ny = ", (Nz, Nx, Ny))
+            #println("Nz, Nx, Ny = ", (Nz, Nx, Ny))
 
             Δx_t = (ds1 + ds3) / 2.0
             Δx_T = cvt23(Δx_t, Nz)

@@ -17,10 +17,10 @@ config = Dict{Any, Any}(
     ),
 
     :MODEL_CORE => Dict(
-        :domain_file                  => joinpath(@__DIR__, "CESM_domains", "domain.ocn.gx1v6.090206.nc"),
-        :cdata_file                   => joinpath(@__DIR__, "forcing_gx1v6.nc"),
-        #:domain_file                  => joinpath(@__DIR__, "domain.ocn_aqua.fv4x5_gx3v7.091218.nc"),
-        #:cdata_file                   => joinpath(@__DIR__, "forcing.nc"),
+        #:domain_file                  => joinpath(@__DIR__, "CESM_domains", "domain.ocn.gx1v6.090206.nc"),
+        #:cdata_file                   => joinpath(@__DIR__, "forcing_gx1v6.nc"),
+        :domain_file                  => joinpath(@__DIR__, "domain.ocn_aqua.fv4x5_gx3v7.091218.nc"),
+        :cdata_file                   => joinpath(@__DIR__, "forcing.nc"),
 
         :cdata_beg_time               => DateTimeNoLeap(1, 1, 1, 0, 0, 0),
         :cdata_end_time               => DateTimeNoLeap(2, 1, 1, 0, 0, 0),

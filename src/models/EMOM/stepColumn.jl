@@ -105,18 +105,18 @@ function stepColumn!(
         RHS_SALT .+= Δt * co.amo.T_mask_T * view( fi.datastream["QFLX_SALT"] , :) 
     end
 
-    #F_EBM_TEMP = lu( I - Δt * op_TEMP )
-    #F_EBM_SALT = lu( I - Δt * op_SALT )
-
-    #tmpfi.sv[:NEWTEMP][:] = F_EBM_TEMP \ RHS_TEMP
-    #tmpfi.sv[:NEWSALT][:] = F_EBM_SALT \ RHS_SALT
-
+    F_EBM_TEMP = lu( I - Δt * op_TEMP )
+    F_EBM_SALT = lu( I - Δt * op_SALT )
+    
+    tmpfi.sv[:NEWTEMP][:] = F_EBM_TEMP \ RHS_TEMP
+    tmpfi.sv[:NEWSALT][:] = F_EBM_SALT \ RHS_SALT
     #tmpfi.sv[:NEWTEMP][:] = RHS_TEMP
     #tmpfi.sv[:NEWSALT][:] = RHS_SALT
 
+    #=
     beg_idx = 0
-    jmp = ev.Nz
-    for i=1:(ev.Nx*ev.Ny)
+    jmp = ev.Nz*ev.Nx
+    for i=1:ev.Ny
         rng = beg_idx+1:beg_idx+jmp
         sub_op_TEMP  = view(op_TEMP, rng, rng)
         sub_op_SALT  = view(op_SALT, rng, rng)
@@ -132,7 +132,7 @@ function stepColumn!(
         
         beg_idx += jmp
     end
-    
+    =#
     # Recompute source and sink of tracers due to weak restoring
     if cfg[:weak_restoring] == :on
         tmpfi._WKRSTΔX_[:, 1] = tmpfi._NEWX_[:, 1] - reshape(fi.datastream["WKRST_TEMP"], :)
