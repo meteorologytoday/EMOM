@@ -1,6 +1,1 @@
-mv,Sandbox.EMOM.h1.day.0001-01.nc,/billevans/projects/IOM/test/test02_Qflx_finding_driver/Sandbox/caserun,/billevans/projects/IOM/test/test02_Qflx_finding_driver/Sandbox/archive/ocn/hist
 mv,Sandbox.EMOM.h0.mon.0001-01.nc,/billevans/projects/IOM/test/test02_Qflx_finding_driver/Sandbox/caserun,/billevans/projects/IOM/test/test02_Qflx_finding_driver/Sandbox/archive/ocn/hist
-mv,Sandbox.EMOM.h1.day.0001-02.nc,/billevans/projects/IOM/test/test02_Qflx_finding_driver/Sandbox/caserun,/billevans/projects/IOM/test/test02_Qflx_finding_driver/Sandbox/archive/ocn/hist
-mv,Sandbox.EMOM.h0.mon.0001-02.nc,/billevans/projects/IOM/test/test02_Qflx_finding_driver/Sandbox/caserun,/billevans/projects/IOM/test/test02_Qflx_finding_driver/Sandbox/archive/ocn/hist
-mv,Sandbox.EMOM.h1.day.0001-03.nc,/billevans/projects/IOM/test/test02_Qflx_finding_driver/Sandbox/caserun,/billevans/projects/IOM/test/test02_Qflx_finding_driver/Sandbox/archive/ocn/hist
-mv,Sandbox.EMOM.h0.mon.0001-03.nc,/billevans/projects/IOM/test/test02_Qflx_finding_driver/Sandbox/caserun,/billevans/projects/IOM/test/test02_Qflx_finding_driver/Sandbox/archive/ocn/hist
