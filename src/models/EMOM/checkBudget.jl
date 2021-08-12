@@ -46,14 +46,14 @@ function checkBudget!(
 
         # Weak restoring check
         if cfg[:weak_restoring] == :on 
-            tmpfi._CHKX_[:, 1] .-= reshape(sum( reshape(co.amo.T_Δz_T * view(fi._WKRST_, :, 1), Nz, :), dims=1 ), :)
-            tmpfi._CHKX_[:, 2] .-= reshape(sum( reshape(co.amo.T_Δz_T * view(fi._WKRST_, :, 2), Nz, :), dims=1 ), :)
+            tmpfi._CHKX_[:, 1] .-= reshape(sum( reshape(co.amo.T_Δz_T * view(fi._WKRSTX_, :, 1), Nz, :), dims=1 ), :)
+            tmpfi._CHKX_[:, 2] .-= reshape(sum( reshape(co.amo.T_Δz_T * view(fi._WKRSTX_, :, 2), Nz, :), dims=1 ), :)
         end
 
         # Qfluxes check
         if cfg[:Qflx] == :on
-            tmpfi._CHKX_[:, 1] .-= reshape(sum( reshape(co.amo.T_Δz_T * reshape(fi.datastream["QFLX_TEMP"], :, 1), Nz, :), dims=1 ), :) / ρcp_sw
-            tmpfi._CHKX_[:, 2] .-= reshape(sum( reshape(co.amo.T_Δz_T * reshape(fi.datastream["QFLX_SALT"], :, 1), Nz, :), dims=1 ), :)
+            tmpfi._CHKX_[:, 1] .-= reshape(sum( reshape(co.amo.T_Δz_T * reshape(tmpfi.datastream["QFLX_TEMP"], :, 1), Nz, :), dims=1 ), :) / ρcp_sw
+            tmpfi._CHKX_[:, 2] .-= reshape(sum( reshape(co.amo.T_Δz_T * reshape(tmpfi.datastream["QFLX_SALT"], :, 1), Nz, :), dims=1 ), :)
         end
 
 

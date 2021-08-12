@@ -40,9 +40,11 @@ mutable struct Env
         end
         
         if config[:weak_restoring] == :on || config[:Qflx_finding] == :on
-            push!(cdata_varnames, "WKRST_TEMP")
-            push!(cdata_varnames, "WKRST_SALT")
+            push!(cdata_varnames, "TEMP")
+            push!(cdata_varnames, "SALT")
         end
+
+        println("ENV: CDATA_VARNAMES = ", cdata_varnames)
 
         return new(
             

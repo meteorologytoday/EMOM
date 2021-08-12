@@ -33,19 +33,21 @@ function setupForcing!(
         M_north = ( - f_sT .* fi.TAUX_east + ϵ_sT .* fi.TAUY_north  ) .* co.mtx[:invD_sT] / ρ_sw
         M_east  = (   ϵ_sT .* fi.TAUX_east + f_sT .* fi.TAUY_north  ) .* co.mtx[:invD_sT] / ρ_sw
 
-        Mx_sT = copy(M_north)
+        Mx_sT = copy(M_east)
         My_sT = copy(M_north)
  
-        PolelikeCoordinate.project!(
-            co.gd, 
-            M_east,
-            M_north,
-            Mx_sT,
-            My_sT;
-            direction=:Forward,
-            grid=:T,
-        )
-       
+        if cfg[:transform_vector_field]
+            PolelikeCoordinate.project!(
+                co.gd, 
+                M_east,
+                M_north,
+                Mx_sT,
+                My_sT;
+                direction=:Forward,
+                grid=:T,
+            )
+        end
+ 
         # notice that we drop the z dimension for simplicity in the for loop
         Mx_u = reshape( co.amo_slab.U_interp_T * view(Mx_sT, :), co.gd.Nx, co.gd.Ny)
         My_v = reshape( co.amo_slab.V_interp_T * view(My_sT, :), co.gd.Nx, co.gd.Ny+1)

@@ -23,7 +23,7 @@ mutable struct Core
 
     function Core(
         ev :: Env,
-        fi :: Field,
+        tmpfi :: TempField,
     )
 
         cfg = ev.config
@@ -136,7 +136,7 @@ mutable struct Core
                 )
 
 
-                fi.datastream = makeDataContainer(cdatam)
+                tmpfi.datastream = makeDataContainer(cdatam)
             end
         end
 

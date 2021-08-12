@@ -113,9 +113,9 @@ module CyclicData
             time_idx_end = findlast(test)
 
             if time_idx_end == nothing || time_idx_beg == nothing
-                #println(beg_time)
-                #println(end_time)
-                #println(t_vec_raw)
+                println(beg_time)
+                println(end_time)
+                println(t_vec_raw)
                 throw(ErrorException("Time range is wrong that no time is within scope."))
             end
 
@@ -224,12 +224,16 @@ module CyclicData
             for varname in cdm.varnames
                 s = size(ds[varname])
 
-                #println(s)
+                Ny = s[2]
+
+                if cdm.sub_yrng != Colon()
+                    Ny = length(cdm.sub_yrng)
+                end
 
                 if length(s) == 4  # 3D case
-                    data[varname] = zeros(Float64, s[3], s[1], length(cdm.sub_yrng))
+                    data[varname] = zeros(Float64, s[3], s[1], Ny)
                 elseif length(s) == 3  # 2D case
-                    data[varname] = zeros(Float64, 1, s[1], length(cdm.sub_yrng))
+                    data[varname] = zeros(Float64, 1, s[1], Ny)
                 else
                     throw(ErrorException("Unknown dimension: " * string(s)))
                 end

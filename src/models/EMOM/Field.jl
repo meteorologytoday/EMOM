@@ -16,8 +16,8 @@ mutable struct Field
 
     _ADVX_    :: AbstractArray{Float64, 2}
     
-    _WKRST_   :: AbstractArray{Float64, 2}
-    _VDIFF_   :: AbstractArray{Float64, 2}
+    _WKRSTX_   :: AbstractArray{Float64, 2}
+    _VDIFFX_   :: AbstractArray{Float64, 2}
 
 
     HMXL     :: AbstractArray{Float64, 3}
@@ -36,7 +36,6 @@ mutable struct Field
     Q_FRZMLTPOT_NEG :: AbstractArray{Float64, 3}
     Q_FRZMLTPOT     :: AbstractArray{Float64, 3}
 
-    datastream   :: Union{Dict, Nothing}
 
     # sugar view
     sv       :: Union{Nothing, Dict} 
@@ -74,9 +73,9 @@ mutable struct Field
         
         _ADVX_ = zeros(Float64, T_pts, 2)
 
-        _WKRST_ = zeros(Float64, T_pts, 2)
+        _WKRSTX_ = zeros(Float64, T_pts, 2)
  
-        _VDIFF_ = zeros(Float64, T_pts, 2)
+        _VDIFFX_ = zeros(Float64, T_pts, 2)
 
         HMXL = zeros(Float64, 1, Nx, Ny)
         SWFLX = zeros(Float64, 1, Nx, Ny)
@@ -110,8 +109,8 @@ mutable struct Field
             _Xflx_W_,
 
             _ADVX_,
-            _WKRST_,
-            _VDIFF_,
+            _WKRSTX_,
+            _VDIFFX_,
 
             HMXL,
 
@@ -129,7 +128,6 @@ mutable struct Field
             Q_FRZMLTPOT_NEG,
             Q_FRZMLTPOT,
 
-            nothing,
             nothing,
         )
 
@@ -157,9 +155,15 @@ function getSugarView(
         :VVEL => reshape(fi._v, Nz, Nx, Ny+1),
         :WVEL => reshape(fi._w, Nz+1, Nx, Ny),
         :ADVT => reshape(view(fi._ADVX_, :, 1), Nz, Nx, Ny),
+        :ADVS => reshape(view(fi._ADVX_, :, 2), Nz, Nx, Ny),
+        :VDIFFT => reshape(view(fi._VDIFFX_, :, 1), Nz, Nx, Ny),
+        :VDIFFS => reshape(view(fi._VDIFFX_, :, 2), Nz, Nx, Ny),
+        :WKRSTT => reshape(view(fi._WKRSTX_, :, 1), Nz, Nx, Ny),
+        :WKRSTS => reshape(view(fi._WKRSTX_, :, 2), Nz, Nx, Ny),
     )
         
     sv[:SST] = view(sv[:TEMP], 1:1, :, :)
+    sv[:SSS] = view(sv[:SALT], 1:1, :, :)
     
     return sv
 end

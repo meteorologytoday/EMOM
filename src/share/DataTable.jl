@@ -103,7 +103,7 @@ function regVariable!(
     if Tuple(dim) != size(data)
         println("Expect ", dim)
         println("Get ", size(data))
-        throw(ErrorException("Provided data does not have correct dimension."))
+        throw(ErrorException("Provided data does not have correct dimension: " * string(id)))
     end
 
     if dtype != T

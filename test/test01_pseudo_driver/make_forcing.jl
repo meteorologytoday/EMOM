@@ -34,8 +34,8 @@ mid_of_mon = [ beg_of_mon[m] + dom[m]/2.0 for m=1:12 ]
 
 
 HMXL = zeros(Float64, Nx, Ny, 12)
-WKRST_TEMP = zeros(Float64, Nx, Ny, Nz, 12)
-WKRST_SALT = zeros(Float64, Nx, Ny, Nz, 12)
+TEMP = zeros(Float64, Nx, Ny, Nz, 12)
+SALT = zeros(Float64, Nx, Ny, Nz, 12)
 QFLX_TEMP = zeros(Float64, Nx, Ny, Nz, 12)
 QFLX_SALT = zeros(Float64, Nx, Ny, Nz, 12)
 
@@ -44,10 +44,10 @@ for t=1:12
 
     c = cos.(deg2rad.(lat))
     HMXL[:, :, t] = 50.0 .+ 25.0 * sin.(2*deg2rad.(lon) .+ deg2rad.(lat) .- 2π/365 * mid_of_mon[t])
-    WKRST_TEMP[:, :, :, t] = ( 20.0 .+
+    TEMP[:, :, :, t] = ( 20.0 .+
          5.0 * reshape( c .* (1.0 .+ sin.(2*deg2rad.(lon) .+ deg2rad.(lat) .- 2π/365 * mid_of_mon[t]) ) / 2.0, Nx, Ny, 1 ) .* reshape(exp.(z_w[1:end-1] / 100.0), 1, 1, :)
     )
-    WKRST_SALT[:, :, :, t] = ( 34.0 .+
+    SALT[:, :, :, t] = ( 34.0 .+
          5.0 * reshape( c .* (1.0 .+ sin.(2*deg2rad.(lon) .+ deg2rad.(lat) .- 2π/365 * mid_of_mon[t]) ) / 2.0, Nx, Ny, 1 ) .* reshape(exp.(z_w[1:end-1] / 100.0), 1, 1, :)
     )
 
@@ -85,12 +85,12 @@ Dataset(output_file, "c") do ds
             "long_name" => "Mixed layer depth",
         )),
 
-        ("WKRST_TEMP", WKRST_TEMP, ("nlon", "nlat", "z_t", "time",), Dict(
+        ("TEMP", TEMP, ("nlon", "nlat", "z_t", "time",), Dict(
             "units"     => "degC",
             "long_name" => "Temperature",
         )),
 
-        ("WKRST_SALT", WKRST_SALT, ("nlon", "nlat", "z_t", "time",), Dict(
+        ("SALT", SALT, ("nlon", "nlat", "z_t", "time",), Dict(
             "units"     => "PSU",
             "long_name" => "Salinity",
         )),

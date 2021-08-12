@@ -52,9 +52,17 @@ function runModel(
         config[:DRIVER] = validateConfigEntries(config[:DRIVER], getDriverConfigDescriptor())
     end
 
+    p = config[:DRIVER][:caserun]
 
-    writeLog("Setting working directory to {:s}", config[:DRIVER][:caserun])
-    cd(config[:DRIVER][:caserun])
+    writeLog("Setting working directory to {:s}", p)
+    if is_master
+        if ! isdir(p)
+            writeLog("Working directory does not exist. Create it.")
+            mkpath(p)
+        end
+    end
+    MPI.Barrier(comm)
+    cd(p)
 
     if is_master
 

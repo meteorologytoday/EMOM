@@ -3,7 +3,7 @@ function updateDatastream!(
     clock :: ModelClock,
 )
     cdatam     = mb.co.cdatam
-    datastream = mb.fi.datastream
+    datastream = mb.tmpfi.datastream
     cfg        = mb.ev.config
 
 

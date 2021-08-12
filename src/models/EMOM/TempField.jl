@@ -15,6 +15,8 @@ mutable struct TempField
 
     op_vdiff :: Union{AbstractArray, Nothing}
     sv       :: Union{Dict, Nothing}
+    
+    datastream   :: Union{Dict, Nothing}
 
     function TempField(
         ev :: Env,
@@ -57,6 +59,7 @@ mutable struct TempField
 
             _TMP_SUBSTEP_BUDGET_,
 
+            nothing,
             nothing,
             nothing,
         )

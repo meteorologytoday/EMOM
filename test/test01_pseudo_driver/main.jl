@@ -4,7 +4,7 @@ include("IOM/src/share/LogSystem.jl")
 include("IOM/src/share/PolelikeCoordinate.jl")
 
 include("IOM/src/models/EMOM/ENGINE_EMOM.jl")
-include("IOM/src/driver/pseudo_driver_MPI.jl")
+include("IOM/src/driver/driver.jl")
 
 using MPI
 using CFTime

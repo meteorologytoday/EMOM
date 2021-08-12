@@ -1,0 +1,352 @@
+using Distributed
+
+@everywhere module WeightGeneration
+
+    using NCDatasets
+    using SharedArrays
+    using Formatting
+    using Distributed
+
+    mutable struct WeightInfo
+
+        s_N        :: Int64
+        d_N        :: Int64
+
+        NN_idx     :: AbstractArray{Int64, 2}
+        s_gc_lat   :: AbstractArray{Float64, 1}
+        s_gc_lon   :: AbstractArray{Float64, 1}
+        d_gc_lat   :: AbstractArray{Float64, 1}
+        d_gc_lon   :: AbstractArray{Float64, 1}
+        s_dims     :: AbstractArray{Int64, 1}
+        d_dims     :: AbstractArray{Int64, 1}
+        s_wgt      :: AbstractArray{Float64, 1}
+
+    end
+
+
+    mutable struct GridInfo
+        
+        N      :: Int64
+
+        gc_lon :: AbstractArray{Float64}
+        gc_lat :: AbstractArray{Float64}
+
+        area   :: AbstractArray{Float64}
+        mask   :: AbstractArray{Float64}
+
+        unit_of_angle :: Symbol
+
+        dims   :: AbstractArray{Int64} 
+
+        function GridInfo(;
+            gc_lon :: AbstractArray{Float64,1},
+            gc_lat :: AbstractArray{Float64,1},
+            area   :: AbstractArray{Float64,1},
+            mask   :: AbstractArray{Float64,1},
+            unit_of_angle :: Symbol,
+            dims   = nothing,
+        ) 
+
+            N = length(gc_lon)
+
+            for var in [gc_lat, area, mask]
+                if length(var) != N
+                    throw(ErrorException("Not all input has the same length."))
+                end
+            end
+
+            if unit_of_angle == :deg
+
+                gc_lon .*= π / 180.0
+                gc_lat .*= π / 180.0
+
+            elseif unit_of_angle == :rad
+                # do nothing
+
+            else
+                throw(ErrorException("`unit_of_angle` must be `:deg` or `:rad`."))
+            end
+
+            if dims == nothing
+                dims = (N,)
+            end
+
+            dims = convert(Array{Int64}, dims)
+
+            if reduce(*, dims) != N
+                throw(ErrorException("Dims does not match the number of elements."))
+            end
+            
+
+
+
+            return new(N, gc_lon, gc_lat, area, mask, unit_of_angle, dims)
+        end
+
+
+    end
+
+    function genWeight_NearestNeighbors(
+        filename :: AbstractString,
+        gi_s     :: GridInfo,
+        gi_d     :: GridInfo,
+        NNN_max  :: Integer;
+    )
+
+        
+        trans = SharedArray{Float64}((NNN_max, gi_d.N))
+
+        # s_coord and d_coord are the coordinates of grid points
+        # in 3-dimensional cartesian coordinate
+
+        s_coord = SharedArray{Float64}(3, gi_s.N)
+        d_coord = SharedArray{Float64}(3, gi_d.N)
+
+        s_NaN_idx = (gi_s.mask .== 0)
+
+        @sync @distributed for i = 1:gi_s.N
+
+            s_coord[1, i] = cos(gi_s.gc_lat[i]) * cos(gi_s.gc_lon[i])
+            s_coord[2, i] = cos(gi_s.gc_lat[i]) * sin(gi_s.gc_lon[i])
+            s_coord[3, i] = sin(gi_s.gc_lat[i])
+
+        end
+
+        @sync @distributed for i = 1:gi_d.N
+
+            d_coord[1, i] = cos(gi_d.gc_lat[i]) * cos(gi_d.gc_lon[i])
+            d_coord[2, i] = cos(gi_d.gc_lat[i]) * sin(gi_d.gc_lon[i])
+            d_coord[3, i] = sin(gi_d.gc_lat[i])
+
+        end
+
+        #s_NaN_idx = (s_mask .== 0)
+
+        println("Start making transform matrix... ")
+
+        @time @sync @distributed for i = 1:gi_d.N
+
+            # For every point find its nearest-neighbors
+
+            #print("\r", i, "/", d_N)
+
+            if gi_d.mask[i] == 0
+                trans[:, i] .= 0
+                continue
+            end
+
+            dist2 = (  (s_coord[1, :] .- d_coord[1, i]).^2
+                     + (s_coord[2, :] .- d_coord[2, i]).^2
+                     + (s_coord[3, :] .- d_coord[3, i]).^2 )
+
+
+            # Decided not to apply this condition because in 
+            # extreme cases there might be a small area of water
+            # that is surrounded by lands.
+
+            dist2[s_NaN_idx] .= NaN
+         
+            idx_arr = collect(1:gi_s.N)
+            sort!(idx_arr; by=(k)->dist2[k])
+            trans[:, i] = idx_arr[1:NNN_max]
+
+        end
+        if any(isnan.(trans))
+            throw(ErrorException("Weird!"))
+        end
+        trans = convert(Array{Int64}, trans)
+        println(typeof(gi_s.dims))
+
+        wi = WeightInfo(
+            gi_s.N,
+            gi_d.N,
+            trans,
+            gi_s.gc_lat,
+            gi_s.gc_lon,
+            gi_d.gc_lat,
+            gi_d.gc_lon,
+            gi_s.dims,
+            gi_d.dims,
+            gi_s.area,
+        )
+
+        writeWeightInfo(wi, filename)
+    end
+
+    function writeWeightInfo(
+        wi::WeightInfo,
+        filename :: AbstractString;
+        missing_value = 1e20,
+    )
+
+        Dataset(filename, "c") do ds
+
+            defDim(ds, "s_N", wi.s_N)
+            defDim(ds, "d_N", wi.d_N)
+            defDim(ds, "NNN_max", size(wi.NN_idx)[1])
+            defDim(ds, "s_dims", length(wi.s_dims))
+            defDim(ds, "d_dims", length(wi.d_dims))
+
+            for (varname, vardata, vardims) in (
+                ("NN_idx",    wi.NN_idx, ("NNN_max", "d_N")),
+                ("s_gc_lat",  wi.s_gc_lat, ("s_N",)),
+                ("s_gc_lon",  wi.s_gc_lon, ("s_N",)),
+                ("d_gc_lat",  wi.d_gc_lat, ("d_N",)),
+                ("d_gc_lon",  wi.d_gc_lon, ("d_N",)),
+                ("s_dims",    wi.s_dims, ("s_dims",)),
+                ("d_dims",    wi.d_dims, ("d_dims",)),
+                ("s_wgt",     wi.s_wgt, ("s_N",)),
+            )
+
+                print(format("Output data: {} ...", varname))
+
+                dtype = eltype(vardata)
+
+                v = defVar(ds, varname, eltype(vardata), vardims)
+
+                if dtype <: AbstractFloat
+                    v.attrib["_FillValue"] = missing_value
+                end
+
+                v[:] = vardata
+                println("done.")
+            end
+            
+            
+        end
+
+    end    
+
+
+    function convertData!(
+        NN_idx  :: AbstractArray{I, 2},
+        s_wgt   :: AbstractArray{Float64, 1},
+        s_data  :: AbstractArray{Float64, 1},
+        d_data  :: AbstractArray{Float64, 1},
+    ) where Float64 <: AbstractFloat where I <: Integer
+
+        NNN = size(NN_idx)[1]
+        println(size(NN_idx))
+        for i = 1 : length(d_data)
+
+            d_data[i] = NaN
+            wgt_sum = 0.0
+
+            if NN_idx[1, i] == 0
+                continue
+            end
+
+            for j = 1:NNN
+
+                idx = NN_idx[j, i]
+                data = s_data[idx]
+        
+                if isfinite(data)
+                    wgt_sum += s_wgt[idx]
+                    d_data[i] += data
+                else
+                    break
+                end
+            end
+
+            d_data[i] = (wgt_sum == 0) ? NaN : d_data[i] / wgt_sum
+
+        end
+
+    end
+
+
+    function readWeightFile(wgt_filename :: AbstractString)
+
+        ds = Dataset(wgt_filename, "r")
+
+        NN_idx = replace(ds["NN_idx"][:], missing=>0)
+        s_wgt = replace(ds["s_wgt"][:], missing=>NaN)
+
+
+        return NN_idx, s_wgt
+
+    end
+
+
+
+    function convertFile(
+        in_filename   :: AbstractString,
+        out_filename  :: AbstractString,
+        wgt_filename  :: AbstractString;
+        varnames2D    :: Tuple = (),
+        varnames3D    :: Tuple = (),
+        copy_varnames :: Tuple = (:,),
+    )
+        NN_idx, s_wgt = readWeightFile(wgt_filename)
+
+        s_data_len = length(s_wgt) 
+        d_data_tmp = zeros(eltype(s_wgt), size(NN_idx)[2])
+
+        ds_in  = Dataset(in_filename, "r")
+        ds_out = Dataset(out_filename, "c")
+
+        for varname in varnames2D
+
+            println("Dealing with varname: ", varname)
+
+            if varname in ds_out
+                println(format("[Varnames2D] Varname: {} already exists. Skip.", varname))
+                continue
+            end
+
+
+            cf_var = ds_in[varname]
+
+            # Create dimension
+            for dimname in dimnames(cf_var)
+                if ! (dimname in ds_out.dim)
+                    defDim(ds_out, dimname, ds_in.dim[dimname])
+                end
+            end
+
+
+            s_data = replace(cf_var[:], missing=>NaN)
+            dtype = eltype(s_data)
+            dims  = size(cf_var)
+            dims_len = length(dims)
+
+            if dims_len == 2
+                s_data = reshape(s_data, dims[1] * dims[2], 1)
+            elseif dims_len == 3
+                s_data = reshape(s_data, dims[1] * dims[2], dims[3])
+            else
+                throw(ErrorException(format("[Varnames2D] Varname: {} does not have correct dimension or size.", varname)))
+            end
+           
+            println(dtype)
+            println(typeof(NN_idx))
+#            println(typeof(cf_var.attrib["_FilllValue"]))
+            
+            v = defVar(ds_out, varname, dtype, dimnames(cf_var))
+#; attrib=cf_var.attrib)
+
+
+            if dims_len == 2
+                convertData!(NN_idx, s_wgt, view(s_data, :, 1), d_data_tmp)
+                v[:] = reshape(d_data_tmp, dims[1], dims[2])
+            elseif dims_len == 3
+                for k = 1:size(s_data)[2]
+                    convertData!(NN_idx, s_wgt, view(s_data, :, k), d_data_tmp)
+                    println(size(d_data_tmp))
+                    v[:, :, k] = reshape(d_data_tmp, dims[1], dims[2], 1)
+                end
+            end 
+        end
+
+        # copy variable
+#        for i = 1:N
+#        end 
+        
+        # 
+
+        close(ds_in)
+        close(ds_out)
+    end
+
+end

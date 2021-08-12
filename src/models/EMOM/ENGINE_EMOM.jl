@@ -116,7 +116,6 @@ module ENGINE_EMOM
                 end
 
                 master_mb = EMOM.loadSnapshot(snapshot_filename)
-                master_ev = master_mb.ev
             else
 
                 init_file = misc_config[:init_file]
@@ -125,37 +124,18 @@ module ENGINE_EMOM
 
                     println("Initial ocean with profile: ", init_file)
                     println("Initial ocean with domain file: ", core_config[:domain_file])
-                    master_mb = EMOM.loadSnapshot(init_file; gridinfo_file=core_config[:domain_file])
+                    master_mb = EMOM.loadSnapshot(init_file; overwrite_config=core_config)
                 
                 else
 
                     writeLog("Debugging status. Initialize an empty ocean.")
-
-                    
-
                     master_ev = EMOM.Env(core_config)
                     master_mb = EMOM.ModelBlock(master_ev; init_core=false)
-                    #master_mb.fi.sv[:TEMP][end-5:end, :, :]  .= -10000
-                    #=
-                    master_mb.fi.sv[:TEMP][:, :, :]  .= 10
-                    master_mb.fi.sv[:TEMP][1, 20, :] .= 30
 
-                    master_mb.fi.sv[:TEMP][1, :, 21] .= 21
-                    master_mb.fi.sv[:TEMP][1, :, 22] .= 22
-                    master_mb.fi.sv[:TEMP][1, :, 23] .= 23
-                    master_mb.fi.sv[:TEMP][1, :, 24] .= 24
-                    master_mb.fi.sv[:TEMP][1, :, 25] .= 25
-                    master_mb.fi.sv[:TEMP][1, :, 26] .= 26
-                    master_mb.fi.sv[:TEMP][1, :, 27] .= 27
-                    master_mb.fi.sv[:TEMP][1, :, 28] .= 28
-
-                    master_mb.fi.HMXL .= 50.0
-                    master_mb.fi.HMXL[1, 20:25, 21:24] .= 75.0
-
-                    #throw(ErrorException("Variable `init_file` is absent in `config`."))
-                    =#
                 end
             end
+
+            master_ev = master_mb.ev
         end
 
         if is_master
@@ -194,7 +174,7 @@ module ENGINE_EMOM
             "TAUY_north"   => my_mb.fi.TAUY_north,
             "IFRAC"  => copy(empty_arr_sT),
             "FRWFLX" => copy(empty_arr_sT),
-            "VSFLX"  => copy(empty_arr_sT),
+            "VSFLX"  => my_mb.fi.VSFLX,
             "QFLX_T" => copy(empty_arr_sT),
             "QFLX_S" => copy(empty_arr_sT),
             "MLD"    => copy(empty_arr_sT),
@@ -208,6 +188,10 @@ module ENGINE_EMOM
 
         # Synchronizing Data
         sync_data_list = Dict(
+
+            # These forcings are syned from
+            # master to slave before each
+            # timestep starts.
             :forcing => (
                 "SWFLX",
                 "NSWFLX",
@@ -215,6 +199,9 @@ module ENGINE_EMOM
                 "TAUY_north",
             ),
 
+            # These states will be synced from
+            # slave to master right after
+            # completing each timestep
             :output_state   => (
                 "TEMP",
                 "SALT",
@@ -226,16 +213,27 @@ module ENGINE_EMOM
                 "TAUX",
                 "TAUY",
                 "ADVT",
+                "ADVS",
+                "VDIFFT",
+                "VDIFFS",
+                "WKRSTT",
+                "WKRSTS",
                 "HMXL",
                 "Q_FRZMLTPOT",
             ),
 
+            # These states are synced from 
+            # master to slave after :output_state
+            # are syned
             :thermo_state   => (
                 "TEMP",
                 "SALT",
             ),
 
 
+            # These states are syned from
+            # slave to master and master to slabe
+            # during the substeps.
             :intm_state => (
                 "INTMTEMP",
                 "INTMSALT",

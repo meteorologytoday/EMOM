@@ -238,6 +238,15 @@ function getConfigDescriptor()
                 5;
                 desc = "Number of Ekman return flows. Will be overwritten if :init_file is used",
             ),
+
+            ConfigEntry(
+                :transform_vector_field,
+                :optional,
+                [Bool,],
+                true;
+                desc = "If this is set true, then TAUX_east and TAUY_north are considered pointing to true east and north. Thus, a vector transformation onto grid-x and -y direction will be performed. If this is set false, TAUX_east and TAUY_north are considered aligned with grid-x and -y so no transformation will be performed.",
+            ),
+
         ],
     )
 end

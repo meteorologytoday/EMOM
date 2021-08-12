@@ -1,5 +1,5 @@
 mv,Sandbox.EMOM.h1.day.0001-01.nc,/billevans/projects/IOM/test/test01_pseudo_driver/Sandbox/caserun,/billevans/projects/IOM/test/test01_pseudo_driver/Sandbox/archive/ocn/hist
 mv,Sandbox.EMOM.h0.mon.0001-01.nc,/billevans/projects/IOM/test/test01_pseudo_driver/Sandbox/caserun,/billevans/projects/IOM/test/test01_pseudo_driver/Sandbox/archive/ocn/hist
-cp,Sandbox.snapshot.0001-01-06-00000.jld2,/billevans/projects/IOM/test/test01_pseudo_driver/Sandbox/caserun,/billevans/projects/IOM/test/test01_pseudo_driver/Sandbox/archive/rest/0001-01-06-00000
-cp,rpointer.hoom,/billevans/projects/IOM/test/test01_pseudo_driver/Sandbox/caserun,/billevans/projects/IOM/test/test01_pseudo_driver/Sandbox/archive/rest/0001-01-06-00000
-cp,model_restart.jld2,/billevans/projects/IOM/test/test01_pseudo_driver/Sandbox/caserun,/billevans/projects/IOM/test/test01_pseudo_driver/Sandbox/archive/rest/0001-01-06-00000
+cp,Sandbox.snapshot.0001-01-11-00000.jld2,/billevans/projects/IOM/test/test01_pseudo_driver/Sandbox/caserun,/billevans/projects/IOM/test/test01_pseudo_driver/Sandbox/archive/rest/0001-01-11-00000
+cp,rpointer.hoom,/billevans/projects/IOM/test/test01_pseudo_driver/Sandbox/caserun,/billevans/projects/IOM/test/test01_pseudo_driver/Sandbox/archive/rest/0001-01-11-00000
+cp,model_restart.jld2,/billevans/projects/IOM/test/test01_pseudo_driver/Sandbox/caserun,/billevans/projects/IOM/test/test01_pseudo_driver/Sandbox/archive/rest/0001-01-11-00000

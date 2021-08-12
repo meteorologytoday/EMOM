@@ -96,13 +96,13 @@ function stepColumn!(
         op_SALT   += co.mtx[:T_invτwk_SALT_T]
 
         # T_mask_T is already in mtx when built
-        RHS_TEMP .-= Δt * co.mtx[:T_invτwk_TEMP_T] * reshape( fi.datastream["WKRST_TEMP"] , :)
-        RHS_SALT .-= Δt * co.mtx[:T_invτwk_SALT_T] * reshape( fi.datastream["WKRST_SALT"] , :)
+        RHS_TEMP .-= Δt * co.mtx[:T_invτwk_TEMP_T] * reshape( tmpfi.datastream["TEMP"] , :)
+        RHS_SALT .-= Δt * co.mtx[:T_invτwk_SALT_T] * reshape( tmpfi.datastream["SALT"] , :)
     end
  
     if cfg[:Qflx] == :on
-        RHS_TEMP .+= Δt * co.amo.T_mask_T * view( fi.datastream["QFLX_TEMP"] , :) / ρcp_sw
-        RHS_SALT .+= Δt * co.amo.T_mask_T * view( fi.datastream["QFLX_SALT"] , :) 
+        RHS_TEMP .+= Δt * co.amo.T_mask_T * view( tmpfi.datastream["QFLX_TEMP"] , :) / ρcp_sw
+        RHS_SALT .+= Δt * co.amo.T_mask_T * view( tmpfi.datastream["QFLX_SALT"] , :) 
     end
 
     F_EBM_TEMP = lu( I - Δt * op_TEMP )
@@ -112,6 +112,9 @@ function stepColumn!(
     tmpfi.sv[:NEWSALT][:] = F_EBM_SALT \ RHS_SALT
     #tmpfi.sv[:NEWTEMP][:] = RHS_TEMP
     #tmpfi.sv[:NEWSALT][:] = RHS_SALT
+
+   fi.sv[:VDIFFT][:] = op_vdiff * reshape(tmpfi.sv[:NEWTEMP], :, 1) 
+   fi.sv[:VDIFFS][:] = op_vdiff * reshape(tmpfi.sv[:NEWSALT], :, 1) 
 
     #=
     beg_idx = 0
@@ -135,12 +138,12 @@ function stepColumn!(
     =#
     # Recompute source and sink of tracers due to weak restoring
     if cfg[:weak_restoring] == :on
-        tmpfi._WKRSTΔX_[:, 1] = tmpfi._NEWX_[:, 1] - reshape(fi.datastream["WKRST_TEMP"], :)
-        tmpfi._WKRSTΔX_[:, 2] = tmpfi._NEWX_[:, 2] - reshape(fi.datastream["WKRST_SALT"], :)
-        fi._WKRST_[:, 1] .= co.mtx[:T_invτwk_TEMP_T] * view(tmpfi._WKRSTΔX_, :, 1)
-        fi._WKRST_[:, 2] .= co.mtx[:T_invτwk_SALT_T] * view(tmpfi._WKRSTΔX_, :, 2)
+        tmpfi._WKRSTΔX_[:, 1] = tmpfi._NEWX_[:, 1] - reshape(tmpfi.datastream["TEMP"], :)
+        tmpfi._WKRSTΔX_[:, 2] = tmpfi._NEWX_[:, 2] - reshape(tmpfi.datastream["SALT"], :)
+        fi._WKRSTX_[:, 1] .= co.mtx[:T_invτwk_TEMP_T] * view(tmpfi._WKRSTΔX_, :, 1)
+        fi._WKRSTX_[:, 2] .= co.mtx[:T_invτwk_SALT_T] * view(tmpfi._WKRSTΔX_, :, 2)
     else
-        fi._WKRST_ .= 0.0
+        fi._WKRSTX_ .= 0.0
     end
 
     # Tackle freeze / melt potential
