@@ -252,6 +252,8 @@ module CyclicData
         data     :: Dict 
     )
 
+        missing_data = 0.0
+
         Dataset(cdm.filename, "r") do ds
 
             for varname in cdm.varnames
@@ -259,11 +261,11 @@ module CyclicData
                 s = size(var)
 
                 if length(s) == 4  # 3D case
-                    data[varname][:, :, :] = permutedims(nomissing(ds[varname][:, cdm.sub_yrng, :, t_idx], NaN), [3,1,2]) 
+                    data[varname][:, :, :] = permutedims(nomissing(ds[varname][:, cdm.sub_yrng, :, t_idx], missing_data), [3,1,2]) 
                 elseif length(s) == 3  # 2D case
                     #println(varname, "; cdm.sub_yrng: ", cdm.sub_yrng)
                     #println("size: ", size(ds[varname][cdm.sub_yrng, :, t_idx]))
-                    data[varname][:, :, :] = reshape(nomissing(ds[varname][:, cdm.sub_yrng, t_idx], NaN), 1, s[1:2]...)
+                    data[varname][:, :, :] = reshape(nomissing(ds[varname][:, cdm.sub_yrng, t_idx], missing_data), 1, s[1:2]...)
                 else
                     throw(ErrorException("Unknown dimension: " * string(s)))
                 end

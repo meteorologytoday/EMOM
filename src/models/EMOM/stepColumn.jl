@@ -94,10 +94,16 @@ function stepColumn!(
     if cfg[:weak_restoring] == :on
         op_TEMP   += co.mtx[:T_invτwk_TEMP_T]
         op_SALT   += co.mtx[:T_invτwk_SALT_T]
+        
+        idx = isnan.(tmpfi.datastream["TEMP"])
+        tmpfi.datastream["TEMP"][idx] .= 0.0
+        tmpfi.datastream["SALT"][idx] .= 0.0
+        
+        T_filter_T = spdiagm(0 => reshape(idx, :))
 
         # T_mask_T is already in mtx when built
-        RHS_TEMP .-= Δt * co.mtx[:T_invτwk_TEMP_T] * reshape( tmpfi.datastream["TEMP"] , :)
-        RHS_SALT .-= Δt * co.mtx[:T_invτwk_SALT_T] * reshape( tmpfi.datastream["SALT"] , :)
+        RHS_TEMP .-= Δt * T_filter_T * co.mtx[:T_invτwk_TEMP_T] * reshape( tmpfi.datastream["TEMP"] , :)
+        RHS_SALT .-= Δt * T_filter_T * co.mtx[:T_invτwk_SALT_T] * reshape( tmpfi.datastream["SALT"] , :)
     end
  
     if cfg[:Qflx] == :on

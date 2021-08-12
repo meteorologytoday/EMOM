@@ -67,12 +67,11 @@ read_restart = false
 cfgmc = config[:MODEL_CORE]
 cfgmm = config[:MODEL_MISC]
 
-cfgmc[:weak_restoring] = :on
+cfgmc[:weak_restoring] = :off
 cfgmc[:τwk_TEMP] = parsed["nudging-timescale-day"] * 86400.0
 cfgmc[:τwk_SALT] = parsed["nudging-timescale-day"] * 86400.0
 
 t_start = DateTimeNoLeap(1, 1, 1, 0, 0, 0)
-t_simulation = Dates.Year(1)
 t_end = t_start + t_simulation
 
 MPI.Init()
@@ -112,11 +111,11 @@ coupler_funcs = (
         if ! t_end_reached
 
             interpData!(cdatam, OMDATA.clock.time, datastream)
-            OMDATA.x2o["SWFLX"]       .= - datastream["SHF_QSW"]
-            OMDATA.x2o["NSWFLX"]      .= - (datastream["SHF"] - datastream["SHF_QSW"])
-            OMDATA.x2o["VSFLX"]       .=   datastream["SFWF"]
-            OMDATA.x2o["TAUX_east"]   .=   datastream["TAUX"]
-            OMDATA.x2o["TAUY_north"]  .=   datastream["TAUY"]
+#            OMDATA.x2o["SWFLX"]       .= - datastream["SHF_QSW"]
+#            OMDATA.x2o["NSWFLX"]      .= - (datastream["SHF"] - datastream["SHF_QSW"])
+#            OMDATA.x2o["VSFLX"]       .=   datastream["SFWF"]
+#            OMDATA.x2o["TAUX_east"]   .=   datastream["TAUX"]
+#            OMDATA.x2o["TAUY_north"]  .=   datastream["TAUY"]
 
             return_values = ( :RUN,  Δt, t_end_reached )
         else
