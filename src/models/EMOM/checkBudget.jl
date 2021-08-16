@@ -6,12 +6,13 @@ function checkBudget!(
 )
 
     fi    = mb.fi
+    ev    = mb.ev
     tmpfi = mb.tmpfi
     co    = mb.co
     cfg   = mb.ev.config
-    Nx = co.gd.Nx
-    Ny = co.gd.Ny
-    Nz = co.gd.Nz
+    Nx = ev.Nx
+    Ny = ev.Ny
+    Nz = ev.Nz
 
     if stage == :BEFORE_STEPPING
 

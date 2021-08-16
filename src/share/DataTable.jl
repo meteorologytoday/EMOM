@@ -5,10 +5,16 @@ mutable struct DataTable
     grid_dims   :: Dict
     grid_dims2_str  :: Dict
     data_units  :: Dict
+    missing_idx1 :: Dict   # with shape (z, x, y)
+    missing_idx2 :: Dict   # with shape (x, y, z)
     flags       :: Dict    # What are flags for? 
 
     function DataTable(;
-        Nx, Ny, Nz
+        Nx,
+        Ny,
+        Nz,
+        mask_sT    :: Union{Nothing, AbstractArray{Float64, 3}} = nothing,
+        mask_T     :: Union{Nothing, AbstractArray{Float64, 3}} = nothing,
     )
 
         N1 = 1
@@ -34,6 +40,8 @@ mutable struct DataTable
             :sU => (N1, Nx, Ny  ),
             :sV => (N1, Nx, Nyp1),
             :SCALAR => (N1, N1, N1),
+            :cW => (Nzp1, N1, N1),
+            :cT => (Nz, N1, N1),
         )
 
         # This is used for RecordTool output
@@ -47,6 +55,8 @@ mutable struct DataTable
             :sU => ("Nx", "Ny", "N1"),
             :sV => ("Nx", "Nyp1", "N1"),
             :SCALAR => ("N1", "N1", "N1"),
+            :cW => ("N1", "N1", "Nzp1",),
+            :cT => ("N1", "N1", "Nz",),
         )
 
 
@@ -54,11 +64,30 @@ mutable struct DataTable
         data_units = Dict()
         flags      = Dict()
 
+
+        missing_idx1 = Dict(
+            :sT => (mask_sT == nothing) ? nothing : mask_sT .== 0,
+            :T  => (mask_T == nothing) ? nothing : mask_T .== 0,
+            :U => nothing,
+            :V => nothing,
+            :W => nothing,
+            :UV => nothing,
+            nothing => nothing,
+        )
+    
+        missing_idx2 = Dict()
+        for (k,v) in missing_idx1
+            missing_idx2[k] = (v != nothing) ? permutedims(v, [2, 3, 1]) : nothing
+        end
+
+
         return new(
             dims,
             grid_dims,
             grid_dims2_str,
             data_units,
+            missing_idx1,
+            missing_idx2,
             flags,
         )
 
@@ -70,6 +99,7 @@ function regVariable!(
     dt       :: DataTable,
     id       :: Union{Symbol, String},
     grid     :: Symbol,
+    mask     :: Union{Symbol, Nothing},
     data     :: AbstractArray{T},
 ) where T
 
@@ -84,16 +114,7 @@ function regVariable!(
         throw(ErrorException("Error: variable id " * String(id) *  " already exists."))
     end
 
-    dim = Dict(
-        :T  => [Nz,   Nx  , Ny  ],
-        :U  => [Nz,   Nx  , Ny  ],
-        :V  => [Nz,   Nx  , Nyp1],
-        :W  => [Nzp1, Nx  , Ny  ],
-        :sT => [N1, Nx, Ny  ],
-        :sU => [N1, Nx, Ny  ],
-        :sV => [N1, Nx, Nyp1],
-        :SCALAR => [N1, N1, N1],
-    )[grid]
+    dim = dt.grid_dims[grid]
 
     dtype = eltype(data)
     if ! (dtype in (Float64, Int64))
@@ -114,6 +135,7 @@ function regVariable!(
         dt,
         id,
         grid,
+        mask,
         data,
     )
 

@@ -129,7 +129,7 @@ module ENGINE_EMOM
                 else
 
                     writeLog("Debugging status. Initialize an empty ocean.")
-                    master_ev = EMOM.Env(core_config)
+                    master_ev = EMOM.Env(core_config, verbose=is_master)
                     master_mb = EMOM.ModelBlock(master_ev; init_core=false)
 
                 end
@@ -139,7 +139,11 @@ module ENGINE_EMOM
         end
 
         if is_master
-            writeLog("The following datastream variables are used: {:s}.", join(master_ev.cdata_varnames, ", "))
+            if length(master_ev.cdata_varnames) != 0
+                writeLog("The following datastream variables are used: {:s}.", join(master_ev.cdata_varnames, ", "))
+            else
+                writeLog("No datastream is used.")
+            end
         end
         # Create plans
         if is_master
@@ -156,9 +160,7 @@ module ENGINE_EMOM
             my_ev = master_ev
             my_mb = master_mb
         else
-            my_ev          = deepcopy(master_ev) 
-            my_ev.sub_yrng = getYsplitInfoByRank(jdi, rank).pull_fr_rng
-            my_ev.Ny       = length(my_ev.sub_yrng)
+            my_ev          = EMOM.Env(master_ev.config; sub_yrng = getYsplitInfoByRank(jdi, rank).pull_fr_rng)
             my_mb          = EMOM.ModelBlock(my_ev; init_core = true)
         end
 
@@ -291,7 +293,10 @@ module ENGINE_EMOM
                 end
                     
                 rec_varnames = EMOM.getDynamicVariableList(my_mb; varnames=varnames, varsets=varsets) |> keys |> collect
-               
+                add_varnames = EMOM.getCompleteVariableList(my_mb, :static) |> keys |> collect 
+
+                println("Additional varanames: ", add_varnames)
+
                 #= 
                 if typeof(misc_config[rec_key]) <: Symbol 
                     misc_config[rec_key] = EMOM.getVariableList(my_mb, misc_config[rec_key]) |> keys |> collect
@@ -317,18 +322,11 @@ module ENGINE_EMOM
 
                 if length(rec_varnames) != 0
                     
-                    # additional variables
-                    add_var_list = []
-                    #for (k, v) in additional_variable_list
-                    #   push!(add_var_list, ( k, v... ) )
-                    #end
-
-                         
                     MD.recorders[rec_key] = Recorder(
                         my_mb.dt,
                         rec_varnames,
                         EMOM.var_desc;
-                        other_varnames=add_var_list,
+                        other_varnames=add_varnames,
                     )
                     
 

@@ -111,11 +111,11 @@ coupler_funcs = (
         if ! t_end_reached
 
             interpData!(cdatam, OMDATA.clock.time, datastream)
-#            OMDATA.x2o["SWFLX"]       .= - datastream["SHF_QSW"]
-#            OMDATA.x2o["NSWFLX"]      .= - (datastream["SHF"] - datastream["SHF_QSW"])
-#            OMDATA.x2o["VSFLX"]       .=   datastream["SFWF"]
-#            OMDATA.x2o["TAUX_east"]   .=   datastream["TAUX"]
-#            OMDATA.x2o["TAUY_north"]  .=   datastream["TAUY"]
+            #OMDATA.x2o["SWFLX"]       .= - datastream["SHF_QSW"]
+            #OMDATA.x2o["NSWFLX"]      .= - (datastream["SHF"] - datastream["SHF_QSW"])
+            #OMDATA.x2o["VSFLX"]       .=   datastream["SFWF"]
+            OMDATA.x2o["TAUX_east"]   .=   datastream["TAUX"] / 10.0
+            OMDATA.x2o["TAUY_north"]  .=   datastream["TAUY"] / 10.0
 
             return_values = ( :RUN,  Δt, t_end_reached )
         else

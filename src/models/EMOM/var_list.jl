@@ -8,34 +8,34 @@ function getCompleteVariableList(
     if vartype == :dynamic
         d = Dict(
 
-            "TEMP"               => ( mb.fi.sv[:TEMP], :T ),
-            "SALT"               => ( mb.fi.sv[:SALT], :T ),
-            "UVEL"               => ( mb.fi.sv[:UVEL], :U ),
-            "VVEL"               => ( mb.fi.sv[:VVEL], :V ),
-            "WVEL"               => ( mb.fi.sv[:WVEL], :W ),
-            "TAUX"               => ( mb.fi.TAUX,        :sT ),
-            "TAUY"               => ( mb.fi.TAUY,        :sT ),
-            "TAUX_east"          => ( mb.fi.TAUX_east,   :sT ),
-            "TAUY_north"         => ( mb.fi.TAUY_north,  :sT ),
-            "SWFLX"              => ( mb.fi.SWFLX,       :sT ),
-            "NSWFLX"             => ( mb.fi.NSWFLX,      :sT ),
-            "VSFLX"              => ( mb.fi.NSWFLX,      :sT ),
-            "ADVT"               => ( mb.fi.sv[:ADVT],     :T ),
-            "ADVS"               => ( mb.fi.sv[:ADVS],     :T ),
-            "HMXL"               => ( mb.fi.HMXL,          :sT ),
+            "TEMP"               => ( mb.fi.sv[:TEMP], :T, :mask ),
+            "SALT"               => ( mb.fi.sv[:SALT], :T, :mask ),
+            "UVEL"               => ( mb.fi.sv[:UVEL], :U, nothing ),
+            "VVEL"               => ( mb.fi.sv[:VVEL], :V, nothing ),
+            "WVEL"               => ( mb.fi.sv[:WVEL], :W, nothing ),
+            "TAUX"               => ( mb.fi.TAUX,        :sT, :mask ),
+            "TAUY"               => ( mb.fi.TAUY,        :sT, :mask ),
+            "TAUX_east"          => ( mb.fi.TAUX_east,   :sT, :mask ),
+            "TAUY_north"         => ( mb.fi.TAUY_north,  :sT, :mask ),
+            "SWFLX"              => ( mb.fi.SWFLX,       :sT, :mask ),
+            "NSWFLX"             => ( mb.fi.NSWFLX,      :sT, :mask ),
+            "VSFLX"              => ( mb.fi.NSWFLX,      :sT, :mask ),
+            "ADVT"               => ( mb.fi.sv[:ADVT],     :T, :mask ),
+            "ADVS"               => ( mb.fi.sv[:ADVS],     :T, :mask ),
+            "HMXL"               => ( mb.fi.HMXL,          :sT, :mask ),
             
-            "WKRSTT"       => ( mb.fi.sv[:WKRSTT], :T),
-            "WKRSTS"       => ( mb.fi.sv[:WKRSTS], :T),
+            "WKRSTT"       => ( mb.fi.sv[:WKRSTT], :T, :mask),
+            "WKRSTS"       => ( mb.fi.sv[:WKRSTS], :T, :mask),
  
-            "VDIFFT"       => ( mb.fi.sv[:VDIFFT], :T),
-            "VDIFFS"       => ( mb.fi.sv[:VDIFFS], :T),
+            "VDIFFT"       => ( mb.fi.sv[:VDIFFT], :T, :mask),
+            "VDIFFS"       => ( mb.fi.sv[:VDIFFS], :T, :mask),
             
-            "Q_FRZMLTPOT"        => ( mb.fi.Q_FRZMLTPOT,  :sT ),
-            "CHKTEMP"            => ( mb.tmpfi.sv[:CHKTEMP],  :sT ),
-            "CHKSALT"            => ( mb.tmpfi.sv[:CHKSALT],  :sT ),
+            "Q_FRZMLTPOT"        => ( mb.fi.Q_FRZMLTPOT,  :sT, :mask ),
+            "CHKTEMP"            => ( mb.tmpfi.sv[:CHKTEMP],  :sT, :mask ),
+            "CHKSALT"            => ( mb.tmpfi.sv[:CHKSALT],  :sT, :mask ),
 
-            "INTMTEMP"           => ( mb.tmpfi.sv[:INTMTEMP], :T),
-            "INTMSALT"           => ( mb.tmpfi.sv[:INTMSALT], :T),
+            "INTMTEMP"           => ( mb.tmpfi.sv[:INTMTEMP], :T, :mask),
+            "INTMSALT"           => ( mb.tmpfi.sv[:INTMSALT], :T, :mask),
 
             "WKRST_TARGET_TEMP"         => nothing,
             "WKRST_TARGET_SALT"         => nothing,
@@ -47,32 +47,32 @@ function getCompleteVariableList(
         if mb.tmpfi.datastream != nothing 
 
             if mb.ev.config[:weak_restoring] == :on
-                d["WKRST_TARGET_TEMP"] = ( mb.tmpfi.datastream["TEMP"], :T )
-                d["WKRST_TARGET_SALT"] = ( mb.tmpfi.datastream["SALT"], :T )
+                d["WKRST_TARGET_TEMP"] = ( mb.tmpfi.datastream["TEMP"], :T , :mask)
+                d["WKRST_TARGET_SALT"] = ( mb.tmpfi.datastream["SALT"], :T , :mask)
             end
 
             if mb.ev.config[:Qflx] == :on
-                d["QFLX_TEMP"] = ( mb.tmpfi.datastream["QFLX_TEMP"], :T )
-                d["QFLX_SALT"] = ( mb.tmpfi.datastream["QFLX_SALT"], :T )
+                d["QFLX_TEMP"] = ( mb.tmpfi.datastream["QFLX_TEMP"], :T, :mask )
+                d["QFLX_SALT"] = ( mb.tmpfi.datastream["QFLX_SALT"], :T, :mask )
             end
 
         end
 
     elseif vartype == :static
 
-        #=
         d = Dict(
             # COORDINATEi
-            "area"               => ( ocn.mi.area,                  ("Nx", "Ny") ),
-            "mask"               => ( ocn.mi.mask,                  ("Nx", "Ny") ),
-            "frac"               => ( ocn.mi.frac,                  ("Nx", "Ny") ),
-            "c_lon"              => ( ocn.mi.xc,                    ("Nx", "Ny") ),
-            "c_lat"              => ( ocn.mi.yc,                    ("Nx", "Ny") ),
-            "zs_bone"            => ( ocn.zs_bone,                  ("NP_zs_bone",) ),
+            "deepmask_T"=> ( mb.ev.topo.deepmask_T, :T, nothing),
+            "topoz_sT"  => ( mb.ev.topo.topoz_sT, :sT, nothing),
+            "Nz_bot_sT" => ( mb.ev.topo.Nz_bot_sT, :sT, nothing),
+            "area_sT"   => ( mb.ev.gd_slab.Δx_T .* mb.ev.gd_slab.Δy_T, :sT, nothing),
+            "mask_sT"   => ( mb.ev.topo.sfcmask_sT, :sT, nothing),
+            "z_cW"      => ( reshape(mb.ev.config[:z_w], :, 1, 1), :cW, nothing),
+            "dz_cT"     => ( mb.ev.gd.Δz_T[:, 1:1, 1:1], :cT, nothing),
+            "lon_sT"    => ( rad2deg.(mb.ev.gd_slab.λ_T), :sT, nothing),
+            "lat_sT"    => ( rad2deg.(mb.ev.gd_slab.ϕ_T), :sT, nothing),
         )
-        =#
 
-        d = Dict()
     else
         throw(ErrorException("Unknown vartype: " * string(vartype)))
     end

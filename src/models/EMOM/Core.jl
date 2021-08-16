@@ -2,13 +2,8 @@ mutable struct Core
     
     wksp      :: Workspace
 
-    gf        :: Union{PolelikeCoordinate.GridFile, Nothing}
-
-    gd        :: PolelikeCoordinate.Grid
-    gd_slab   :: PolelikeCoordinate.Grid
-
-    mask_sT   :: AbstractArray{Float64, 3}
-    mask_T    :: AbstractArray{Float64, 3}
+#    mask_sT   :: AbstractArray{Float64, 3}
+#    mask_T    :: AbstractArray{Float64, 3}
  
     amo_slab  :: Union{AdvancedMatrixOperators, Nothing}
     amo       :: Union{AdvancedMatrixOperators, Nothing}
@@ -36,21 +31,19 @@ mutable struct Core
             Ω  = 2π / (86400 / (1 + 365/365)),
         )
 
+        gd      = ev.gd
+        gd_slab = ev.gd_slab
 
-        gd      = PolelikeCoordinate.genGrid(gf, cfg[:z_w] ; sub_yrng=ev.sub_yrng) 
-        gd_slab = PolelikeCoordinate.genGrid(gf, [0, -1.0]; sub_yrng=ev.sub_yrng) 
-
-        mask_sT = reshape(gf.mask[:, ev.sub_yrng], 1, ev.Nx, ev.Ny)
-        mask_T  = repeat( mask_sT, outer=(gd.Nz, 1, 1) )
- 
-        @time amo_slab = AdvancedMatrixOperators(;
+        amo_slab = AdvancedMatrixOperators(;
             gd = gd_slab,
-            mask_T = mask_sT,
+            mask_T     = ev.topo.sfcmask_sT,
+            deepmask_T = ev.topo.sfcmask_sT,
         )
 
-        @time amo = AdvancedMatrixOperators(;
+        amo = AdvancedMatrixOperators(;
             gd = gd,
-            mask_T = mask_T,
+            mask_T = ev.topo.mask_T,
+            deepmask_T = ev.topo.deepmask_T,
         )
 
 
@@ -112,7 +105,7 @@ mutable struct Core
         # freezing operator
         mtx[:T_invτ_frz_T] = - amo.T_mask_T * spdiagm(0 => ones(Float64, amo.bmo.T_pts)) / cfg[:τ_frz]
         
-        # surface mask
+        # surface mask but is in 3D T grid. This one is different from the topo.sfcmask_sT. 
         sfcmask_T = zeros(Float64, amo.bmo.T_dim...)
         sfcmask_T[1, :, :] .= 1
         mtx[:T_sfcmask_T] = spdiagm(0 => amo.T_mask_T * reshape(sfcmask_T, :))
@@ -145,17 +138,14 @@ mutable struct Core
             mtx[:T_invτwk_SALT_T] = - amo.T_mask_T * spdiagm(0 => ones(Float64, amo.bmo.T_pts)) / cfg[:τwk_SALT]
         end
 
-        #println("Smallest Δx^2: ", minimum(gd_slab.Δx_T)^2.0, "; Smallest Δy^2: ", minimum(gd_slab.Δy_T)^2.0)
+
+
 
         return new(
             wksp,
 
-            gf,
-            gd,
-            gd_slab,
-
-            mask_sT,
-            mask_T,
+            #mask_sT,
+            #ev.topo.mask_T,
 
             amo_slab,
             amo,
@@ -165,6 +155,8 @@ mutable struct Core
             vd,
 
             cdatam,
+
+
         )
     end
 

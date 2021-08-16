@@ -27,16 +27,31 @@ mutable struct ModelBlock
             nothing,
         )
         
-        dt = DataTable(Nz = ev.Nz, Nx = ev.Nx, Ny = ev.Ny)
+        dt = DataTable(
+            Nz = ev.Nz,
+            Nx = ev.Nx,
+            Ny = ev.Ny,
+            mask_sT=ev.topo.sfcmask_sT,
+            mask_T=ev.topo.mask_T,
+        )
+
+
         co = (init_core) ? Core(ev, tmpfi) : nothing
         mb.dt = dt
         mb.co = co
 
         for (k, varinfo) in getDynamicVariableList(mb; varsets=[:ALL,])
             writeLog("Register variable: {:s}", string(k))
-            varref, grid_type = varinfo
-            regVariable!(dt, k, grid_type, varref)
+            varref, grid, mask = varinfo
+            regVariable!(dt, k, grid, mask, varref)
         end
+
+        for (k, varinfo) in getCompleteVariableList(mb, :static)
+            writeLog("Register variable: {:s}", string(k))
+            varref, grid, mask = varinfo
+            regVariable!(dt, k, grid, mask, varref)
+        end
+
 
 
         return mb

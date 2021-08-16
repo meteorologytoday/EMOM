@@ -11,8 +11,8 @@ config = Dict{Any, Any}(
         :timetype               => "DateTimeNoLeap",
         :init_file              => "",#nothing,#joinpath(@__DIR__, "ocn_init.nc"),
         :rpointer_file          => "rpointer.hoom",
-        :daily_record           => [:ALL,],
-        :monthly_record         => [:ALL,],
+        :daily_record           => [,],
+        :monthly_record         => [:ESSENTIAL,],
         :enable_archive         => true,
     ),
 

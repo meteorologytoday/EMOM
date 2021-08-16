@@ -12,7 +12,7 @@ init_POP_file = config[:MODEL_CORE][:cdata_file]
 domain_file = config[:MODEL_CORE][:domain_file]
 
 zdomain_file = init_POP_file
-output_file = "ocn_init.nc"
+output_file = config[:MODEL_MISC][:init_file]
 
 N_layers = 33 # Layers used. Thickness ≈ 503m
 
@@ -23,16 +23,55 @@ Dataset(domain_file, "r") do ds
 end
 
 Dataset(init_POP_file, "r") do ds
-    global TEMP  = permutedims(nomissing(ds["TEMP"][:, :, 1:N_layers, 1],  0.0), [3, 1, 2])
-    global SALT  = permutedims(nomissing(ds["SALT"][:, :, 1:N_layers, 1], 35.0), [3, 1, 2])
+    global TEMP  = permutedims(nomissing(ds["TEMP"][:, :, 1:N_layers, 1],  NaN), [3, 1, 2])
+    global SALT  = permutedims(nomissing(ds["SALT"][:, :, 1:N_layers, 1],  NaN), [3, 1, 2])
 end
 
+Dataset(zdomain_file, "r") do ds
+    global z_w  = - ds["z_w"][:] / 100.0
+    global Nz = length(z_w) - 1
+end
+
+Nz_bot = zeros(Int64, Nx, Ny)
+mask_T = zeros(Float64, Nz, Nx, Ny)
+mask_T[isfinite.(TEMP)] .= 1.0
+valid_idx = mask_T .== 1.0
+
+Nz_bot .= sum(mask_T, dims=1)[1, :, :]
 
 
 ev = EMOM.Env(config[:MODEL_CORE])
 mb = EMOM.ModelBlock(ev; init_core=false)
 
-mb.fi.sv[:TEMP] .= TEMP
-mb.fi.sv[:SALT] .= SALT
+mb.fi.sv[:TEMP][valid_idx] .= TEMP[valid_idx]
+mb.fi.sv[:SALT][valid_idx] .= SALT[valid_idx]
 
-EMOM.takeSnapshot(DateTimeNoLeap(1,1,1), mb, "init_ocn.jld2")
+
+
+
+Dataset("z_w.nc", "c") do ds
+
+    defDim(ds, "Nzp1", Nz+1)
+
+    defVar(ds, "z_w", z_w, ("Nzp1", ), ; attrib = Dict(
+        "long_name" => "Vertical coordinate on W-grid",
+        "units"     => "m",
+    ))
+
+end
+
+
+Dataset("Nz_bot.nc", "c") do ds
+
+    defDim(ds, "Nx", Nx)
+    defDim(ds, "Ny", Ny)
+    defVar(ds, "Nz_bot", Nz_bot, ("Nx", "Ny", ), ; attrib = Dict(
+        "long_name" => "z-grid idx of the deepest cell",
+        "units"     => "none",
+    ))
+
+end
+
+
+
+EMOM.takeSnapshot(DateTimeNoLeap(1,1,1), mb, output_file)

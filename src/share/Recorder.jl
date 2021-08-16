@@ -2,15 +2,19 @@ mutable struct NonStatObj
 
     varname  :: AbstractString
     varref   :: AbstractArray{Float64}
+    var      :: AbstractArray{Float64}
     
     dimnames :: Tuple
+    missing_idx  :: Any
 
-    function NonStatObj(varname, varref, dimnames)
+    function NonStatObj(varname, varref, dimnames; missing_idx = nothing)
         if length(size(varref)) != length(dimnames)
             ErrorException(format("Variable `{:s}` is {:d} dimensional while only {:d} dimension names are given.", varname, length(size(varref)), length(dimnames))) |> throw
         end
 
-        return new(varname, varref, dimnames)
+        var = varref * 0.0
+
+        return new(varname, varref, var, dimnames, missing_idx)
     end
 
 end
@@ -22,18 +26,20 @@ mutable struct StatObj
     varref   :: AbstractArray{Float64}
     var      :: AbstractArray{Float64}
 
-    dimnames :: Tuple
+    dimnames  :: Tuple
 
     weight    :: Float64
 
-    function StatObj(varname, varref, dimnames)
+    missing_idx  :: Any
+
+    function StatObj(varname, varref, dimnames; missing_idx=nothing)
         if length(size(varref)) != length(dimnames)
             ErrorException(format("Variable `{:s}` is {:d} dimensional while only {:d} dimension names are given.", varname, length(size(varref)), length(dimnames))) |> throw
         end
 
         var = zeros(Float64, size(varref)...)
 
-        return new(varname, varref, var, dimnames, 0.0)
+        return new(varname, varref, var, dimnames, 0.0, missing_idx)
     end
 
 end
@@ -42,19 +48,19 @@ end
 mutable struct Recorder
 
     data_table :: DataTable
-    sobjs    :: Dict
-    nsobjs   :: Dict
-    masks    :: Union{Dict, Nothing}
-    desc     :: Dict
-    filename :: Union{Nothing, AbstractString}
-    time_ptr :: Integer  # The position of next record
+    sobjs         :: Dict
+    nsobjs        :: Dict
+    desc          :: Dict
+    filename      :: Union{Nothing, AbstractString}
+    time_ptr      :: Integer  # The position of next record
+    missing_value :: Float64
  
     function Recorder(
         data_table :: DataTable,
         varnames   :: AbstractArray,
         desc       :: Dict;
         other_varnames = nothing,
-        masks      :: Union{Nothing, Dict} = nothing,
+        missing_value :: Float64 = 1e20,
     )
 
         sobjs  = Dict()
@@ -62,7 +68,7 @@ mutable struct Recorder
 
         for varname in varnames
             du = data_table.data_units[varname]
-            sobjs[varname] = StatObj(varname, du.sdata2, data_table.grid_dims2_str[du.grid])
+            sobjs[varname] = StatObj(varname, du.sdata2, data_table.grid_dims2_str[du.grid]; missing_idx=data_table.missing_idx2[du.mask])
         end
 
         if other_varnames == nothing
@@ -70,19 +76,24 @@ mutable struct Recorder
         else
 
             for varname in other_varnames
+                println("Create other var: ", varname)
                 du = data_table.data_units[varname]
-                sobjs[varname] = NonStatObj(varname, du.sdata2, data_table.grid_odims_str[du.grid])
+                nsobjs[varname] = NonStatObj(varname, du.sdata2, data_table.grid_dims2_str[du.grid]; missing_idx=data_table.missing_idx2[du.mask])
             end
         end
 
+        for (_, sobj) in sobjs
+            reset!(sobj)
+        end
+ 
         return new(
             data_table,
             sobjs,
             nsobjs,
-            masks,
             desc,
             nothing,
             1,
+            missing_value,
         )
     end
 
@@ -134,6 +145,11 @@ function avgAndOutput!(
             ErrorException(format("StatObj for variable `{:s}` has weight 0 during normalization.", varname)) |> throw
         end
         sobj.var /= sobj.weight
+
+        if sobj.missing_idx != nothing
+            sobj.var[sobj.missing_idx] .= rec.missing_value
+        end
+
     end
     
     # Output data
@@ -147,8 +163,7 @@ function avgAndOutput!(
 
     # Reset StatObjs
     for (_, sobj) in rec.sobjs
-        sobj.var .= 0.0
-        sobj.weight = 0.0
+        reset!(sobj)
     end
     
     # Increment of time
@@ -156,6 +171,13 @@ function avgAndOutput!(
 
 
 end
+
+function reset!(sobj :: StatObj)
+    sobj.var .= 0.0
+    sobj.weight = 0.0
+
+end
+
 
 function setNewNCFile!(rec::Recorder, filename::AbstractString)
     rec.filename = filename
@@ -183,15 +205,24 @@ function setNewNCFile!(rec::Recorder, filename::AbstractString)
         end
 
         for (varname, nsobj) in rec.nsobjs
+
+            println("nsobj output: ", varname)
+
             ds_var = defVar(ds, varname, Float64, (nsobj.dimnames...,))
-            ds_var.attrib["_FillValue"] = missing_value
+            ds_var.attrib["_FillValue"] = rec.missing_value
 
             if haskey(rec.desc, varname)
                 for (k, v) in rec.desc[varname]
                     ds_var.attrib[k] = v
                 end
             end
-            ds_var[:] = nsobj.varref
+            
+            nsobj.var .= nsobj.varref
+            if nsobj.missing_idx != nothing
+                nsobj.var[nsobj.missing_idx] .= rec.missing_idx
+            end
+
+            ds_var[:] = nsobj.var
         end 
 
 

@@ -29,11 +29,12 @@ module ConfigCheck
         end
 
     end
-
+#=
     function validateByConfigGroup(
         cfg                :: Dict,
         cfg_desc           :: Dict{Symbol, AbstractArray{ConfigEntry, 1}},
-        target_group_names :: Union{AbstractArray{Symbol}, Nothing} = nothing,
+        target_group_names :: Union{AbstractArray{Symbol}, Nothing} = nothing;
+        verbose :: Bool = false,
     )
 
         # cfg_desc is a Dict whose key is the name of a config group and 
@@ -57,10 +58,11 @@ module ConfigCheck
         return new_cfg
     end
 
-
+=#
     function validateConfigEntries(
         cfg         :: Dict,
-        cfg_entries :: AbstractArray{ConfigEntry, 1},
+        cfg_entries :: AbstractArray{ConfigEntry, 1};
+        verbose     :: Bool = false,
     )
 
         new_cfg = Dict{Symbol, Any}()
@@ -99,7 +101,7 @@ module ConfigCheck
                 if pass
                     
                     new_cfg[name] = cfg[name]
-                    println(format("[Validation] Config `{:s}` : {:s}", string(name), string(new_cfg[name])))
+                    verbose && println(format("[Validation] Config `{:s}` : {:s}", string(name), string(new_cfg[name])))
                 else
                     throw(ErrorException(format(
                         "[Error] Invalid value of key `{:s}`: {:s}. Valid values/types: `{:s}`.",
@@ -122,7 +124,7 @@ module ConfigCheck
                     throw(ErrorException(format("[Required] {:s}", msg)))
                 else
                     new_cfg[name] = default
-                    println(format("[Optional] {:s} is set to default: {:s}", string(name), string(new_cfg[name])))
+                    verbose && println(format("[Optional] {:s} is set to default: {:s}", string(name), string(new_cfg[name])))
 
                 end
             end

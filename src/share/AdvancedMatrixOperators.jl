@@ -35,6 +35,10 @@ mutable struct AdvancedMatrixOperators
     W_mask_W       :: AbstractArray{Float64, 2}
     T_bordermask_T :: AbstractArray{Float64, 2}
 
+    U_flowmask_U :: AbstractArray{Float64, 2}
+    V_flowmask_V :: AbstractArray{Float64, 2}
+    W_flowmask_W :: AbstractArray{Float64, 2}
+
     T_Δx_T :: AbstractArray{Float64, 2}
     T_Δy_T :: AbstractArray{Float64, 2}
     T_Δz_T :: AbstractArray{Float64, 2}
@@ -81,6 +85,7 @@ mutable struct AdvancedMatrixOperators
     function AdvancedMatrixOperators(;
         gd             :: PolelikeCoordinate.Grid,
         mask_T         :: AbstractArray{Float64, 3},
+        deepmask_T     :: AbstractArray{Float64, 3},
         bmo :: Union{Nothing, BasicMatrixOperators} = nothing,
     )
 
@@ -98,11 +103,10 @@ mutable struct AdvancedMatrixOperators
         end
  
         if length(mask_T) != bmo.T_pts
-            throw(ErrorException("Length of mask_T does not conform"))
+            throw(ErrorException("Length of topo.mask_T does not conform"))
         end
 
        
-        #println("Making masks") 
         mask3_flat = view(mask_T,  :)
 
         onV_if_unblocked_north_onT = bmo.V_S_T  * mask3_flat
@@ -130,26 +134,23 @@ mutable struct AdvancedMatrixOperators
             .* (bmo.T_DN_T * mask3_flat)
         ))
 
+        # Create flowmask for Ekman flow
+        deepmask_T = view(deepmask_T, :)
+        onU_if_unblocked_east_onT  = bmo.U_W_T  * deepmask_T
+        onU_if_unblocked_west_onT  = bmo.U_E_T  * deepmask_T
+        onV_if_unblocked_north_onT = bmo.V_S_T  * deepmask_T
+        onV_if_unblocked_south_onT = bmo.V_N_T  * deepmask_T
+        onW_if_unblocked_up_onT    = bmo.W_DN_T * deepmask_T
+        onW_if_unblocked_dn_onT    = bmo.W_UP_T * deepmask_T
 
-        #=
-        nomotionmask3_flat = view(nomotionmask3,  :)
+        flowmask_U = onU_if_unblocked_east_onT  .* onU_if_unblocked_west_onT
+        flowmask_V = onV_if_unblocked_north_onT .* onV_if_unblocked_south_onT
+        flowmask_W = onW_if_unblocked_up_onT    .* onW_if_unblocked_dn_onT
 
-        onV_if_unblocked_north_onT = bmo.V_S_T  * nomotionmask3_flat
-        onV_if_unblocked_south_onT = bmo.V_N_T  * nomotionmask3_flat
-        onU_if_unblocked_east_onT  = bmo.U_W_T  * nomotionmask3_flat
-        onU_if_unblocked_west_onT  = bmo.U_E_T  * nomotionmask3_flat
-        onW_if_unblocked_up_onT    = bmo.W_DN_T * nomotionmask3_flat
-        onW_if_unblocked_dn_onT    = bmo.W_UP_T * nomotionmask3_flat
+        U_flowmask_U = spdiagm(0 => flowmask_U[:])
+        V_flowmask_V = spdiagm(0 => flowmask_V[:])
+        W_flowmask_W = spdiagm(0 => flowmask_W[:])
 
-        V_fluxmask = onV_if_unblocked_north_onT .* onV_if_unblocked_south_onT
-        U_fluxmask = onU_if_unblocked_east_onT  .* onU_if_unblocked_west_onT
-        W_fluxmask = onW_if_unblocked_up_onT    .* onW_if_unblocked_dn_onT
-
-        V_fluxmask_V = V_mask_V * spdiagm(0 => V_fluxmask)
-        U_fluxmask_U = U_mask_U * spdiagm(0 => U_fluxmask)
-        W_fluxmask_W = W_mask_W * spdiagm(0 => W_fluxmask)
-        =# 
-        #println("Making sides") 
         # ===== [ BEGIN face area and lengths on U V ] =====
 
         T_Δx_T = (gd.Δx_T |>  cvt3_diagm)
@@ -323,6 +324,10 @@ mutable struct AdvancedMatrixOperators
             V_mask_V,
             W_mask_W,
             T_bordermask_T,
+
+            U_flowmask_U,
+            V_flowmask_V,
+            W_flowmask_W,
 
             T_Δx_T,
             T_Δy_T,

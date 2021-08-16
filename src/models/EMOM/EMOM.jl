@@ -61,6 +61,7 @@ module EMOM
 
     @hinclude("VerticalDiffusion.jl")
 
+    @hinclude("Topography.jl")
     @hinclude("Workspace.jl")
     @hinclude("Env.jl")
     @hinclude("TempField.jl")

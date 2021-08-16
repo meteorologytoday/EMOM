@@ -49,7 +49,7 @@ function loadSnapshot(
     end
 
 
-    ev = Env(cfg)
+    ev = Env(cfg; verbose=true)
     mb = ModelBlock(ev; init_core = false) 
  
    

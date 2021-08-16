@@ -4,9 +4,12 @@ function setupForcing!(
     ev = mb.ev
     fi = mb.fi
     co = mb.co
-    cfg = ev.config    
+    cfg = ev.config
+
+    gd = ev.gd 
+ 
     PolelikeCoordinate.project!(
-        co.gd, 
+        gd, 
         fi.TAUX_east,
         fi.TAUY_north,
         fi.TAUX,
@@ -38,7 +41,7 @@ function setupForcing!(
  
         if cfg[:transform_vector_field]
             PolelikeCoordinate.project!(
-                co.gd, 
+                gd, 
                 M_east,
                 M_north,
                 Mx_sT,
@@ -49,14 +52,11 @@ function setupForcing!(
         end
  
         # notice that we drop the z dimension for simplicity in the for loop
-        Mx_u = reshape( co.amo_slab.U_interp_T * view(Mx_sT, :), co.gd.Nx, co.gd.Ny)
-        My_v = reshape( co.amo_slab.V_interp_T * view(My_sT, :), co.gd.Nx, co.gd.Ny+1)
+        Mx_u = reshape( co.amo_slab.U_interp_T * view(Mx_sT, :), gd.Nx, gd.Ny)
+        My_v = reshape( co.amo_slab.V_interp_T * view(My_sT, :), gd.Nx, gd.Ny+1)
 
-        H_Ek = sum(co.gd.Δz_T[1:cfg[:Ekman_layers], 1, 1]) 
-        H_Rf = sum(co.gd.Δz_T[(cfg[:Ekman_layers]+1):(cfg[:Ekman_layers]+cfg[:Returnflow_layers]), 1, 1]) 
-
-        #Mx_u .= 20.0
-        #My_v .= 10.0
+        H_Ek = sum(gd.Δz_T[1:cfg[:Ekman_layers], 1, 1]) 
+        H_Rf = sum(gd.Δz_T[(cfg[:Ekman_layers]+1):(cfg[:Ekman_layers]+cfg[:Returnflow_layers]), 1, 1]) 
 
         for k = 1:cfg[:Ekman_layers]
             fi.sv[:UVEL][k, :, :] .= Mx_u / H_Ek
@@ -67,7 +67,10 @@ function setupForcing!(
             fi.sv[:UVEL][k, :, :] .= - Mx_u / H_Rf
             fi.sv[:VVEL][k, :, :] .= - My_v / H_Rf
         end
-            
+        
+        fi._u[:] = co.amo.U_flowmask_U * fi._u  
+        fi._v[:] = co.amo.V_flowmask_V * fi._v
+        fi._w[:] = co.amo.W_flowmask_W * fi._w
    
     elseif cfg[:advection_scheme] == :ekman_codron2012_partition
         
@@ -78,8 +81,8 @@ function setupForcing!(
     DIVvol_T = reshape( co.amo.T_DIVy_V * fi._v + co.amo.T_DIVx_U * fi._u , co.amo.bmo.T_dim...)
     
     fi.sv[:WVEL][1, :, :] .= 0.0
-    for k=1:co.gd.Nz
-        fi.sv[:WVEL][k+1, :, :] .= fi.sv[:WVEL][k, :, :] + DIVvol_T[k, :, :] * co.gd.Δz_T[k, 1, 1]
+    for k=1:gd.Nz
+        fi.sv[:WVEL][k+1, :, :] .= fi.sv[:WVEL][k, :, :] + DIVvol_T[k, :, :] * gd.Δz_T[k, 1, 1]
     end
 
 end
