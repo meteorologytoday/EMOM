@@ -7,7 +7,7 @@ module DataManager
     export DataUnit, DataTable, regVariable!
     export Recorder, setNewNCFile!, record!, avgAndOutput! 
 
-    missing_value = 1e20
+    const missing_value = 1e20
 
     
     

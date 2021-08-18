@@ -76,7 +76,7 @@ mutable struct Recorder
         else
 
             for varname in other_varnames
-                println("Create other var: ", varname)
+                #println("Create other var: ", varname)
                 du = data_table.data_units[varname]
                 nsobjs[varname] = NonStatObj(varname, du.sdata2, data_table.grid_dims2_str[du.grid]; missing_idx=data_table.missing_idx2[du.mask])
             end
@@ -206,7 +206,7 @@ function setNewNCFile!(rec::Recorder, filename::AbstractString)
 
         for (varname, nsobj) in rec.nsobjs
 
-            println("nsobj output: ", varname)
+            #println("nsobj output: ", varname)
 
             ds_var = defVar(ds, varname, Float64, (nsobj.dimnames...,))
             ds_var.attrib["_FillValue"] = rec.missing_value

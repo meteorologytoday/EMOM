@@ -295,7 +295,7 @@ module ENGINE_EMOM
                 rec_varnames = EMOM.getDynamicVariableList(my_mb; varnames=varnames, varsets=varsets) |> keys |> collect
                 add_varnames = EMOM.getCompleteVariableList(my_mb, :static) |> keys |> collect 
 
-                println("Additional varanames: ", add_varnames)
+                #println("Additional varanames: ", add_varnames)
 
                 #= 
                 if typeof(misc_config[rec_key]) <: Symbol 

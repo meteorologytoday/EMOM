@@ -46,15 +46,9 @@ mutable struct Core
             deepmask_T = ev.topo.deepmask_T,
         )
 
-
-
         # Build Advection Matrix
-
-
         function build!(id_mtx, idx)
             local result
-#            rows = size(id_mtx)[1]
-            
             # using transpose speeds up by 100 times 
             tp = transpose(id_mtx) |> sparse
             result = transpose(tp[:, view(idx, :)]) |> sparse
@@ -72,7 +66,18 @@ mutable struct Core
 
         # Build Radiation Matrix
         swflx_factor_W =  cfg[:rad_R]  * exp.(gd.z_W / cfg[:rad_ζ1]) + (1.0 - cfg[:rad_R]) * exp.(gd.z_W / cfg[:rad_ζ2])
-        swflx_factor_W[end, :, :] .= 0.0 # Bottom absorbs everything
+
+
+        Nz_bot = view(ev.topo.Nz_bot_sT, 1, :, :)
+        #println("Nz_bot: ", Nz_bot[20, 114])
+        #println("Before: ", swflx_factor_W[:, 20, 114])
+        for j=1:ev.Ny, i=1:ev.Nx
+            swflx_factor_W[(Nz_bot[i, j]+1):end, i, j] .= 0.0 # Bottom absorbs everything
+        end
+        #println("After: ", swflx_factor_W[:, 20, 114])
+
+        #swflx_factor_W .= 0
+        #swflx_factor_W[1, :, :] .= 1.0
 
         # Surface flux is immediately absorbed at the top layer
         sfcflx_factor_W = 0.0 * gd.z_W
@@ -127,7 +132,6 @@ mutable struct Core
                     align_time   = cfg[:cdata_align_time],
                     sub_yrng     = ev.sub_yrng,
                 )
-
 
                 tmpfi.datastream = makeDataContainer(cdatam)
             end

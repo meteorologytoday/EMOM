@@ -15,7 +15,7 @@ config = Dict{Any, Any}(
         :timetype               => "DateTimeNoLeap",
         :init_file              => "/billevans/projects/IOM/test/test02_Qflx_finding_driver/init_ocn.jld2",
         :rpointer_file          => "rpointer.hoom",
-        :daily_record           => [:ESSENTIAL,],
+        :daily_record           => [],
         :monthly_record         => [:ESSENTIAL,],
         :enable_archive         => true,
     ),
@@ -24,7 +24,7 @@ config = Dict{Any, Any}(
         #:domain_file                  => joinpath(@__DIR__, "CESM_domains", "domain.ocn.gx1v6.090206.nc"),
         :domain_file                  => joinpath(@__DIR__, "CESM_domains", "domain.ocn.gx3v7.120323.nc"),
         :topo_file                    => joinpath(@__DIR__, "Nz_bot.nc"),
-        :cdata_file                   => joinpath(@__DIR__, "POP2PROFILE.33layers.g37.nc"),
+        :cdata_file                   => joinpath(@__DIR__, "POP2PROFILE.g37.nc"),
 
         :cdata_beg_time               => DateTimeNoLeap(1, 1, 1, 0, 0, 0),
         :cdata_end_time               => DateTimeNoLeap(2, 1, 1, 0, 0, 0),
@@ -33,11 +33,10 @@ config = Dict{Any, Any}(
         :z_w                          => nothing,
 
         :substeps                     => 8,
-        :MLD_scheme                   => :static,
+        :MLD_scheme                   => :datastream,
         :Qflx                         => :off,
         :Qflx_finding                 => :off,
         :convective_adjustment        => :on,
-        #:advection_scheme             => :static, #:ekman_codron2012_partition,
         :advection_scheme             => :ekman_codron2012_partition,
 
         :weak_restoring               => :off,

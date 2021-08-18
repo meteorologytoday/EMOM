@@ -98,12 +98,9 @@ function stepColumn!(
         idx = isnan.(tmpfi.datastream["TEMP"])
         tmpfi.datastream["TEMP"][idx] .= 0.0
         tmpfi.datastream["SALT"][idx] .= 0.0
-        
-        T_filter_T = spdiagm(0 => reshape(idx, :))
-
-        # T_mask_T is already in mtx when built
-        RHS_TEMP .-= Δt * T_filter_T * co.mtx[:T_invτwk_TEMP_T] * reshape( tmpfi.datastream["TEMP"] , :)
-        RHS_SALT .-= Δt * T_filter_T * co.mtx[:T_invτwk_SALT_T] * reshape( tmpfi.datastream["SALT"] , :)
+ 
+        RHS_TEMP .-= Δt * co.amo.T_mask_T * co.mtx[:T_invτwk_TEMP_T] * reshape( tmpfi.datastream["TEMP"] , :)
+        RHS_SALT .-= Δt * co.amo.T_mask_T * co.mtx[:T_invτwk_SALT_T] * reshape( tmpfi.datastream["SALT"] , :)
     end
  
     if cfg[:Qflx] == :on
@@ -146,8 +143,8 @@ function stepColumn!(
     if cfg[:weak_restoring] == :on
         tmpfi._WKRSTΔX_[:, 1] = tmpfi._NEWX_[:, 1] - reshape(tmpfi.datastream["TEMP"], :)
         tmpfi._WKRSTΔX_[:, 2] = tmpfi._NEWX_[:, 2] - reshape(tmpfi.datastream["SALT"], :)
-        fi._WKRSTX_[:, 1] .= co.mtx[:T_invτwk_TEMP_T] * view(tmpfi._WKRSTΔX_, :, 1)
-        fi._WKRSTX_[:, 2] .= co.mtx[:T_invτwk_SALT_T] * view(tmpfi._WKRSTΔX_, :, 2)
+        fi._WKRSTX_[:, 1] = co.mtx[:T_invτwk_TEMP_T] * view(tmpfi._WKRSTΔX_, :, 1)
+        fi._WKRSTX_[:, 2] = co.mtx[:T_invτwk_SALT_T] * view(tmpfi._WKRSTΔX_, :, 2)
     else
         fi._WKRSTX_ .= 0.0
     end

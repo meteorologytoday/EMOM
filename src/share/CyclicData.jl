@@ -261,11 +261,14 @@ module CyclicData
                 s = size(var)
 
                 if length(s) == 4  # 3D case
+                        
                     data[varname][:, :, :] = permutedims(nomissing(ds[varname][:, cdm.sub_yrng, :, t_idx], missing_data), [3,1,2]) 
                 elseif length(s) == 3  # 2D case
                     #println(varname, "; cdm.sub_yrng: ", cdm.sub_yrng)
-                    #println("size: ", size(ds[varname][cdm.sub_yrng, :, t_idx]))
-                    data[varname][:, :, :] = reshape(nomissing(ds[varname][:, cdm.sub_yrng, t_idx], missing_data), 1, s[1:2]...)
+                    #println("size of data container: ", size(data[varname]))
+                    #println("size of ds : ", size(ds[varname][:, cdm.sub_yrng, t_idx]))
+                    _tmp = nomissing(ds[varname][:, cdm.sub_yrng, t_idx], missing_data)
+                    data[varname][:, :, :] = reshape(_tmp, 1, size(_tmp)...)
                 else
                     throw(ErrorException("Unknown dimension: " * string(s)))
                 end

@@ -63,6 +63,7 @@ mutable struct Env
         topo = nothing
         Dataset(config[:topo_file], "r") do ds
             Nz_bot = ds["Nz_bot"][:, sub_yrng]
+            #println(Nz_bot)
             topo = Topography(
                 Nz_bot, gf.Nx, length(sub_yrng), config[:z_w];
                 deep_depth = - config[:z_w][config[:Returnflow_layers] + config[:Ekman_layers] + 1]

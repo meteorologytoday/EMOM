@@ -67,7 +67,7 @@ read_restart = false
 cfgmc = config[:MODEL_CORE]
 cfgmm = config[:MODEL_MISC]
 
-cfgmc[:weak_restoring] = :off
+cfgmc[:weak_restoring] = :on
 cfgmc[:τwk_TEMP] = parsed["nudging-timescale-day"] * 86400.0
 cfgmc[:τwk_SALT] = parsed["nudging-timescale-day"] * 86400.0
 
@@ -86,7 +86,7 @@ coupler_funcs = (
         global cdatam = CyclicDataManager(;
             timetype     = getproperty(CFTime, Symbol(cfgmm[:timetype])),
             filename     = parsed["forcing-file"],
-            varnames     = ["TAUX", "TAUY", "SHF", "SHF_QSW", "SFWF"],
+            varnames     = ["TAUX", "TAUY", "SWFLX", "NSWFLX", "VSFLX"],
             beg_time     = DateTimeNoLeap(1, 1, 1),
             end_time     = DateTimeNoLeap(2, 1, 1),
             align_time   = DateTimeNoLeap(1, 1, 1),
@@ -111,11 +111,11 @@ coupler_funcs = (
         if ! t_end_reached
 
             interpData!(cdatam, OMDATA.clock.time, datastream)
-            #OMDATA.x2o["SWFLX"]       .= - datastream["SHF_QSW"]
-            #OMDATA.x2o["NSWFLX"]      .= - (datastream["SHF"] - datastream["SHF_QSW"])
-            #OMDATA.x2o["VSFLX"]       .=   datastream["SFWF"]
-            OMDATA.x2o["TAUX_east"]   .=   datastream["TAUX"] / 10.0
-            OMDATA.x2o["TAUY_north"]  .=   datastream["TAUY"] / 10.0
+            OMDATA.x2o["SWFLX"]       .= datastream["SWFLX"]
+            OMDATA.x2o["NSWFLX"]      .= datastream["NSWFLX"]
+            OMDATA.x2o["VSFLX"]       .= datastream["VSFLX"]
+            OMDATA.x2o["TAUX_east"]   .= datastream["TAUX"]
+            OMDATA.x2o["TAUY_north"]  .= datastream["TAUY"]
 
             return_values = ( :RUN,  Δt, t_end_reached )
         else

@@ -31,7 +31,7 @@ function runModel(
     t_start       :: AbstractCFDateTime,
     t_simulation  :: Any,
     read_restart  :: Bool,
-    config        :: Dict, 
+    config        :: Union{Dict, Nothing} = nothing, 
 )
 
     comm = MPI.COMM_WORLD
@@ -48,6 +48,12 @@ function runModel(
     is_master = rank == 0
 
     if is_master
+
+        if config == nothing
+            throw(ErrorException("Master thread needs to provde config parameter."))
+            
+        end
+
         writeLog("Validate driver config.")
         config[:DRIVER] = validateConfigEntries(config[:DRIVER], getDriverConfigDescriptor())
     end

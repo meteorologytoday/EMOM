@@ -14,7 +14,7 @@ domain_file = config[:MODEL_CORE][:domain_file]
 zdomain_file = init_POP_file
 output_file = config[:MODEL_MISC][:init_file]
 
-N_layers = 33 # Layers used. Thickness ≈ 503m
+N_layers = length(config[:MODEL_CORE][:z_w]) - 1 # Layers used. Thickness ≈ 503m
 
 Dataset(domain_file, "r") do ds
     global Nx = ds.dim["ni"]
@@ -45,6 +45,10 @@ mb = EMOM.ModelBlock(ev; init_core=false)
 
 mb.fi.sv[:TEMP][valid_idx] .= TEMP[valid_idx]
 mb.fi.sv[:SALT][valid_idx] .= SALT[valid_idx]
+
+mb.fi.sv[:TEMP][valid_idx] .= 30
+mb.fi.sv[:SALT][valid_idx] .= 35
+
 
 
 

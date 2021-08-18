@@ -93,6 +93,8 @@ function calOp_vdiff(
     below_frz_below = (bmo.W_UP_T * view(TEMP, :)) .< T_sw_frz
     K_W[below_frz_below] .= vd.K_cva
 
+
+    #K_W .= 0
     op_vdiff = sparse(vd.amo.T_DIVz_W * vd.amo.W_mask_W * spdiagm( 0 => view(K_W,:)) * vd.amo.W_∂z_T)
 
     dropzeros!(op_vdiff)
