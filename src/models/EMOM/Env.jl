@@ -26,8 +26,8 @@ mutable struct Env
         # mask =>   lnd = 0, ocn = 1
         gf = PolelikeCoordinate.CurvilinearSphericalGridFile(
             config[:domain_file];
-            R  = 6371229.0,
-            Ω  = 2π / (86400 / (1 + 365/365)),
+            R  = Re,
+            Ω  = Ω,
         )
 
         if sub_yrng == Colon()

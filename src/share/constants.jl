@@ -9,7 +9,7 @@ const ρ_si   = 0.917e3    # kg / m^3     copied from models/csm_share/shr/shr_c
 const ρ_fw   = 1000.0     # kg / m^3     copied from models/csm_share/shr/shr_const_mod.F90
 const g      = 9.80616    # m / s^2      copied from models/csm_share/shr/shr_const_mod.F90
 const Re     = 6.37122e6  # m            copied from models/csm_share/shr/shr_const_mod.F90
-
+const Ω      = 2π / (86400 / (1 + 1/365)) # rad / s
 const Hf_sw = 3.337e5     # J / kg  latent heat of fusion  copied from models/csm_share/shr/shr_const_mod.F90
 
 

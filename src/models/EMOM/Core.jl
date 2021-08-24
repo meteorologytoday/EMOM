@@ -27,8 +27,8 @@ mutable struct Core
 
         gf = PolelikeCoordinate.CurvilinearSphericalGridFile(
             cfg[:domain_file];
-            R  = 6371229.0,
-            Ω  = 2π / (86400 / (1 + 365/365)),
+            R  = Re,
+            Ω  = Ω,
         )
 
         gd      = ev.gd
@@ -87,9 +87,19 @@ mutable struct Core
 
         # f and ϵ matrices
         f_sT = 2 * gd.Ω * sin.(gd_slab.ϕ_T)
+        β_sT = (2 * gd.Ω / gd.R) * cos.(gd_slab.ϕ_T)
         ϵ_sT = f_sT * 0 .+ cfg[:ϵ]
         D_sT = f_sT.^2 + ϵ_sT.^2
         invD_sT = D_sT.^(-1.0)
+
+        #=
+        println("gd_slab.Ω = ", gd_slab.Ω)
+        println("ϕ_sT(1, 60,75) = ", gd_slab.ϕ_T[1,60,75], "; ", rad2deg(gd_slab.ϕ_T[1,60,75]))
+        println("f computed (1, 60,75) = ", 2*gd_slab.Ω * sin(gd_slab.ϕ_T[1,60,75]))
+        println("f_sT(1, 60,75) = ", f_sT[1,60,75])
+        println("D_sT(1, 60,75) = ", D_sT[1,60,75])
+        println("invD_sT(1, 60,75) = ", invD_sT[1,60,75])
+        =#
 
         mtx = Dict(
             :ones_T          => ones(Float64, amo.bmo.T_pts),
@@ -97,6 +107,7 @@ mutable struct Core
             :T_sfcflxConv_sT => - amo.T_mask_T * amo.T_DIVz_W * spdiagm(0 => view(sfcflx_factor_W, :)) * W_broadcast_sT,
             :invD_sT         => invD_sT,
             :f_sT            => f_sT,
+            :β_sT            => β_sT,
             :ϵ_sT            => ϵ_sT,
             :D_sT            => D_sT,
         ) 

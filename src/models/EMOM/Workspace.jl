@@ -72,7 +72,8 @@ end
 function getSpace!(
     wksp :: Workspace,
     grid :: Symbol,
-    flat :: Bool = false,
+    flat :: Bool = false;
+    o :: Union{Float64, Nothing} = nothing  # overwritten value
 )
     i = wksp.ptr[grid]
     list = getfield(wksp, grid)
@@ -87,7 +88,13 @@ function getSpace!(
     
     wksp.ptr[grid] += 1
 
-    return ( flat ) ? view(list[i], :) : list[i]
+    arr = ( flat ) ? view(list[i], :) : list[i]
+
+    if o != nothing
+        arr .= o
+    end
+
+    return arr
 end
 
 function reset!(

@@ -15,8 +15,14 @@ mutable struct AdvancedMatrixOperators
     T_∂y_V      :: AbstractArray{Float64, 2}
     T_∂z_W      :: AbstractArray{Float64, 2}
     
-    U_∂y_UV      :: AbstractArray{Float64, 2}
-    V_∂x_UV      :: AbstractArray{Float64, 2}
+    U_∂y_UV     :: AbstractArray{Float64, 2}
+    V_∂x_UV     :: AbstractArray{Float64, 2}
+
+    T_CURLx_U   :: AbstractArray{Float64, 2}
+    T_CURLy_V   :: AbstractArray{Float64, 2}
+
+    T_CURLx_T   :: AbstractArray{Float64, 2}
+    T_CURLy_T   :: AbstractArray{Float64, 2}
 
     U_interp_T :: AbstractArray{Float64, 2}  # interpolation of T grid onto U grid
     V_interp_T :: AbstractArray{Float64, 2}  # interpolation of T grid onto V grid
@@ -192,6 +198,8 @@ mutable struct AdvancedMatrixOperators
         UV_invΔx_UV = (gd.Δx_UV.^(-1) |>  cvt3_diagm)
         UV_invΔy_UV = (gd.Δy_UV.^(-1) |>  cvt3_diagm)
         UV_invΔz_UV = (gd.Δz_UV.^(-1) |>  cvt3_diagm)
+
+        T_invΔa_T = T_invΔx_T * T_invΔy_T
         
         T_Δvol_T = T_Δx_T * T_Δy_T * T_Δz_T
         T_invΔvol_T = T_invΔx_T * T_invΔy_T * T_invΔz_T
@@ -227,6 +235,8 @@ mutable struct AdvancedMatrixOperators
 
         U_∂y_UV = U_mask_U * U_invΔy_U * (bmo.U_S_UV  - bmo.U_N_UV)              ; dropzeros!(U_∂y_UV);
         V_∂x_UV = V_mask_V * V_invΔx_V * (bmo.V_W_UV  - bmo.V_E_UV)              ; dropzeros!(V_∂x_UV);
+
+
 
         function selfDivision(m, ones_vec)
             local wgts = m * ones_vec
@@ -288,6 +298,16 @@ mutable struct AdvancedMatrixOperators
         
         #println("finished.") 
 
+        # CURL operators needs interpolation in practical usage
+
+        # used for ∂v/∂x
+        T_CURLx_U =   T_mask_T * T_invΔa_T * (bmo.T_W_U - bmo.T_E_U) * U_Δy_U
+        T_CURLy_V = - T_mask_T * T_invΔa_T * (bmo.T_S_V - bmo.T_N_V) * V_Δx_V
+
+        T_CURLx_T = T_CURLx_U * U_interp_T
+        T_CURLy_T = T_CURLy_V * V_interp_T
+
+
         return new(
 
             bmo,
@@ -307,6 +327,12 @@ mutable struct AdvancedMatrixOperators
             
             U_∂y_UV,
             V_∂x_UV,
+
+            T_CURLx_U,
+            T_CURLy_V,
+
+            T_CURLx_T,
+            T_CURLy_T,
 
             U_interp_T,
             V_interp_T,
