@@ -1,0 +1,33 @@
+    <dataSource>
+         GENERIC
+      </dataSource>
+      <domainInfo>
+         <variableNames>
+            time    time
+            xc      lon 
+            yc      lat 
+            area    area
+            mask    mask
+         </variableNames>
+         <filePath>
+            $FORCING_DIR 
+         </filePath>
+         <fileNames>
+            $FORCING_FILENAME 
+         </fileNames>
+      </domainInfo>
+      <fieldInfo>
+         <variableNames>
+            ifrac  ifrac
+         </variableNames>
+         <filePath>
+            $FORCING_DIR 
+         </filePath>
+         <fileNames>
+            $FORCING_FILENAME 
+         </fileNames>
+         <offset>
+            0
+         </offset>
+      </fieldInfo>
+

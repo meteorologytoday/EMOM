@@ -1,0 +1,37 @@
+      <dataSource>
+         GENERIC
+      </dataSource>
+      <domainInfo>
+         <variableNames>
+            time    time
+            xc      lon
+            yc      lat
+            area    area
+            mask    mask
+         </variableNames>
+         <filePath>
+            $FORCING_DIR 
+        </filePath>
+         <fileNames>
+            $FORCING_FILENAME
+         </fileNames>
+      </domainInfo>
+      <fieldInfo>
+         <variableNames>
+            MLD     MLD
+            Qflx_T  Qflx_T
+            Qflx_S  Qflx_S
+            T_clim   T_clim
+            S_clim   S_clim
+            IFRAC_clim IFRAC_clim
+         </variableNames>
+         <filePath>
+            $FORCING_DIR 
+         </filePath>
+         <fileNames>
+            $FORCING_FILENAME 
+         </fileNames>
+         <offset>
+            0
+         </offset>
+      </fieldInfo>
