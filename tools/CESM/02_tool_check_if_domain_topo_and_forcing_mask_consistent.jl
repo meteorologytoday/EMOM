@@ -130,7 +130,7 @@ if parsed["forcing-file"] != ""
                     sdim = 2
                 else
                     println("*** Error : Unrecognized dimensions: ", dimnames(v), ". Please check. ***")
-                    flag_check2_pass = false
+                    global flag_check2_pass = false
                     continue
                 end
 
@@ -173,12 +173,16 @@ if parsed["forcing-file"] != ""
     end
 end
 
-println("### Summary: ")
+println("### Summary ### ")
 
+all_pass = flag_check1_pass
 println("Check 1: ", flag_check1_pass)
 
 if parsed["forcing-file"] != ""
     println("Check 2: ", flag_check2_pass)
+    all_pass &= flag_check2_pass
 end
+
+println("All pass? ", all_pass)
 
 

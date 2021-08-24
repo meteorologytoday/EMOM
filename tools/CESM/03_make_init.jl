@@ -34,8 +34,9 @@ include(parsed["config-file"])
 
 init_POP_file = config[:MODEL_CORE][:cdata_file]
 domain_file = config[:MODEL_CORE][:domain_file]
-
 init_file  = config[:MODEL_MISC][:init_file]
+
+Nz = length(config[:MODEL_CORE][:z_w]) - 1
 
 Dataset(init_POP_file, "r") do ds
     global TEMP  = permutedims(nomissing(ds["TEMP"][:, :, 1:Nz, 1],  NaN), [3, 1, 2])

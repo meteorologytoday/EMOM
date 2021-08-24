@@ -1,6 +1,7 @@
 using ArgParse
 using Formatting
-
+using NCDatasets
+using JSON
 
 function parse_commandline()
 
@@ -28,6 +29,12 @@ function parse_commandline()
             arg_type = String
             required = true
 
+        "--output-forcing-file"
+            help = "Output forcing file name."
+            arg_type = String
+            default = ""
+
+
     end
 
     return parse_args(s)
@@ -35,21 +42,26 @@ end
 
 parsed = parse_commandline()
 
+JSON.print(parsed, 4)
 
 mkpath(parsed["output-dir"])
 
 # First, determine output file name
-output_file = joinpath(parsed["output-dir"], format("{:s}.{:d}-layers.nc", splitext(basename(parsed["POP2-monthly-profile"]))[1], parsed["n-layers"]))
+if parsed["output-forcing-file"] == ""
+    parsed["output-forcing-file"] = format("{:s}.{:d}-layers.nc", splitext(basename(parsed["POP2-monthly-profile"]))[1], parsed["n-layers"])
+end
+
+output_file = joinpath(parsed["output-dir"], parsed["output-forcing-file"])
 
 println("# Output forcing file is going to be: ", output_file)
 
 # Second, check if vairables exist
-vars_check = ["z_t", "z_w_t", "z_w_bot", "TEMP", "SALT", "SHF", "SHF_QSW", "SFWF", "HBLT", "TAUX", "TAUY", "time_bound"]
+vars_check = ["z_t", "z_w_top", "z_w_bot", "TEMP", "SALT", "SHF", "SHF_QSW", "SFWF", "HBLT", "TAUX", "TAUY", "time_bound"]
 
 println("# Check if the following variables exist: ", join(vars_check, ", "))
 
 Dataset(parsed["POP2-monthly-profile"], "r") do ds
-    local missing_vars = Array{String}[]
+    local missing_vars = []
     for varname in vars_check
         if ! haskey(ds, varname)
             push!(missing_vars, varname)
@@ -57,26 +69,31 @@ Dataset(parsed["POP2-monthly-profile"], "r") do ds
     end
 
     if length(missing_vars) != 0
-        println("Error: The following variables are missing: ", join(varname, ", "))
+        println("Error: The following variables are missing: ", join(missing_vars, ", "))
         throw(ErrorException("Please check variables in the input file."))
     else
         println("All the variables are found.")
     end
 
-
+    if ds.dim["time"] != 12
+        throw(ErrorException("I expect dimension of time = 12."))
+    end
     
 end
 
+function pleaseRun(cmd)
+    println(">> ", string(cmd))
+    run(cmd)
+end
 
-
-run(`
+pleaseRun(`
 ncks -O -F -d z_t,1,$(parsed["n-layers"]) 
         -d z_w_top,1,$(parsed["n-layers"]) 
         -d z_w_bot,1,$(parsed["n-layers"]) 
        $(parsed["POP2-monthly-profile"]) $(output_file)
 `)
 
-run(`
+pleaseRun(`
 ncap2 -O -v -s 'time_bound=time_bound;'  
             -s 'z_t=-z_t/100.0;'         
             -s 'z_w_top=-z_w_top/100.0;' 
@@ -93,11 +110,16 @@ ncap2 -O -v -s 'time_bound=time_bound;'
 `)
 
 
-run(`
+pleaseRun(`
 ncatted -a units,time,m,c,"days since 0001-01-01 00:00:00"
         -a units,time_bound,m,c,"days since 0001-01-01 00:00:00"
         $(output_file)
 `)
+
+pleaseRun(`
+ncrename -d nlat,Ny -d nlon,Nx -d z_t,Nz $(output_file)
+`)
+
 
 Dataset(output_file, "r") do ds
     
@@ -115,7 +137,6 @@ Dataset(output_file, "r") do ds
     Dataset(joinpath(parsed["output-dir"], "z_w.nc"), "c") do _ds
 
         defDim(_ds, "Nzp1", length(z_w))
-
         defVar(_ds, "z_w", z_w, ("Nzp1", ), ; attrib = Dict(
             "long_name" => "Vertical coordinate on W-grid",
             "units"     => "m",
@@ -127,7 +148,7 @@ Dataset(output_file, "r") do ds
     mask_T = zeros(Float64, Nz, Nx, Ny)
     mask_T[isfinite.(TEMP)] .= 1.0
     valid_idx = mask_T .== 1.0
-    local Nz_bot = convert(Array{Int64}, sum(mask_T, dims=1)[1, :, :])0
+    local Nz_bot = convert(Array{Int64}, sum(mask_T, dims=1)[1, :, :])
     
     Dataset(joinpath(parsed["output-dir"], "Nz_bot.nc"), "c") do _ds
         defDim(_ds, "Nx", Nx)
@@ -141,7 +162,4 @@ Dataset(output_file, "r") do ds
 
 
 end
-
-
-Nz_bot = zeros(Int64, Nx, Ny)
 
