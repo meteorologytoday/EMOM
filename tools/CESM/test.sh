@@ -3,7 +3,6 @@
 domain_file=CESM_domains/domain.ocn.gx1v6.090206.nc
 forcing_file=forcing.nc
 
-if [ ] ; then
 julia 01_generate_forcing_file.jl                                \
     --POP2-monthly-profile paper2021_CTL_POP2.0001-0100.complete.nc \
     --n-layers 40                                                \
@@ -17,7 +16,6 @@ julia 02_tool_check_if_domain_topo_and_forcing_mask_consistent.jl \
     --topo-file    output/Nz_bot.nc  \
     --forcing-file output/forcing.nc
 
-fi
 
 julia 03_make_init.jl \
     --config-file config.jl

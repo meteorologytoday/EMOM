@@ -1,7 +1,3 @@
-using NCDatasets
-
-
-
 config = Dict{Any, Any}(
 
     :DRIVER => Dict(
@@ -55,6 +51,7 @@ config = Dict{Any, Any}(
 
 )
 
+using NCDatasets
 Dataset(config[:MODEL_CORE][:cdata_file], "r") do ds
 
     z_w_top = nomissing(ds["z_w_top"][:], NaN)
@@ -65,5 +62,6 @@ Dataset(config[:MODEL_CORE][:cdata_file], "r") do ds
     z_w[end] = z_w_bot[end]
 
     global config[:MODEL_CORE][:z_w]  = z_w
+
 end
 
