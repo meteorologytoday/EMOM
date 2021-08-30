@@ -3,9 +3,21 @@ using Formatting
 using JSON
 using DataStructures
 
-function pleaseRun(cmd)
+
+function runOneCmd(cmd)
     println(">> ", string(cmd))
     run(cmd)
+end
+
+
+function pleaseRun(cmd)
+    if isa(cmd, Array)
+        for i = 1:length(cmd)
+            runOneCmd(cmd[i])
+        end
+    else
+        runOneCmd(cmd)
+    end
 end
 
 function getOneEntryFromXML(filename, id)
@@ -92,6 +104,10 @@ s = ArgParseSettings()
         arg_type = String
         default = ""
 
+    "--build"
+        help = "If set then will try to build the case."
+        action = :store_true
+
 
 end
 
@@ -107,7 +123,7 @@ if parsed["env-run"] != ""
 end
 
 if parsed["env-mach-pes"] != ""
-    overwrite_env_mach_pes = JSON.parsefile(parsed["env-run"], dicttype=DataStructures.OrderedDict)
+    overwrite_env_mach_pes = JSON.parsefile(parsed["env-mach-pes"], dicttype=DataStructures.OrderedDict)
     println("Loaded env-run file ", parsed["env-mach-pes"])
     JSON.print(overwrite_env_mach_pes, 4)
 end
@@ -142,6 +158,7 @@ if !isdir(parsed["casename"])
     throw(ErrorException(format("Error: `{:s}` is not created")))
 end
 
+println("Entering case folder $(parsed["casename"])")
 cd(parsed["casename"])
 
 
@@ -152,26 +169,27 @@ if parsed["user-namelist-dir"] != ""
     `)
 end
 
-pleaseRun(`./cesm_setup`)
-
-
-if parsed["env-run"] != ""
-    for (key, val) in overwrite_env_run
+function setXML(filename, kv_list)
+    for (key, val) in kv_list
         pleaseRun(`
-            ./xmlchange -f env_run.xml -id $(key) -val $(val)
+            ./xmlchange -f $(filename) -id $(key) -val $(val)
         `)
     end
+end
+
+if parsed["env-run"] != ""
+    setXML("env_run.xml", overwrite_env_run)
 end
 
 if parsed["env-mach-pes"] != ""
-    for (key, val) in overwrite_env_mach_pes
-        pleaseRun(`
-            ./xmlchange -f env_mach_pes.xml -id $(key) -val $(val)
-        `)
-    end
+    setXML("env_mach_pes.xml", overwrite_env_mach_pes)
 end
 
+pleaseRun(`./cesm_setup`)
+
+# The $casename.run file is created by cesm_setup and mk_batch files in CESM1 util codes
 mv(format("{:s}.run", parsed["casename"]), format("{:s}.cesm.run", parsed["casename"]), force=true)
+
 
 env_run = getXML("env_run.xml", [
     "CASEROOT",
@@ -241,4 +259,7 @@ cd(joinpath("SourceMods", "src.docn"))
 pleaseRun(`ln -s ../../IOM/src/CESM_driver/cesm1_tb_docn_comp_mod.F90 ./docn_comp_mod.F90`)
 pleaseRun(`ln -s ../../IOM/src/CESM_driver/ProgramTunnel .`)
 
-
+cd(joinpath("..", ".."))    
+if parsed["build"]
+    pleaseRun(`./$(parsed["casename"]).build`)
+end
