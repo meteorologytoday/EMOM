@@ -12,4 +12,4 @@ POP2_profile_g37=POP2PROFILE.g37.nc
 
 
 DOMAIN_FILE=CESM_domains/domain.ocn.gx1v6.090206.nc
-POP2_profile_used=$POP2_profile_g37
+POP2_profile_used=$POP2_profile_g16
