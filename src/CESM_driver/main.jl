@@ -1,16 +1,14 @@
-include("IOM/src/share/LogSystem.jl")
-include("IOM/src/share/PolelikeCoordinate.jl")
-include("IOM/src/models/EMOM/ENGINE_EMOM.jl")
-include("IOM/src/driver/driver.jl")
-
-include("ProgramTunnel/src/julia/ProgramTunnel_fs_new.jl")
+include(joinpath(@__DIR__, "..", "share", "LogSystem.jl"))
+include(joinpath(@__DIR__, "..", "models", "EMOM", "ENGINE_EMOM.jl"))
+include(joinpath(@__DIR__, "..", "models", "EMOM", "ENGINE_EMOM.jl"))
+include(joinpath(@__DIR__, "..", "driver", "driver_working.jl"))
+include(joinpath(@__DIR__, "ProgramTunnel", "src", "julia", "ProgramTunnel_fs_new.jl"))
 
 using MPI
 using CFTime, Dates
 using ArgParse
 
 using .ProgramTunnel_fs
-using .PolelikeCoordinate
 using .BinaryIO
 using .LogSystem
 
