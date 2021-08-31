@@ -1,12 +1,13 @@
 include(joinpath(@__DIR__, "..", "share", "LogSystem.jl"))
 include(joinpath(@__DIR__, "..", "models", "EMOM", "ENGINE_EMOM.jl"))
-include(joinpath(@__DIR__, "..", "models", "EMOM", "ENGINE_EMOM.jl"))
 include(joinpath(@__DIR__, "..", "driver", "driver_working.jl"))
+include(joinpath(@__DIR__, "ProgramTunnel", "src", "julia", "BinaryIO.jl"))
 include(joinpath(@__DIR__, "ProgramTunnel", "src", "julia", "ProgramTunnel_fs_new.jl"))
 
 using MPI
 using CFTime, Dates
 using ArgParse
+using JSON
 
 using .ProgramTunnel_fs
 using .BinaryIO
@@ -59,26 +60,43 @@ end
 parsed = parse_commandline()
 
 
-include(parsed["config-file"])
+
 
 MPI.Init()
 comm = MPI.COMM_WORLD
 rank = MPI.Comm_rank(comm)
 is_master = rank == 0
 
-PTI = ProgramTunnelInfo(
-    reverse_role  = true,
-    recv_channels = 2,
-)
-nullbin  = [zeros(Float64, 1)]
+msg = nothing
+config = nothing
+if is_master
 
-function recvMsg()
-    global msg = parseMsg( recvData!(PTI, nullbin, which=1) )
+    include(parsed["config-file"])
+    PTI = ProgramTunnelInfo(
+        path = joinpath(config[:DRIVER][:caserun], "x_tmp"),
+        reverse_role  = true,
+        recv_channels = 2,
+        chk_freq = 1.0,
+    )
+    nullbin  = [zeros(Float64, 1)]
+
+    function recvMsg(;verbose::Bool = true)
+        global msg = parseMsg( recvData!(PTI, nullbin, which=1) )
+        if verbose
+            writeLog("Receive message: ")
+            JSON.print(msg, 4)
+        end
+    end
+
 end
 
 coupler_funcs = (
 
     master_before_model_init = function()
+
+        global msg
+        
+        writeLog("[Coupler] Before model init. My rank = {:d}", rank)
         
         recvMsg()
        
@@ -92,15 +110,18 @@ coupler_funcs = (
         
         return read_restart, coupler_time
         
-    end
+    end,
 
     master_after_model_init! = function(OMMODULE, OMDATA)
 
-        writeLog("[Coupler] After model init")
+        global msg
 
-        global lsize = parse(Int64, msg["lsize"])
+        writeLog("[Coupler] After model init. My rank = {:d}", rank)
 
-        global send_data_list = Array{Float64}[OMDATA.o2x["SST"], OMDATA.o2x["QFLX2ATM"]]
+        println("msg = ", string(msg))
+        global lsize = parse(Int64, msg["LSIZE"])
+
+        global send_data_list = Array{Float64}[OMDATA.o2x["SST"], OMDATA.o2x["Q_FRZMLTPOT"]]
         global recv_data_list = Array{Float64}[]
 
         global x2o_available_varnames = split(msg["VAR2D"], ",")
@@ -161,8 +182,5 @@ coupler_funcs = (
 runModel(
     ENGINE_EMOM, 
     coupler_funcs,
-    t_start,
-    t_simulation,
-    parsed["read-restart"],
     config, 
 )

@@ -53,7 +53,7 @@ subroutine ptm_setDefault(PTI, fds)
     PTI%recv_fd = fds(1)
     PTI%send_fd = fds(2)
 
-    PTI%chk_freq = 50               ! millisecs (0.05 secs)
+    PTI%chk_freq = 1000               ! millisecs (0.05 secs)
     PTI%timeout  = 30 * 60 * 1000   ! millisecs (30 min)
 
     PTI%buffer   =  200        ! millisecs (0.2 secs)

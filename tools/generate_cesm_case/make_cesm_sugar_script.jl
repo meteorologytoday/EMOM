@@ -186,6 +186,8 @@ if parsed["env-mach-pes"] != ""
 end
 
 pleaseRun(`./cesm_setup`)
+pleaseRun(`./cesm_setup -clean`)
+pleaseRun(`./cesm_setup`)
 
 # The $casename.run file is created by cesm_setup and mk_batch files in CESM1 util codes
 mv(format("{:s}.run", parsed["casename"]), format("{:s}.cesm.run", parsed["casename"]), force=true)

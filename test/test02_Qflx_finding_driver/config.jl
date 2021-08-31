@@ -20,13 +20,13 @@ config = Dict{Any, Any}(
 
     :MODEL_CORE => Dict(
 
-#        :domain_file                  => joinpath(@__DIR__, "CESM_domains", "domain.ocn.gx3v7.120323.nc"),
-#        :topo_file                    => joinpath(@__DIR__, "Nz_bot.nc"),
-#        :cdata_file                   => joinpath(@__DIR__, "POP2PROFILE.g37.nc"),
-
-        :domain_file                  => joinpath(@__DIR__, "CESM_domains", "domain.ocn.gx1v6.090206.nc"),
+        :domain_file                  => joinpath(@__DIR__, "CESM_domains", "domain.ocn.gx3v7.120323.nc"),
         :topo_file                    => joinpath(@__DIR__, "Nz_bot.nc"),
-        :cdata_file                   => joinpath(@__DIR__, "POP2PROFILE.g16.nc"),
+        :cdata_file                   => joinpath(@__DIR__, "POP2PROFILE.g37.nc"),
+
+#        :domain_file                  => joinpath(@__DIR__, "CESM_domains", "domain.ocn.gx1v6.090206.nc"),
+#        :topo_file                    => joinpath(@__DIR__, "Nz_bot.nc"),
+#        :cdata_file                   => joinpath(@__DIR__, "POP2PROFILE.g16.nc"),
 
 
         :cdata_beg_time               => DateTimeNoLeap(1, 1, 1, 0, 0, 0),

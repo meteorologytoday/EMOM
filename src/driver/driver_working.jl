@@ -28,9 +28,6 @@ end
 function runModel(
     OMMODULE      :: Any,
     coupler_funcs :: Any,
-    t_start       :: AbstractCFDateTime,
-    t_simulation  :: Any,
-    read_restart  :: Bool,
     config        :: Union{Dict, Nothing} = nothing, 
 )
 
@@ -48,18 +45,19 @@ function runModel(
     is_master = rank == 0
 
     if is_master
-
         if config == nothing
-            throw(ErrorException("Master thread needs to provde config parameter."))
-            
+            throw(ErrorException("Master thread needs to provide config parameter."))
         end
 
         writeLog("Validate driver config.")
         config[:DRIVER] = validateConfigEntries(config[:DRIVER], getDriverConfigDescriptor())
     end
 
-    p = config[:DRIVER][:caserun]
+    writeLog("Broadcast config to slaves.")
+    config = MPI.bcast(config, 0, comm) 
 
+
+    p = config[:DRIVER][:caserun]
     writeLog("Setting working directory to {:s}", p)
     if is_master
         if ! isdir(p)
@@ -70,9 +68,10 @@ function runModel(
     MPI.Barrier(comm)
     cd(p)
 
+    local t_start = nothing 
+    local read_restart = nothing
+ 
     if is_master
-
-        global t_start, t_end
 
         writeLog("Getting model start time.")
         read_restart, t_start = coupler_funcs.master_before_model_init()
@@ -98,19 +97,13 @@ function runModel(
          
     end
 
-    writeLog("Broadcast t_start and config to slaves.")
-    if ! is_master
-        t_start = nothing 
-        config = nothing
-    end
+    writeLog("Broadcast t_start and read_restart to slaves.")
     t_start = MPI.bcast(t_start, 0, comm) 
-    config = MPI.bcast(config, 0, comm) 
+    read_restart = MPI.bcast(read_restart, 0, comm) 
 
 
     # copy the start time by adding 0 seconds
     beg_datetime = t_start + Dates.Second(0)
-
-    writeLog("Read restart  : {}", read_restart)
 
     # Construct model clock
     clock = ModelClock("Model", beg_datetime)
@@ -125,7 +118,9 @@ function runModel(
         read_restart = read_restart,
     )
 
-    coupler_funcs.master_after_model_init!(OMMODULE, OMDATA)
+    if is_master
+        coupler_funcs.master_after_model_init!(OMMODULE, OMDATA)
+    end
     
     writeLog("Ready to run the model.")
     step = 0
