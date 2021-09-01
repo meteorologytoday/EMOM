@@ -153,6 +153,7 @@ function runModel(
                 MPI.Barrier(comm)
 
             end
+
             writeLog("Computation cost: {:.2f} secs.", cost)
 
             if is_master
@@ -162,8 +163,14 @@ function runModel(
             advanceClock!(clock, Δt)
 
         elseif stage == :END
+
             writeLog("Receive :END. Entering finalizing phase now.")
             break
+
+        else
+            
+            throw(ErrorException("Unknown stage : " * string(stage)))
+
         end
 
     end

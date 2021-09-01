@@ -42,8 +42,8 @@ module ENGINE_EMOM
         mb          :: EMOM.ModelBlock
         clock       :: ModelClock
 
-        x2o         :: Dict
-        o2x         :: Dict
+        x2o         :: Union{Dict, Nothing}
+        o2x         :: Union{Dict, Nothing}
 
         config     :: Dict
 
@@ -168,26 +168,28 @@ module ENGINE_EMOM
         # Third, register all the variables.
         # Fourth, weaving MPI sending relation 
 
-        empty_arr_sT = zeros(Float64, 1, my_ev.Nx, my_ev.Ny)
-        x2o = Dict(
-            "SWFLX"  => my_mb.fi.SWFLX,
-            "NSWFLX" => my_mb.fi.NSWFLX,
-            "TAUX_east"    => my_mb.fi.TAUX_east,
-            "TAUY_north"   => my_mb.fi.TAUY_north,
-            "IFRAC"  => copy(empty_arr_sT),
-            "FRWFLX" => copy(empty_arr_sT),
-            "VSFLX"  => my_mb.fi.VSFLX,
-            "QFLX_T" => copy(empty_arr_sT),
-            "QFLX_S" => copy(empty_arr_sT),
-            "MLD"    => copy(empty_arr_sT),
-        )
+        x2o = nothing
+        o2x = nothing
 
+        if is_master
 
-        o2x = Dict(
-            "SST"         => my_mb.fi.sv[:SST],
-            "Q_FRZMLTPOT" => my_mb.fi.Q_FRZMLTPOT,
-        )
+            empty_arr_sT = zeros(Float64, 1, my_ev.Nx, my_ev.Ny)
+            x2o = Dict(
+                "SWFLX"       => my_mb.fi.SWFLX,
+                "NSWFLX"      => my_mb.fi.NSWFLX,
+                "TAUX_east"   => my_mb.fi.TAUX_east,
+                "TAUY_north"  => my_mb.fi.TAUY_north,
+                "FRWFLX"      => copy(empty_arr_sT),
+                "VSFLX"       => my_mb.fi.VSFLX,
+            )
 
+            o2x = Dict(
+                "SST"         => my_mb.fi.sv[:SST],
+                "Q_FRZMLTPOT" => my_mb.fi.Q_FRZMLTPOT,
+                "mask"        => my_mb.ev.topo.sfcmask_sT,
+            )
+
+        end
         # Synchronizing Data
         sync_data_list = Dict(
 

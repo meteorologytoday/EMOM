@@ -95,7 +95,7 @@ module docn_comp_mod
   ! ===== XTT MODIFIED BEGIN =====
 
   integer(IN)   :: kt,ks,ku,kv,kdhdx,kdhdy,kq  ! field indices
-  integer(IN)   :: kswnet,klwup,klwdn,ksen,klat,kmelth,ksnow,kroff,kioff,kmeltw,kvsflx
+  integer(IN)   :: kswnet,klwup,klwdn,ksen,klat,kmelth,ksnow,kroff,kioff,kmeltw,ksalt
 
 
   integer(IN)   :: kmld, kqflx_t, kqflx_s
@@ -465,22 +465,22 @@ subroutine docn_comp_init( EClock, cdata, x2o, o2x, NLFilename )
     kioff  = mct_aVect_indexRA(x2o,'Forr_ioff')
     kroff  = mct_aVect_indexRA(x2o,'Forr_roff')
 
-    call mct_aVect_init(avstrm, rList=flds_strm, lsize=lsize)
-    call mct_aVect_zero(avstrm)
+!    call mct_aVect_init(avstrm, rList=flds_strm, lsize=lsize)
+!    call mct_aVect_zero(avstrm)
 
 
     ! ===== XTT MODIFIED BEGIN =====
     
 
     ! Virtual Salt Flux in kg/s/m^2 (varname in CESM SFWF)
-    kvsflx = mct_aVect_indexRA(x2o,'Fioi_salt')
+    ksalt = mct_aVect_indexRA(x2o,'Fioi_salt')
     
-    kmld         = mct_aVect_indexRA(avstrm,'strm_MLD')
-    kqflx_t      = mct_aVect_indexRA(avstrm,'strm_Qflx_T')
-    kqflx_s      = mct_aVect_indexRA(avstrm,'strm_Qflx_S')
-    kt_clim      = mct_aVect_indexRA(avstrm,'strm_T_clim')
-    ks_clim      = mct_aVect_indexRA(avstrm,'strm_S_clim')
-    kifrac_clim  = mct_aVect_indexRA(avstrm,'strm_IF_clim')
+!    kmld         = mct_aVect_indexRA(avstrm,'strm_MLD')
+!    kqflx_t      = mct_aVect_indexRA(avstrm,'strm_Qflx_T')
+!    kqflx_s      = mct_aVect_indexRA(avstrm,'strm_Qflx_S')
+!    kt_clim      = mct_aVect_indexRA(avstrm,'strm_T_clim')
+!    ks_clim      = mct_aVect_indexRA(avstrm,'strm_S_clim')
+!    kifrac_clim  = mct_aVect_indexRA(avstrm,'strm_IF_clim')
     
     ! ===== XTT MODIFIED END =====
 
@@ -705,7 +705,14 @@ subroutine docn_comp_run( EClock, cdata,  x2o, o2x)
 ! ===== XTT MODIFIED BEGIN =====
 
     case('SOM_AQUAP', 'SOM')
- 
+
+        if (my_task /= master_task) then
+
+          write(logunit, "('(docn_comp_init) ', a)") 'ERROR: Only one task is allowed for IOM coupling system because lsize would be subdivided.'
+          call shr_sys_abort(subName//': Initialization error.')
+          
+        endif
+
       !call GETCWD(x_cwd) 
       !print *, "Current working directory: ", trim(x_cwd)
       ! CESM 1 does not provide shr_cal_ymdtod2string
@@ -726,9 +733,9 @@ subroutine docn_comp_run( EClock, cdata,  x2o, o2x)
       lsize = mct_avect_lsize(o2x)
       ! XTT: This line dumps every stream data from `SDOCN%avs(n)` into `avstrm`
       ! where dumped variables are specified by `avifld` and its mapping `avofld`.
-      do n = 1,SDOCN%nstreams
-        call shr_dmodel_translateAV(SDOCN%avs(n),avstrm,avifld,avofld,rearr)
-      enddo
+!      do n = 1,SDOCN%nstreams
+!        call shr_dmodel_translateAV(SDOCN%avs(n),avstrm,avifld,avofld,rearr)
+!      enddo
 
 
       if (firstcall) then
@@ -761,7 +768,7 @@ subroutine docn_comp_run( EClock, cdata,  x2o, o2x)
         allocate(x_frwflx(lsize))
         allocate(x_vsflx(lsize))
 
-        allocate(x_blob_send(lsize*13))
+        allocate(x_blob_send(lsize*6))
         allocate(x_blob_recv(lsize*2))
 
         do n = 1,lsize
@@ -802,7 +809,8 @@ subroutine docn_comp_run( EClock, cdata,  x2o, o2x)
         x_msg = "MSG:INIT;CESMTIME:"//trim(x_datetime_str)//";"//trim(x_msg)
    
         ! Variable order matters
-        x_msg = trim(x_msg)//"VAR2D:QFLX_T,QFLX_S,T_CLIM,S_CLIM,IFRAC_CLIM,MLD,NSWFLX,SWFLX,TAUX,TAUY,IFRAC,FRWFLX,VSFLX;"
+        !x_msg = trim(x_msg)//"VAR2D:QFLX_T,QFLX_S,T_CLIM,S_CLIM,IFRAC_CLIM,MLD,NSWFLX,SWFLX,TAUX,TAUY,IFRAC,FRWFLX,VSFLX;"
+        x_msg = trim(x_msg)//"VAR2D:NSWFLX,SWFLX,TAUX,TAUY,FRWFLX,VSFLX;"
         if (read_restart) then
             x_msg = trim(x_msg)//"READ_RESTART:TRUE;"
         else
@@ -816,8 +824,8 @@ subroutine docn_comp_run( EClock, cdata,  x2o, o2x)
         call stop_if_bad(ptm_recvData(x_PTI, x_msg, x_blob_recv), "INIT_RECV")
 
         if (ptm_messageCompare(x_msg, "OK") .neqv. .true.) then
-            print *, "SSM init failed. Recive message: ", x_msg
-            call shr_sys_abort ('SSM init failed.')
+            print *, "IOM init failed. Recive message: ", x_msg
+            call shr_sys_abort ('IOM init failed.')
         end if
         
         call copy_from_blob(x_blob_recv, lsize, 1, somtp) 
@@ -828,7 +836,7 @@ subroutine docn_comp_run( EClock, cdata,  x2o, o2x)
 
         do n = 1, lsize
             if (imask(n) /= x_mask(n)) then
-                call shr_sys_abort ('SSM init failed: mask does not match')
+                call shr_sys_abort ('Init failed: mask does not match')
             end if
         end do
 
@@ -889,7 +897,7 @@ subroutine docn_comp_run( EClock, cdata,  x2o, o2x)
                          
             ! Virtual salt flux in unit of kg / m^2 / s.
             ! Positive means upward (loss), negative means downward (gain)
-            x_vsflx(n) =  - ( x2o%rAttr(kvsflx, n) + x_frwflx(n) * ocnsalt / rhofw )
+            x_vsflx(n) =  - ( x2o%rAttr(ksalt, n) + x_frwflx(n) * ocnsalt / rhofw )
             
             ! ===================================================================
                        
@@ -897,31 +905,38 @@ subroutine docn_comp_run( EClock, cdata,  x2o, o2x)
             x_tauy(n)  = x2o%rAttr(ktauy,n)
             x_ifrac(n) = x2o%rAttr(kifrac,n)
 
-            x_qflx_t(n)     = avstrm%rAttr(kqflx_t,n)
-            x_qflx_s(n)     = avstrm%rAttr(kqflx_s,n)
-            x_t_clim(n)     = avstrm%rAttr(kt_clim,n)
-            x_s_clim(n)     = avstrm%rAttr(ks_clim,n)
-            x_ifrac_clim(n) = avstrm%rAttr(kifrac_clim,n)
-            x_mld(n)        = avstrm%rAttr(kmld,n)
+            !x_qflx_t(n)     = avstrm%rAttr(kqflx_t,n)
+            !x_qflx_s(n)     = avstrm%rAttr(kqflx_s,n)
+            !x_t_clim(n)     = avstrm%rAttr(kt_clim,n)
+            !x_s_clim(n)     = avstrm%rAttr(ks_clim,n)
+            !x_ifrac_clim(n) = avstrm%rAttr(kifrac_clim,n)
+            !x_mld(n)        = avstrm%rAttr(kmld,n)
            
-            tmp = tmp + x_ifrac_clim(n) 
+            !tmp = tmp + x_ifrac_clim(n) 
           end if
         end do
         
-        print *, "sum of ifrac_clim: ", tmp
-        call copy_into_blob(x_blob_send, lsize, 1, x_qflx_t) 
-        call copy_into_blob(x_blob_send, lsize, 2, x_qflx_s) 
-        call copy_into_blob(x_blob_send, lsize, 3, x_t_clim) 
-        call copy_into_blob(x_blob_send, lsize, 4, x_s_clim) 
-        call copy_into_blob(x_blob_send, lsize, 5, x_ifrac_clim) 
-        call copy_into_blob(x_blob_send, lsize, 6, x_mld) 
-        call copy_into_blob(x_blob_send, lsize, 7, x_nswflx) 
-        call copy_into_blob(x_blob_send, lsize, 8, x_swflx) 
-        call copy_into_blob(x_blob_send, lsize, 9, x_taux) 
-        call copy_into_blob(x_blob_send, lsize, 10, x_tauy) 
-        call copy_into_blob(x_blob_send, lsize, 11, x_ifrac) 
-        call copy_into_blob(x_blob_send, lsize, 12, x_frwflx) 
-        call copy_into_blob(x_blob_send, lsize, 13, x_vsflx) 
+        !print *, "sum of ifrac_clim: ", tmp
+        !call copy_into_blob(x_blob_send, lsize, 1, x_qflx_t) 
+        !call copy_into_blob(x_blob_send, lsize, 2, x_qflx_s) 
+        !call copy_into_blob(x_blob_send, lsize, 3, x_t_clim) 
+        !call copy_into_blob(x_blob_send, lsize, 4, x_s_clim) 
+        !call copy_into_blob(x_blob_send, lsize, 5, x_ifrac_clim) 
+        !call copy_into_blob(x_blob_send, lsize, 6, x_mld) 
+        !call copy_into_blob(x_blob_send, lsize, 7, x_nswflx) 
+        !call copy_into_blob(x_blob_send, lsize, 8, x_swflx) 
+        !call copy_into_blob(x_blob_send, lsize, 9, x_taux) 
+        !call copy_into_blob(x_blob_send, lsize, 10, x_tauy) 
+        !call copy_into_blob(x_blob_send, lsize, 11, x_ifrac) 
+        !call copy_into_blob(x_blob_send, lsize, 12, x_frwflx) 
+        !call copy_into_blob(x_blob_send, lsize, 13, x_vsflx) 
+ 
+        call copy_into_blob(x_blob_send, lsize, 1, x_nswflx) 
+        call copy_into_blob(x_blob_send, lsize, 2, x_swflx) 
+        call copy_into_blob(x_blob_send, lsize, 3, x_taux) 
+        call copy_into_blob(x_blob_send, lsize, 4, x_tauy) 
+        call copy_into_blob(x_blob_send, lsize, 5, x_frwflx) 
+        call copy_into_blob(x_blob_send, lsize, 6, x_vsflx) 
  
         call stop_if_bad(ptm_sendData(x_PTI, x_msg, x_nullbin),  "RUN_SEND")
         call stop_if_bad(ptm_sendData(x_PTI, "DATA", x_blob_send), "RUN_SEND_DATA")
@@ -952,9 +967,8 @@ subroutine docn_comp_run( EClock, cdata,  x2o, o2x)
             o2x%rAttr(kq,n) = x_q(n)
           end if
         end do
-     
-      endif
-
+         
+        endif
 ! ===== XTT MODIFIED END =====
 
    case('XSOM')

@@ -136,6 +136,7 @@ coupler_funcs = (
         end
 
         sendData(PTI, "OK", send_data_list)
+        sendData(PTI, "mask",  [OMDATA.o2x["mask"],])
 
     end,
 
@@ -144,24 +145,21 @@ coupler_funcs = (
         #writeLog("[Coupler] This is where flux exchange happens.")
         recvMsg() 
 
-        if ! ( msg["MSG"] in [ "RUN", "END" ] ) 
-            throw(ErrorException("Unexpected `MSG` : " * string(msg["MSG"])))
-        end
- 
-        recvData!(
-            PTI,
-            recv_data_list,
-            which=2,
-        )
-       
         return_values = nothing
         if msg["MSG"] == "RUN"
-            Δt = parse(Float64, msg["DT"])
+            Δt = Dates.Second(parse(Float64, msg["DT"]))
+            recvData!(
+                PTI,
+                recv_data_list,
+                which=2,
+            )
+     
             return_values = ( :RUN,  Δt, false )
-        else
+        elseif msg["MSG"] == "END"
             return_values = ( :END, 0.0, true  )
+        else
+            throw(ErrorException("Unexpected `MSG` : " * string(msg["MSG"])))
         end
-
 
         return return_values
 

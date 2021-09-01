@@ -19,7 +19,7 @@ function getCompleteVariableList(
             "TAUY_north"         => ( mb.fi.TAUY_north,  :sT, :mask ),
             "SWFLX"              => ( mb.fi.SWFLX,       :sT, :mask ),
             "NSWFLX"             => ( mb.fi.NSWFLX,      :sT, :mask ),
-            "VSFLX"              => ( mb.fi.NSWFLX,      :sT, :mask ),
+            "VSFLX"              => ( mb.fi.VSFLX,       :sT, :mask ),
             "ADVT"               => ( mb.fi.sv[:ADVT],     :T, :mask ),
             "ADVS"               => ( mb.fi.sv[:ADVS],     :T, :mask ),
             "HMXL"               => ( mb.fi.HMXL,          :sT, :mask ),
