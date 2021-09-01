@@ -11,5 +11,9 @@ DOMAIN_FILE=CESM_domains/domain.ocn.gx3v7.120323.nc
 POP2_profile_used=$POP2_profile_g37
 
 
+forcing_file=data/forcing.g37.nc
+forcing_file_layers=$needed_layers
+
+
 #DOMAIN_FILE=CESM_domains/domain.ocn.gx1v6.090206.nc
 #POP2_profile_used=$POP2_profile_g16
