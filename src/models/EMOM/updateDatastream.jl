@@ -11,7 +11,7 @@ function updateDatastream!(
 
         interpData!(cdatam, clock.time, datastream)
 
-        if cfg[:MLD_scheme] == :datastream
+        if cfg["MLD_scheme"] == "datastream"
             mb.fi.HMXL .= datastream["HMXL"]
         end
             

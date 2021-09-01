@@ -4,40 +4,40 @@ function getConfigDescriptor()
     return Dict(
 
 
-        :MODEL_MISC => [
+        "MODEL_MISC" => [
 
 
             ConfigEntry(
-                :init_file,
+                "init_file",
                 :optional,
                 [nothing, String],
                 nothing
             ),
 
             ConfigEntry(
-                :rpointer_file,
+                "rpointer_file",
                 :optional,
                 [String,],
-                "";
+                "rpointer.iom";
                 desc="If read_restart of the init function is set true, then this entry has to contain a valid rpointer filename.",
             ),
 
             ConfigEntry(
-                :enable_archive,
+                "enable_archive",
                 :required,
                 [Bool,],
             ),
 
 
             ConfigEntry(
-                :daily_record,
+                "daily_record",
                 :optional,
                 [AbstractArray,],
                 [],
             ),
 
             ConfigEntry(
-                :monthly_record,
+                "monthly_record",
                 :optional,
                 [AbstractArray,],
                 [],
@@ -45,23 +45,23 @@ function getConfigDescriptor()
 
         ],
         
-        :MODEL_CORE => [
+        "MODEL_CORE" => [
 
             ConfigEntry(
-                :timetype,
+                "timetype",
                 :optional,
                 [String,],
                 "DateTimeNoLeap",
             ),
 
             ConfigEntry(
-                :domain_file,
+                "domain_file",
                 :required,
                 [String,],
             ),
 
             ConfigEntry(
-                :topo_file,
+                "topo_file",
                 :optional,
                 [String, Nothing],
                 nothing,
@@ -69,7 +69,7 @@ function getConfigDescriptor()
 
 
             ConfigEntry(
-                :cdata_file,
+                "cdata_file",
                 :optional,
                 [String,],
                 nothing,
@@ -77,178 +77,178 @@ function getConfigDescriptor()
 
 
             ConfigEntry(
-                :cdata_beg_time,
+                "cdata_beg_time",
                 :optional,
                 [Any,],
             ),
 
             ConfigEntry(
-                :cdata_end_time,
+                "cdata_end_time",
                 :optional,
                 [Any,],
             ),
 
             ConfigEntry(
-                :cdata_align_time,
+                "cdata_align_time",
                 :optional,
                 [Any,],
             ),
 
 
             ConfigEntry(
-                :substeps,
+                "substeps",
                 :optional,
                 [Integer,],
                 8;
             ),
 
             ConfigEntry(
-                :advection_scheme,
+                "advection_scheme",
                 :required,
-                [:static, :ekman_codron2012_partition, :ekman_AGA2020],
+                ["static", "ekman_codron2012_partition", "ekman_AGA2020"],
             ),
 
             ConfigEntry(
-                :MLD_scheme,
+                "MLD_scheme",
                 :required,
-                [:prognostic, :datastream, :static],
+                ["prognostic", "datastream", "static"],
             ),
 
             ConfigEntry(
-                :Qflx,
+                "Qflx",
                 :optional,
-                [:on, :off],
-                :off,
+                ["on", "off"],
+                "off",
             ),
             
             ConfigEntry(
-                :Qflx_finding,
+                "Qflx_finding",
                 :optional,
-                [:on, :off],
-                :off,
+                ["on", "off"],
+                "off",
             ),
             
             ConfigEntry(
-                :weak_restoring,
+                "weak_restoring",
                 :optional,
-                [:on, :off],
-                :off,
+                ["on", "off"],
+                "off",
             ),
             
             ConfigEntry(
-                :convective_adjustment,
+                "convective_adjustment",
                 :optional,
-                [:on, :off],
-                :off,
+                ["on", "off"],
+                "off",
             ),
 
             ConfigEntry(
-                :z_w,
+                "z_w",
                 :optional,
                 [AbstractArray{Float64, 1}],
                 nothing;
-                desc = "Will be overwritten if :init_file is used.",
+                desc = "Will be overwritten if `init_file` is used.",
             ),
 
             ConfigEntry(
-                :Ks_H,
+                "Ks_H",
                 :optional,
                 [Float64,],
                 1e3;
-                desc = "Horizontal tracer diffusivity. Will be overwritten if :init_file is used.",
+                desc = "Horizontal tracer diffusivity. Will be overwritten if `init_file` is used.",
             ),
 
             ConfigEntry(
-                :Ks_V,
+                "Ks_V",
                 :optional,
                 [Float64,],
                 1e-4;
-                desc = "Vertical tracer diffusivity. Will be overwritten if :init_file is used.",
+                desc = "Vertical tracer diffusivity. Will be overwritten if `init_file` is used.",
             ),
 
             ConfigEntry(
-                :Ks_V_cva,
+                "Ks_V_cva",
                 :optional,
                 [Float64,],
                 1.0;
-                desc = "Convective adjustment diffusivity. Will be overwritten if :init_file is used.",
+                desc = "Convective adjustment diffusivity. Will be overwritten if `init_file` is used.",
             ),
 
             ConfigEntry(
-                :τwk_TEMP,
+                "τwk_TEMP",
                 :optional,
                 [Float64,],
                 Inf;
-                desc = "Timescale of weak-restoring of temperature. Will be overwritten if :init_file is used",
+                desc = "Timescale of weak-restoring of temperature. Will be overwritten if `init_file` is used",
             ),
 
             ConfigEntry(
-                :τwk_SALT,
+                "τwk_SALT",
                 :optional,
                 [Float64,],
                 Inf;
-                desc = "Timescale of weak-restoring of salinity. Will be overwritten if :init_file is used",
+                desc = "Timescale of weak-restoring of salinity. Will be overwritten if `init_file` is used",
             ),
 
             ConfigEntry(
-                :τ_frz,
+                "τ_frz",
                 :optional,
                 [Float64,],
                 3600.0;
-                desc = "Timescale of freezing when ocean temperature is below T_sw_frz = -1.8 degC. Will be overwritten if :init_file is used",
+                desc = "Timescale of freezing when ocean temperature is below T_sw_frz = -1.8 degC. Will be overwritten if `init_file` is used",
             ),
 
 
             ConfigEntry(
-                :rad_R,
+                "rad_R",
                 :optional,
                 [Float64,],
                 0.58;
-                desc = "Fast absorption portion of sunlight as described in Paulson & Simpson (1977). Will be overwritten if :init_file is used",
+                desc = "Fast absorption portion of sunlight as described in Paulson & Simpson (1977). Will be overwritten if `init_file` is used",
             ),
 
             ConfigEntry(
-                :rad_ζ1,
+                "rad_ζ1",
                 :optional,
                 [Float64,],
                 0.15;
-                desc = "Light penetration length scale as described in Paulson & Simpson (1977). Will be overwritten if :init_file is used",
+                desc = "Light penetration length scale as described in Paulson & Simpson (1977). Will be overwritten if `init_file` is used",
             ),
 
             ConfigEntry(
-                :rad_ζ2,
+                "rad_ζ2",
                 :optional,
                 [Float64,],
                 23.0;
-                desc = "Light penetration length scale as described in Paulson & Simpson (1977). Will be overwritten if :init_file is used",
+                desc = "Light penetration length scale as described in Paulson & Simpson (1977). Will be overwritten if `init_file` is used",
             ),
 
             ConfigEntry(
-                :ϵ,
+                "ϵ",
                 :optional,
                 [Float64,],
                 1.0 / 86400.0;
-                desc = "Rayleigh friction of momentum. Will be overwritten if :init_file is used",
+                desc = "Rayleigh friction of momentum. Will be overwritten if `init_file` is used",
             ),
 
             ConfigEntry(
-                :Ekman_layers,
+                "Ekman_layers",
                 :optional,
                 [Integer,],
                 5;
-                desc = "Number of Ekman layers. Will be overwritten if :init_file is used",
+                desc = "Number of Ekman layers. Will be overwritten if `init_file` is used",
             ),
 
             ConfigEntry(
-                :Returnflow_layers,
+                "Returnflow_layers",
                 :optional,
                 [Integer,],
                 5;
-                desc = "Number of Ekman return flows. Will be overwritten if :init_file is used",
+                desc = "Number of Ekman return flows. Will be overwritten if `init_file` is used",
             ),
 
             ConfigEntry(
-                :transform_vector_field,
+                "transform_vector_field",
                 :optional,
                 [Bool,],
                 true;

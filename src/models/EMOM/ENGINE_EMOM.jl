@@ -76,7 +76,7 @@ module ENGINE_EMOM
         local master_ev = nothing
 
         if is_master
-            archive_list_file = joinpath(config[:DRIVER][:caserun], config[:DRIVER][:archive_list])
+            archive_list_file = joinpath(config["DRIVER"]["caserun"], config["DRIVER"]["archive_list"])
             if isfile(archive_list_file)
                 writeLog("File {:s} already exists. Remove it.", archive_list_file)
                 rm(archive_list_file)
@@ -87,10 +87,10 @@ module ENGINE_EMOM
 
             cfg_desc = EMOM.getConfigDescriptor()
 
-            misc_config = EMOM.validateConfigEntries(config[:MODEL_MISC], cfg_desc[:MODEL_MISC])
-            core_config = EMOM.validateConfigEntries(config[:MODEL_CORE], cfg_desc[:MODEL_CORE])
+            misc_config = EMOM.validateConfigEntries(config["MODEL_MISC"], cfg_desc["MODEL_MISC"])
+            core_config = EMOM.validateConfigEntries(config["MODEL_CORE"], cfg_desc["MODEL_CORE"])
 
-            # If `read_restart` is true then read restart file: config[:rpointer_file]
+            # If `read_restart` is true then read restart file: config["rpointer_file"]
             # If not then initialize ocean with default profile if `initial_file`
             # is "nothing", with `init_file` if it is nonempty.
 
@@ -98,7 +98,7 @@ module ENGINE_EMOM
 
                 println("`read_restart` is on. Look for rpointer file...")
 
-                rpointer_file = joinpath(config[:DRIVER][:caserun], config[:MODEL_MISC][:rpointer_file])
+                rpointer_file = joinpath(config["DRIVER"]["caserun"], config["MODEL_MISC"]["rpointer_file"])
 
                 if !isfile(rpointer_file)
                     throw(ErrorException(format("File {:s} does not exist!", rpointer_file)))
@@ -118,12 +118,12 @@ module ENGINE_EMOM
                 master_mb = EMOM.loadSnapshot(snapshot_filename)
             else
 
-                init_file = misc_config[:init_file]
+                init_file = misc_config["init_file"]
 
                 if init_file != ""
 
                     println("Initial ocean with profile: ", init_file)
-                    println("Initial ocean with domain file: ", core_config[:domain_file])
+                    println("Initial ocean with domain file: ", core_config["domain_file"])
                     master_mb = EMOM.loadSnapshot(init_file; overwrite_config=core_config)
                 
                 else
@@ -271,26 +271,25 @@ module ENGINE_EMOM
 
             activated_record = []
             MD.recorders = Dict()
-            complete_variable_list = EMOM.getDynamicVariableList(my_mb; varsets=[:ALL,])
+            complete_variable_list = EMOM.getDynamicVariableList(my_mb; varsets=["ALL",])
 
 #            additional_variable_list = EMOM.getVariableList(ocn, :COORDINATE)
 
-            for rec_key in [:daily_record, :monthly_record]
+            for rec_key in ["daily_record", "monthly_record"]
        
                 activated = false
  
                 println("# For record key: " * string(rec_key))
 
                 varnames = Array{String}(undef, 0)
-                varsets  = Array{Symbol}(undef, 0)
+                varsets  = Array{String}(undef, 0)
                 
                 for v in misc_config[rec_key]
-                    if typeof(v) <: Symbol
-                        push!(varsets, v)
-                    elseif typeof(v) <: String
-                        push!(varnames, v)
+                    m = match(r"\{(?<varset>[a-zA-Z_]+)\}", v)
+                    if m != nothing
+                        push!(varsets, m[:varset])
                     else
-                        throw(ErrorException("Unknown record list element type: " * string(typeof(v))))
+                        push!(varnames, v)
                     end
                 end
                     
@@ -360,10 +359,10 @@ module ENGINE_EMOM
 
             # Must create the record file first because the
             # run of the first day is not called in CESM
-            if misc_config[:enable_archive]
+            if misc_config["enable_archive"]
 
-                if :daily_record in activated_record
-                    recorder_day = MD.recorders[:daily_record]
+                if "daily_record" in activated_record
+                    recorder_day = MD.recorders["daily_record"]
                     addAlarm!(
                         clock,
                         "[Daily] Create daily output file.",
@@ -391,7 +390,7 @@ module ENGINE_EMOM
 
                 end
 
-                if :monthly_record in activated_record
+                if "monthly_record" in activated_record
 
                     # Design alarm such that
                     # (1) Create output file first
@@ -403,7 +402,7 @@ module ENGINE_EMOM
                     #     (iii) record this step in the new file in (ii)
                     #     
 
-                    recorder_mon = MD.recorders[:monthly_record]
+                    recorder_mon = MD.recorders["monthly_record"]
 
                     addAlarm!(
                         clock,
@@ -486,7 +485,7 @@ module ENGINE_EMOM
 
         end
         
-        substeps = MD.mb.ev.config[:substeps]
+        substeps = MD.mb.ev.config["substeps"]
         if ! is_master
             # Because substep in stepAdvection updates _INTMX_
             # based on _INTMX_ itself, we need to copy it first.
@@ -567,43 +566,19 @@ module ENGINE_EMOM
 
         setNewNCFile!(
             recorder,
-            joinpath(MD.config[:DRIVER][:caserun], filename)
+            joinpath(MD.config["DRIVER"]["caserun"], filename)
         )
             
-        appendLine(joinpath(MD.config[:DRIVER][:caserun], MD.config[:DRIVER][:archive_list]), 
+        appendLine(joinpath(MD.config["DRIVER"]["caserun"], MD.config["DRIVER"]["archive_list"]), 
             format("mv,{:s},{:s},{:s}",
                 filename,
-                MD.config[:DRIVER][:caserun],
-                joinpath(MD.config[:DRIVER][:archive_root], "ocn", "hist"),
+                MD.config["DRIVER"]["caserun"],
+                joinpath(MD.config["DRIVER"]["archive_root"], "ocn", "hist"),
             )
         )
 
     end
 
-
-    function output!(
-        
-        MD               :: EMOM_DATA;
-        force_output     :: Bool = false,
-    )
-
-        # Daily record block
-        if (length(MD.config[:daily_record]) != 0) && t_flags[:new_day]
-
-            #println("##### Avg and Output DAILY!")
-            avgAndOutput!(MD.recorders[:daily_record])
-        
-        end
- 
- 
-        if (length(MD.config[:monthly_record]) != 0) && t_flags[:new_month]
-            
-            #println("##### Avg and Output MONTHLY!")
-            avgAndOutput!(MD.recorders[:monthly_record])
-
-        end
-             
-    end
 
     function writeRestart(
         MD :: EMOM_DATA,
@@ -619,7 +594,7 @@ module ENGINE_EMOM
 
         snapshot_filename = format(
             "{:s}.snapshot.{:s}.jld2",
-            MD.config[:DRIVER][:casename],
+            MD.config["DRIVER"]["casename"],
             timestamp_str,
         )
 
@@ -628,29 +603,29 @@ module ENGINE_EMOM
             MD.clock.time,
             MD.mb,
             joinpath(
-                MD.config[:DRIVER][:caserun],
+                MD.config["DRIVER"]["caserun"],
                 snapshot_filename,
             ),
         )
 
-        println("(Over)write restart pointer file: ", MD.config[:MODEL_MISC][:rpointer_file])
-        open(joinpath(MD.config[:DRIVER][:caserun], MD.config[:MODEL_MISC][:rpointer_file]), "w") do io
+        println("(Over)write restart pointer file: ", MD.config["MODEL_MISC"]["rpointer_file"])
+        open(joinpath(MD.config["DRIVER"]["caserun"], MD.config["MODEL_MISC"]["rpointer_file"]), "w") do io
             write(io, snapshot_filename, "\n")
         end
 
-        appendLine(joinpath(MD.config[:DRIVER][:caserun], MD.config[:DRIVER][:archive_list]), 
+        appendLine(joinpath(MD.config["DRIVER"]["caserun"], MD.config["DRIVER"]["archive_list"]), 
             format("cp,{:s},{:s},{:s}",
                 snapshot_filename,
-                MD.config[:DRIVER][:caserun],
-                joinpath(MD.config[:DRIVER][:archive_root], "rest", timestamp_str),
+                MD.config["DRIVER"]["caserun"],
+                joinpath(MD.config["DRIVER"]["archive_root"], "rest", timestamp_str),
             )
         )
         
-        appendLine(joinpath(MD.config[:DRIVER][:caserun], MD.config[:DRIVER][:archive_list]), 
+        appendLine(joinpath(MD.config["DRIVER"]["caserun"], MD.config["DRIVER"]["archive_list"]), 
             format("cp,{:s},{:s},{:s}",
-                MD.config[:MODEL_MISC][:rpointer_file],
-                MD.config[:DRIVER][:caserun],
-                joinpath(MD.config[:DRIVER][:archive_root], "rest", timestamp_str),
+                MD.config["MODEL_MISC"]["rpointer_file"],
+                MD.config["DRIVER"]["caserun"],
+                joinpath(MD.config["DRIVER"]["archive_root"], "rest", timestamp_str),
             )
         )
         

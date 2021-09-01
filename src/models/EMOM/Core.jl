@@ -26,7 +26,7 @@ mutable struct Core
         wksp = Workspace(Nx=ev.Nx, Ny=ev.Ny, Nz=ev.Nz)
 
         gf = PolelikeCoordinate.CurvilinearSphericalGridFile(
-            cfg[:domain_file];
+            cfg["domain_file"];
             R  = Re,
             Ω  = Ω,
         )
@@ -65,7 +65,7 @@ mutable struct Core
         W_broadcast_sT = build!(amo_slab.bmo.T_I_T, mapping_T)
 
         # Build Radiation Matrix
-        swflx_factor_W =  cfg[:rad_R]  * exp.(gd.z_W / cfg[:rad_ζ1]) + (1.0 - cfg[:rad_R]) * exp.(gd.z_W / cfg[:rad_ζ2])
+        swflx_factor_W =  cfg["rad_R"]  * exp.(gd.z_W / cfg["rad_ζ1"]) + (1.0 - cfg["rad_R"]) * exp.(gd.z_W / cfg["rad_ζ2"])
 
 
         Nz_bot = view(ev.topo.Nz_bot_sT, 1, :, :)
@@ -88,7 +88,7 @@ mutable struct Core
         # f and ϵ matrices
         f_sT = 2 * gd.Ω * sin.(gd_slab.ϕ_T)
         β_sT = (2 * gd.Ω / gd.R) * cos.(gd_slab.ϕ_T)
-        ϵ_sT = f_sT * 0 .+ cfg[:ϵ]
+        ϵ_sT = f_sT * 0 .+ cfg["ϵ"]
         D_sT = f_sT.^2 + ϵ_sT.^2
         invD_sT = D_sT.^(-1.0)
 
@@ -114,12 +114,12 @@ mutable struct Core
 
         vd = VerticalDiffusion(
             amo;
-            K_iso=cfg[:Ks_V],
-            K_cva=(cfg[:convective_adjustment] == :on) ? cfg[:Ks_V_cva] : cfg[:Ks_V],
+            K_iso=cfg["Ks_V"],
+            K_cva=(cfg["convective_adjustment"] == "on") ? cfg["Ks_V_cva"] : cfg["Ks_V"],
         )
 
         # freezing operator
-        mtx[:T_invτ_frz_T] = - amo.T_mask_T * spdiagm(0 => ones(Float64, amo.bmo.T_pts)) / cfg[:τ_frz]
+        mtx[:T_invτ_frz_T] = - amo.T_mask_T * spdiagm(0 => ones(Float64, amo.bmo.T_pts)) / cfg["τ_frz"]
         
         # surface mask but is in 3D T grid. This one is different from the topo.sfcmask_sT. 
         sfcmask_T = zeros(Float64, amo.bmo.T_dim...)
@@ -131,16 +131,37 @@ mutable struct Core
             cdatam = nothing
         else
 
-            if cfg[:cdata_file] == ""
+            if cfg["cdata_file"] == ""
                 throw(ErrorException("Some config require cyclic data forcing file"))
             else
+                    
+
+                
+                function parseDateTime(timetype, str)
+                    m = match(r"(?<year>[0-9]+)-(?<month>[0-9]{2})-(?<day>[0-9]{2})\s+(?<hour>[0-9]{2}):(?<min>[0-9]{2}):(?<sec>[0-9]{2})", str)
+                    if m == nothing
+                        throw(ErrorException("Unknown time format: " * (str)))
+                    end
+
+                    return timetype(
+                        parse(Int64, m[:year]),
+                        parse(Int64, m[:month]),
+                        parse(Int64, m[:day]),
+                        parse(Int64, m[:hour]),
+                        parse(Int64, m[:min]),
+                        parse(Int64, m[:sec]),
+                    )
+                end
+                
+                timetype   = getproperty(CFTime, Symbol(cfg["timetype"]))
+
                 cdatam = CyclicDataManager(;
-                    timetype     = getproperty(CFTime, Symbol(cfg[:timetype])),
-                    filename     = cfg[:cdata_file],
+                    timetype     = timetype,
+                    filename     = cfg["cdata_file"],
                     varnames     = ev.cdata_varnames,
-                    beg_time     = cfg[:cdata_beg_time],
-                    end_time     = cfg[:cdata_end_time],
-                    align_time   = cfg[:cdata_align_time],
+                    beg_time     = parseDateTime(timetype, cfg["cdata_beg_time"]),
+                    end_time     = parseDateTime(timetype, cfg["cdata_end_time"]),
+                    align_time   = parseDateTime(timetype, cfg["cdata_align_time"]),
                     sub_yrng     = ev.sub_yrng,
                 )
 
@@ -148,9 +169,9 @@ mutable struct Core
             end
         end
 
-        if cfg[:weak_restoring] == :on
-            mtx[:T_invτwk_TEMP_T] = - amo.T_mask_T * spdiagm(0 => ones(Float64, amo.bmo.T_pts)) / cfg[:τwk_TEMP]
-            mtx[:T_invτwk_SALT_T] = - amo.T_mask_T * spdiagm(0 => ones(Float64, amo.bmo.T_pts)) / cfg[:τwk_SALT]
+        if cfg["weak_restoring"] == "on"
+            mtx[:T_invτwk_TEMP_T] = - amo.T_mask_T * spdiagm(0 => ones(Float64, amo.bmo.T_pts)) / cfg["τwk_TEMP"]
+            mtx[:T_invτwk_SALT_T] = - amo.T_mask_T * spdiagm(0 => ones(Float64, amo.bmo.T_pts)) / cfg["τwk_SALT"]
         end
 
 

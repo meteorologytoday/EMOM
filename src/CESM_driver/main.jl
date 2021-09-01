@@ -8,6 +8,7 @@ using MPI
 using CFTime, Dates
 using ArgParse
 using JSON
+using TOML
 
 using .ProgramTunnel_fs
 using .BinaryIO
@@ -19,7 +20,7 @@ function parse_commandline()
 
     @add_arg_table s begin
         "--config-file"
-            help = "Configuration file."
+            help = "Configuration file in TOML format."
             arg_type = String
             required = true
     end
@@ -71,9 +72,11 @@ msg = nothing
 config = nothing
 if is_master
 
-    include(parsed["config-file"])
+
+
+    config = TOML.parsefile(parsed["config-file"])
     PTI = ProgramTunnelInfo(
-        path = joinpath(config[:DRIVER][:caserun], "x_tmp"),
+        path = joinpath(config["DRIVER"]["caserun"], "x_tmp"),
         reverse_role  = true,
         recv_channels = 2,
         chk_freq = 1.0,

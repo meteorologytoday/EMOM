@@ -6,13 +6,13 @@ module ConfigCheck
     export ConfigEntry, validateConfigEntries, validateByConfigGroup
 
     mutable struct ConfigEntry
-        name      :: Symbol
+        name      :: String
         required  :: Symbol
         valid_vts :: AbstractArray
         default   :: Any
         desc      :: String
         function ConfigEntry(
-            name      :: Symbol,
+            name      :: String,
             required  :: Symbol,
             valid_vts :: AbstractArray,
             default   :: Any = nothing;
@@ -65,7 +65,7 @@ module ConfigCheck
         verbose     :: Bool = false,
     )
 
-        new_cfg = Dict{Symbol, Any}()
+        new_cfg = Dict{String, Any}()
         
         for entry in cfg_entries
 

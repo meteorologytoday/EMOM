@@ -91,7 +91,7 @@ function stepColumn!(
     #op_TEMP += op_frz
     #RHS_TEMP .-= Δt * op_frz * (T_sw_frz * co.mtx[:ones_T])
 
-    if cfg[:weak_restoring] == :on
+    if cfg["weak_restoring"] == "on"
         op_TEMP   += co.mtx[:T_invτwk_TEMP_T]
         op_SALT   += co.mtx[:T_invτwk_SALT_T]
         
@@ -103,7 +103,7 @@ function stepColumn!(
         RHS_SALT .-= Δt * co.amo.T_mask_T * co.mtx[:T_invτwk_SALT_T] * reshape( tmpfi.datastream["SALT"] , :)
     end
  
-    if cfg[:Qflx] == :on
+    if cfg["Qflx"] == "on"
         RHS_TEMP .+= Δt * co.amo.T_mask_T * view( tmpfi.datastream["QFLX_TEMP"] , :) / ρcp_sw
         RHS_SALT .+= Δt * co.amo.T_mask_T * view( tmpfi.datastream["QFLX_SALT"] , :) 
     end
@@ -140,7 +140,7 @@ function stepColumn!(
     end
     =#
     # Recompute source and sink of tracers due to weak restoring
-    if cfg[:weak_restoring] == :on
+    if cfg["weak_restoring"] == "on"
         tmpfi._WKRSTΔX_[:, 1] = tmpfi._NEWX_[:, 1] - reshape(tmpfi.datastream["TEMP"], :)
         tmpfi._WKRSTΔX_[:, 2] = tmpfi._NEWX_[:, 2] - reshape(tmpfi.datastream["SALT"], :)
         fi._WKRSTX_[:, 1] = co.mtx[:T_invτwk_TEMP_T] * view(tmpfi._WKRSTΔX_, :, 1)

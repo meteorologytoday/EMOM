@@ -22,13 +22,13 @@ function setupForcing!(
 
     
     # Setup Ekman Flow
-    if cfg[:advection_scheme] == :static 
+    if cfg["advection_scheme"] == "static"
 
         fi._u .= 0.0
         fi._v .= 0.0
         fi._w .= 0.0
 
-    elseif cfg[:advection_scheme] == :ekman_codron2012_partition
+    elseif cfg["advection_scheme"] == "ekman_codron2012_partition"
  
       
         f_sT = co.mtx[:f_sT]
@@ -41,7 +41,7 @@ function setupForcing!(
         Mx_sT = copy(M_east)
         My_sT = copy(M_north)
  
-        if cfg[:transform_vector_field]
+        if cfg["transform_vector_field"]
             PolelikeCoordinate.project!(
                 gd, 
                 M_east,
@@ -57,16 +57,16 @@ function setupForcing!(
         Mx_u = reshape( co.amo_slab.U_interp_T * view(Mx_sT, :), gd.Nx, gd.Ny)
         My_v = reshape( co.amo_slab.V_interp_T * view(My_sT, :), gd.Nx, gd.Ny+1)
 
-        H_Ek = sum(gd.Δz_T[1:cfg[:Ekman_layers], 1, 1]) 
-        H_Rf = sum(gd.Δz_T[(cfg[:Ekman_layers]+1):(cfg[:Ekman_layers]+cfg[:Returnflow_layers]), 1, 1]) 
+        H_Ek = sum(gd.Δz_T[1:cfg["Ekman_layers"], 1, 1]) 
+        H_Rf = sum(gd.Δz_T[(cfg["Ekman_layers"]+1):(cfg["Ekman_layers"]+cfg["Returnflow_layers"]), 1, 1]) 
 
 
-        for k = 1:cfg[:Ekman_layers]
+        for k = 1:cfg["Ekman_layers"]
             fi.sv[:UVEL][k, :, :] .= Mx_u / H_Ek
             fi.sv[:VVEL][k, :, :] .= My_v / H_Ek
         end
  
-        for k = (cfg[:Ekman_layers]+1):(cfg[:Ekman_layers]+cfg[:Returnflow_layers])
+        for k = (cfg["Ekman_layers"]+1):(cfg["Ekman_layers"]+cfg["Returnflow_layers"])
             fi.sv[:UVEL][k, :, :] .= - Mx_u / H_Rf
             fi.sv[:VVEL][k, :, :] .= - My_v / H_Rf
         end
@@ -75,7 +75,7 @@ function setupForcing!(
         fi._v[:] = co.amo.V_flowmask_V * fi._v
         fi._w[:] = co.amo.W_flowmask_W * fi._w
 
-    elseif cfg[:advection_scheme] == :ekman_AGA2020
+    elseif cfg["advection_scheme"] == "ekman_AGA2020"
 
         f_sT = co.mtx[:f_sT]
         β_sT = co.mtx[:β_sT]
@@ -88,7 +88,7 @@ function setupForcing!(
         # First, I need to get the curl. I choose to
         # do the curl using line integral in ocean model
         # space
-        if cfg[:transform_vector_field]
+        if cfg["transform_vector_field"]
             PolelikeCoordinate.project!(
                 gd, 
                 fi.TAUX_east,
@@ -130,16 +130,16 @@ function setupForcing!(
         Mx_u = reshape( co.amo_slab.U_interp_T * view(Mx_sT, :), gd.Nx, gd.Ny)
         My_v = reshape( co.amo_slab.V_interp_T * view(My_sT, :), gd.Nx, gd.Ny+1)
 
-        H_Ek = sum(gd.Δz_T[1:cfg[:Ekman_layers], 1, 1]) 
-        H_Rf = sum(gd.Δz_T[(cfg[:Ekman_layers]+1):(cfg[:Ekman_layers]+cfg[:Returnflow_layers]), 1, 1]) 
+        H_Ek = sum(gd.Δz_T[1:cfg["Ekman_layers"], 1, 1]) 
+        H_Rf = sum(gd.Δz_T[(cfg["Ekman_layers"]+1):(cfg["Ekman_layers"]+cfg["Returnflow_layers"]), 1, 1]) 
 
 
-        for k = 1:cfg[:Ekman_layers]
+        for k = 1:cfg["Ekman_layers"]
             fi.sv[:UVEL][k, :, :] .= Mx_u / H_Ek
             fi.sv[:VVEL][k, :, :] .= My_v / H_Ek
         end
  
-        for k = (cfg[:Ekman_layers]+1):(cfg[:Ekman_layers]+cfg[:Returnflow_layers])
+        for k = (cfg["Ekman_layers"]+1):(cfg["Ekman_layers"]+cfg["Returnflow_layers"])
             fi.sv[:UVEL][k, :, :] .= - Mx_u / H_Rf
             fi.sv[:VVEL][k, :, :] .= - My_v / H_Rf
         end
@@ -148,10 +148,9 @@ function setupForcing!(
         fi._v[:] = co.amo.V_flowmask_V * fi._v
         fi._w[:] = co.amo.W_flowmask_W * fi._w
 
+    else
+        throw(ErrorException("Unknown scheme: " * string(cfg["advection_scheme"])))
 
-   
-
-        
     end 
     
     # compute w

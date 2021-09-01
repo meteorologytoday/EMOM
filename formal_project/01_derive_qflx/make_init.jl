@@ -7,7 +7,8 @@ MPI.Init()
 
 println("Processing data...")
 
-include("config.jl")
+using TOML
+config = TOML.parsefile("config.toml")
 
 init_POP_file = config["MODEL_CORE"]["cdata_file"]
 domain_file = config["MODEL_CORE"]["domain_file"]

@@ -50,14 +50,14 @@ function runModel(
         end
 
         writeLog("Validate driver config.")
-        config[:DRIVER] = validateConfigEntries(config[:DRIVER], getDriverConfigDescriptor())
+        config["DRIVER"] = validateConfigEntries(config["DRIVER"], getDriverConfigDescriptor())
     end
 
     writeLog("Broadcast config to slaves.")
     config = MPI.bcast(config, 0, comm) 
 
 
-    p = config[:DRIVER][:caserun]
+    p = config["DRIVER"]["caserun"]
     writeLog("Setting working directory to {:s}", p)
     if is_master
         if ! isdir(p)
@@ -112,7 +112,7 @@ function runModel(
     writeLog("===== INITIALIZING MODEL: {:s} =====", OMMODULE.name)
     
     OMDATA = OMMODULE.init(
-        casename     = config[:DRIVER][:casename],
+        casename     = config["DRIVER"]["casename"],
         clock        = clock,
         config      = config,
         read_restart = read_restart,
@@ -183,8 +183,8 @@ function runModel(
         JLD2.save("model_restart.jld2", "timestamp", clock.time)
 
         archive_list_file = joinpath(
-            config[:DRIVER][:caserun],
-            config[:DRIVER][:archive_list],
+            config["DRIVER"]["caserun"],
+            config["DRIVER"]["archive_list"],
         )
 
         timestamp_str = format(
@@ -196,8 +196,8 @@ function runModel(
         appendLine(archive_list_file,
             format("cp,{},{},{}",
                 "model_restart.jld2",
-                config[:DRIVER][:caserun],
-                joinpath(config[:DRIVER][:archive_root], "rest", timestamp_str)
+                config["DRIVER"]["caserun"],
+                joinpath(config["DRIVER"]["archive_root"], "rest", timestamp_str)
             )
         ) 
 
@@ -205,8 +205,8 @@ function runModel(
 
     if is_master
         archive(joinpath(
-            config[:DRIVER][:caserun],
-            config[:DRIVER][:archive_list],
+            config["DRIVER"]["caserun"],
+            config["DRIVER"]["archive_list"],
         ))
     end
  
@@ -218,31 +218,31 @@ function getDriverConfigDescriptor()
 
     return [
             ConfigEntry(
-                :casename,
+                "casename",
                 :required,
                 [String,],
             ),
 
             ConfigEntry(
-                :caseroot,
+                "caseroot",
                 :required,
                 [String,],
             ),
 
             ConfigEntry(
-                :caserun,
+                "caserun",
                 :required,
                 [String,],
             ),
 
             ConfigEntry(
-                :archive_root,
+                "archive_root",
                 :required,
                 [String,],
             ),
 
             ConfigEntry(
-                :archive_list,
+                "archive_list",
                 :optional,
                 [String,],
                 "archive_list.txt",

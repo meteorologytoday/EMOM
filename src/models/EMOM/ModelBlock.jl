@@ -40,7 +40,7 @@ mutable struct ModelBlock
         mb.dt = dt
         mb.co = co
 
-        for (k, varinfo) in getDynamicVariableList(mb; varsets=[:ALL,])
+        for (k, varinfo) in getDynamicVariableList(mb; varsets=["ALL",])
             writeLog("Register variable: {:s}", string(k))
             varref, grid, mask = varinfo
             regVariable!(dt, k, grid, mask, varref)
