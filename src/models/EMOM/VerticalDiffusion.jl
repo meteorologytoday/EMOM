@@ -90,8 +90,8 @@ function calOp_vdiff(
 
     # below this W-pts the temperature is below freezing point.
     # reasoning please see stepColumn discussing about Q_FRZHEAT / frzmlt
-    below_frz_below = (bmo.W_UP_T * view(TEMP, :)) .< T_sw_frz
-    K_W[below_frz_below] .= vd.K_cva
+    #below_frz_below = (bmo.W_UP_T * view(TEMP, :)) .< T_sw_frz
+    #K_W[below_frz_below] .= vd.K_cva
 
 
     #K_W .= 0

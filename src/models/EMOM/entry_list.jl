@@ -191,15 +191,6 @@ function getConfigDescriptor()
             ),
 
             ConfigEntry(
-                "τ_frz",
-                :optional,
-                [Float64,],
-                3600.0;
-                desc = "Timescale of freezing when ocean temperature is below T_sw_frz = -1.8 degC. Will be overwritten if `init_file` is used",
-            ),
-
-
-            ConfigEntry(
                 "rad_R",
                 :optional,
                 [Float64,],
