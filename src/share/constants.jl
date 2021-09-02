@@ -16,6 +16,3 @@ const Hf_sw = 3.337e5     # J / kg  latent heat of fusion  copied from models/cs
 const ρcp_sw  = ρ_sw * c_p_sw
 
 const missing_value = 1e20
-
-
-const Ωe = 2.0 * π * (1.0 + 1.0/365.0) / 86400.0

@@ -42,6 +42,11 @@ function parse_commandline()
             help = "."
             arg_type = String
 
+        "--verify-mode"
+            help = "If specified then Qflx is applied and nudging timescale is changed to 1000 years."
+            action = :store_true
+
+
     end
 
     return parse_args(s)
@@ -75,10 +80,20 @@ if is_master
     cfgmc = config["MODEL_CORE"]
     cfgmm = config["MODEL_MISC"]
 
+
     cfgmc["Qflx"] = "off"
     cfgmc["weak_restoring"] = "on"
     cfgmc["τwk_TEMP"] = parsed["nudging-timescale-day"] * 86400.0
     cfgmc["τwk_SALT"] = parsed["nudging-timescale-day"] * 86400.0
+
+    if parsed["verify-mode"]
+        cfgmc["Qflx"] = "on"
+        cfgmc["weak_restoring"] = "on"
+        cfgmc["τwk_TEMP"] = 86400.0 * 365 * 1000.0
+        cfgmc["τwk_SALT"] = 86400.0 * 365 * 1000.0
+    end
+
+
     cfgmc["transform_vector_field"] = false
 
     t_start = DateTimeNoLeap(1, 1, 1, 0, 0, 0)

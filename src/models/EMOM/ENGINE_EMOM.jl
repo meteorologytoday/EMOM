@@ -293,7 +293,10 @@ module ENGINE_EMOM
                     end
                 end
                     
+                #println("varnames: ", varnames)
                 rec_varnames = EMOM.getDynamicVariableList(my_mb; varnames=varnames, varsets=varsets) |> keys |> collect
+                println("Record varnames: ", rec_varnames)
+
                 add_varnames = EMOM.getCompleteVariableList(my_mb, :static) |> keys |> collect 
 
                 #println("Additional varanames: ", add_varnames)

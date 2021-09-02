@@ -114,7 +114,7 @@ function runModel(
     OMDATA = OMMODULE.init(
         casename     = config["DRIVER"]["casename"],
         clock        = clock,
-        config      = config,
+        config       = config,
         read_restart = read_restart,
     )
 
@@ -163,8 +163,13 @@ function runModel(
                 advanceClock!(clock, Δt)
                 dropRungAlarm!(clock)
             end
-            
-
+           
+            # Broadcast time to workers. Workers need time
+            # because datastream needs time interpolation. 
+            _time = MPI.bcast(clock.time, 0, comm) 
+            if !is_master
+                setClock!(clock, _time)
+            end
 
         elseif stage == :END
 

@@ -1,16 +1,16 @@
 [MODEL_MISC]
 init_file = "/billevans/projects/IOM/formal_project/01_derive_qflx/data/init_ocn.jld2"
 enable_archive = true
-monthly_record = ["{ESSENTIAL}", "QFLX_TEMP", "QFLX_SALT"]
+monthly_record = ["{ESSENTIAL}"]
 rpointer_file = "rpointer.iom"
 timetype = "DateTimeNoLeap"
 daily_record = []
 
 [DRIVER]
-archive_root = "/billevans/projects/IOM/formal_project/01_derive_qflx/Sandbox_verify/archive"
-casename = "Sandbox_verify"
-caserun = "/billevans/projects/IOM/formal_project/01_derive_qflx/Sandbox_verify/caserun"
-caseroot = "/billevans/projects/IOM/formal_project/01_derive_qflx/Sandbox_verify/caseroot"
+archive_root = "/billevans/projects/IOM/formal_project/01_derive_qflx/Sandbox/archive"
+casename = "Sandbox"
+caserun = "/billevans/projects/IOM/formal_project/01_derive_qflx/Sandbox/caserun"
+caseroot = "/billevans/projects/IOM/formal_project/01_derive_qflx/Sandbox/caseroot"
 
 [MODEL_CORE]
 MLD_scheme = "datastream"
@@ -27,9 +27,9 @@ convective_adjustment = "on"
 Returnflow_layers = 25
 transform_vector_field = true
 cdata_beg_time = "0001-01-01 00:00:00"
-"τwk_SALT" = 3.1536e10
-"τwk_TEMP" = 3.1536e10
-cdata_file = "/billevans/projects/IOM/formal_project/01_derive_qflx/data/forcing.g37.nc"
+"τwk_SALT" = 3.1536e9
+"τwk_TEMP" = 3.1536e9
+cdata_file = "/billevans/projects/IOM/formal_project/01_derive_qflx/data/POP2PROFILE.g37.nc"
 "τ_frz" = 3600.0
 substeps = 8
-Qflx_finding = "off"
+Qflx_finding = "on"

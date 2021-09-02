@@ -3,14 +3,15 @@ using NCDatasets
 project_root_dir = @__DIR__
 data_dir = joinpath(project_root_dir, "data")
 domain_dir = joinpath(project_root_dir, "CESM_domains")
+casename = "Sandbox_verify"
 
 config = Dict{Any, Any}(
 
     "DRIVER" => Dict(
-        "casename"           => "Sandbox",
-        "caseroot"           => joinpath(project_root_dir, "Sandbox", "caseroot"),
-        "caserun"            => joinpath(project_root_dir, "Sandbox", "caserun"),
-        "archive_root"       => joinpath(project_root_dir, "Sandbox", "archive"),
+        "casename"           => casename,
+        "caseroot"           => joinpath(project_root_dir, casename, "caseroot"),
+        "caserun"            => joinpath(project_root_dir, casename, "caserun"),
+        "archive_root"       => joinpath(project_root_dir, casename, "archive"),
     ),
 
     "MODEL_MISC" => Dict(
@@ -18,7 +19,7 @@ config = Dict{Any, Any}(
         "init_file"              => joinpath(data_dir, "init_ocn.jld2"),
         "rpointer_file"          => "rpointer.iom",
         "daily_record"           => [],
-        "monthly_record"         => ["{ESSENTIAL}",],
+        "monthly_record"         => ["{ESSENTIAL}", "QFLX_TEMP", "QFLX_SALT"],
         "enable_archive"         => true,
     ),
 
@@ -26,7 +27,7 @@ config = Dict{Any, Any}(
 
         "domain_file"                  => joinpath(domain_dir, "domain.ocn.gx3v7.120323.nc"),
         "topo_file"                    => joinpath(data_dir, "Nz_bot.nc"),
-        "cdata_file"                   => joinpath(data_dir, "POP2PROFILE.g37.nc"),
+        "cdata_file"                   => joinpath(data_dir, "forcing.g37.nc"),
 
         "cdata_beg_time"               => "0001-01-01 00:00:00",
         "cdata_end_time"               => "0002-01-01 00:00:00",
@@ -37,13 +38,13 @@ config = Dict{Any, Any}(
         "substeps"                     => 8,
         "MLD_scheme"                   => "datastream",
         "Qflx"                         => "on",
-        "Qflx_finding"                 => "on",
+        "Qflx_finding"                 => "off",
         "convective_adjustment"        => "on",
         "advection_scheme"             => "ekman_AGA2020",
 
         "weak_restoring"               => "on",
-        "τwk_TEMP"                     => 86400.0 * 365 * 100,
-        "τwk_SALT"                     => 86400.0 * 365 * 100,
+        "τwk_TEMP"                     => 86400.0 * 365 * 1000,
+        "τwk_SALT"                     => 86400.0 * 365 * 1000,
 
 
         "τ_frz"                        => 3600.0,

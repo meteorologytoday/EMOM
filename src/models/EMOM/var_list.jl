@@ -153,11 +153,14 @@ function getDynamicVariableList(
         for k in keys
             if dict[k] != nothing
                 subset_dict[k] = dict[k]
+            else
+                println("$(k) is nothing")
             end
         end
         return subset_dict
     end
 
+    #println("NOW AGAIN: ", output_varnames)
 
     output_varlist = makeSubset(all_varlist, output_varnames)
 
