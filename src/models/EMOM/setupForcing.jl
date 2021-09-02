@@ -82,7 +82,7 @@ function setupForcing!(
 
     elseif cfg["advection_scheme"] == "ekman_AGA2020"
 
-        println("advection_scheme : $(cfg["advection_scheme"])")
+#        println("advection_scheme : $(cfg["advection_scheme"])")
 
         f_sT = co.mtx[:f_sT]
         β_sT = co.mtx[:β_sT]
@@ -115,7 +115,7 @@ function setupForcing!(
             grid=:T,
         )
 
-        println("SUM of M_north: ", sum(M_north))
+#        println("SUM of M_north: ", sum(M_north))
         # notice that we drop the z dimension for simplicity in the for loop
         Mx_u = reshape( co.amo_slab.U_interp_T * view(Mx_sT, :), gd.Nx, gd.Ny)
         My_v = reshape( co.amo_slab.V_interp_T * view(My_sT, :), gd.Nx, gd.Ny+1)
