@@ -1,6 +1,6 @@
 module ModelClockSystem
 
-    export ModelAlarm, ModelClock, advanceClock!, setClock!, addAlarm!, clock2str, dt2str, dt2tuple
+    export ModelAlarm, ModelClock, advanceClock!, setClock!, addAlarm!, clock2str, dt2str, dt2tuple, dropRungAlarm!
 
     using CFTime, Formatting
 
@@ -87,28 +87,42 @@ module ModelClockSystem
             end
 
             while (0 < mc.alarm_ptr <= length(mc.alarms)) && (mc.time >= mc.alarms[mc.alarm_ptr].time)
-                    ringAlarm!(mc, mc.alarms[mc.alarm_ptr])
-
-                    # In case we are at the end of alarm array
-                    if mc.alarm_ptr == length(mc.alarms) 
-                        break
-                    else
-                        mc.alarm_ptr += 1
-                    end
+            #    println("Before ring alarm: mc.alarm_ptr  = $(mc.alarm_ptr)")
+                # In case we are at the end of alarm array
+               
+                alarm_ptr_tmp = mc.alarm_ptr 
+                if mc.alarm_ptr < length(mc.alarms) 
+                    mc.alarm_ptr += 1
+                end 
+                ringAlarm!(mc, mc.alarms[alarm_ptr_tmp])
+             #   println("xxx alarm_ptr = $(mc.alarm_ptr)")
+                if mc.alarm_ptr == length(mc.alarms) 
+                    break
+                end
             end
         end
+
 
     end
 
     function ringAlarm!(mc :: ModelClock, alarm :: ModelAlarm)
+        #println("alarm.time = $(alarm.time). done = $(alarm.done)")
         if ! alarm.done
             println(format("Alarm '{:s}' rings at {:s}", alarm.name, dt2str(alarm.time)))
 
             for callback in alarm.callbacks
                 callback(mc, alarm)
             end
+            
+            # IMPORTANT: alarm.done has to be here.
+            # If it is after addAlarm!, there is a potential recursive loop because
+            # advanceClock! might be called when calling addAlarm! (i.e. ring immediately)
+            alarm.done = true
 
             if alarm.recurring != nothing
+                    
+                #println("Current time: $(string(alarm.time)) and recur: $(alarm.recurring)")
+                #println("Next alarm: " * string(alarm.time + alarm.recurring))
                 addAlarm!(
                     mc,
                     alarm.name,
@@ -118,8 +132,6 @@ module ModelClockSystem
                     recurring = alarm.recurring * 1,
                 )
             end
-
-            alarm.done = true
         end
     end
 
@@ -188,11 +200,30 @@ module ModelClockSystem
         sort!(mc.alarms, lt = isEarlier)
 
         if alarm.time == mc.time
-            # Ring immediately
             advanceClock!(mc, Second(0))
         end
 
 
     end
 
+    function dropRungAlarm!(
+        mc   :: ModelClock,
+    )
+        while length(mc.alarms) > 0 && mc.alarms[1].done
+            alarm = popfirst!(mc.alarms)
+            delete!(mc.alarms_dict, alarm.name)
+            mc.alarm_ptr -= 1
+            if mc.alarm_ptr < 0 
+                throw(ErrorException("Error happens in alarm counts. Please check."))
+            end
+        end
+    end
+
+    function listAlarms(
+        mc :: ModelClock,
+    )
+        for (i, alarm) in enumerate(mc.alarms)
+            println("Alarm[$(i)] = $(alarm.time). [$( (alarm.done) ? "v" : " " )] $( (i==mc.alarm_ptr) ? "*" : "" )")
+        end
+    end
 end

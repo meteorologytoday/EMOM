@@ -810,7 +810,7 @@ subroutine docn_comp_run( EClock, cdata,  x2o, o2x)
    
         ! Variable order matters
         !x_msg = trim(x_msg)//"VAR2D:QFLX_T,QFLX_S,T_CLIM,S_CLIM,IFRAC_CLIM,MLD,NSWFLX,SWFLX,TAUX,TAUY,IFRAC,FRWFLX,VSFLX;"
-        x_msg = trim(x_msg)//"VAR2D:NSWFLX,SWFLX,TAUX,TAUY,FRWFLX,VSFLX;"
+        x_msg = trim(x_msg)//"VAR2D:NSWFLX,SWFLX,TAUX_east,TAUY_north,FRWFLX,VSFLX;"
         if (read_restart) then
             x_msg = trim(x_msg)//"READ_RESTART:TRUE;"
         else

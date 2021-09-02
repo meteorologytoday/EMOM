@@ -9,18 +9,23 @@ function setupForcing!(
     gd = ev.gd 
     amo_slab = co.amo_slab
 
- 
-    PolelikeCoordinate.project!(
-        gd, 
-        fi.TAUX_east,
-        fi.TAUY_north,
-        fi.TAUX,
-        fi.TAUY;
-        direction=:Forward,
-        grid=:T,
-    )
+    if cfg["transform_vector_field"]
+        PolelikeCoordinate.project!(
+            gd, 
+            fi.TAUX_east,
+            fi.TAUY_north,
+            fi.TAUX,
+            fi.TAUY;
+            direction=:Forward,
+            grid=:T,
+        )
+    else
+        fi.TAUX .= fi.TAUX_east
+        fi.TAUY .= fi.TAUY_north
+    end
 
-    
+
+
     # Setup Ekman Flow
     if cfg["advection_scheme"] == "static"
 
@@ -77,34 +82,18 @@ function setupForcing!(
 
     elseif cfg["advection_scheme"] == "ekman_AGA2020"
 
+        println("advection_scheme : $(cfg["advection_scheme"])")
+
         f_sT = co.mtx[:f_sT]
         β_sT = co.mtx[:β_sT]
         ϵ_sT = co.mtx[:ϵ_sT]
         invD_sT = co.mtx[:invD_sT]
 
-        τx_sT = getSpace!(co.wksp, :sT)
-        τy_sT = getSpace!(co.wksp, :sT)
-
         # First, I need to get the curl. I choose to
         # do the curl using line integral in ocean model
         # space
-        if cfg["transform_vector_field"]
-            PolelikeCoordinate.project!(
-                gd, 
-                fi.TAUX_east,
-                fi.TAUY_north,
-                τx_sT,
-                τy_sT;
-                direction=:Forward,
-                grid=:T,
-            )
-        else
-            τx_sT .= fi.TAUX_east
-            τy_sT .= fi.TAUY_north
-        end
- 
         curlτ_sT = reshape(
-            amo_slab.T_CURLx_T * view(τy_sT, :) + amo_slab.T_CURLy_T * view(τx_sT, :),
+            amo_slab.T_CURLx_T * view(fi.TAUY, :) + amo_slab.T_CURLy_T * view(fi.TAUX, :),
             1, gd.Nx, gd.Ny,
         )
         
@@ -126,6 +115,7 @@ function setupForcing!(
             grid=:T,
         )
 
+        println("SUM of M_north: ", sum(M_north))
         # notice that we drop the z dimension for simplicity in the for loop
         Mx_u = reshape( co.amo_slab.U_interp_T * view(Mx_sT, :), gd.Nx, gd.Ny)
         My_v = reshape( co.amo_slab.V_interp_T * view(My_sT, :), gd.Nx, gd.Ny+1)

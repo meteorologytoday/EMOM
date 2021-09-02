@@ -28,16 +28,19 @@ function parse_commandline()
     return parse_args(s)
 end
 
-function parseCESMTIME(t_str::AbstractString)
+function parseCESMTIME(
+        t_str    :: AbstractString,
+        timetype :: DataType,
+)
 
-    yyyy = parse(Int, t_str[1:4])
-    mm   = parse(Int, t_str[5:6])
-    dd   = parse(Int, t_str[7:8])
-    HH   = parse(Int, t_str[10:11])
-    MM   = parse(Int, t_str[13:14])
-    SS   = parse(Int, t_str[16:17])
+    yyyy = parse(Int64, t_str[1:4])
+    mm   = parse(Int64, t_str[5:6])
+    dd   = parse(Int64, t_str[7:8])
+    HH   = parse(Int64, t_str[10:11])
+    MM   = parse(Int64, t_str[13:14])
+    SS   = parse(Int64, t_str[16:17])
 
-    return DateTimeNoLeap(yyyy,mm,dd,HH,MM,SS)
+    return timetype(yyyy,mm,dd,HH,MM,SS)
 
 end
 
@@ -72,9 +75,10 @@ msg = nothing
 config = nothing
 if is_master
 
-
-
     config = TOML.parsefile(parsed["config-file"])
+
+    timetype = getproperty(CFTime, Symbol(config["MODEL_MISC"]["timetype"])) 
+
     PTI = ProgramTunnelInfo(
         path = joinpath(config["DRIVER"]["caserun"], "x_tmp"),
         reverse_role  = true,
@@ -108,10 +112,10 @@ coupler_funcs = (
         end
  
         read_restart = (msg["READ_RESTART"] == "TRUE") ? true : false
-        coupler_time = parseCESMTIME(msg["CESMTIME"])
+        cesm_coupler_time = parseCESMTIME(msg["CESMTIME"], timetype)
 
         
-        return read_restart, coupler_time
+        return read_restart, cesm_coupler_time
         
     end,
 
@@ -121,7 +125,6 @@ coupler_funcs = (
 
         writeLog("[Coupler] After model init. My rank = {:d}", rank)
 
-        println("msg = ", string(msg))
         global lsize = parse(Int64, msg["LSIZE"])
 
         global send_data_list = Array{Float64}[OMDATA.o2x["SST"], OMDATA.o2x["Q_FRZMLTPOT"]]
@@ -132,11 +135,27 @@ coupler_funcs = (
         global x2o_wanted_flag     = [(x2o_available_varnames[i] in x2o_wanted_varnames) for i = 1:length(x2o_available_varnames)]
 
 
-        println("List of available x2o variables:")
+        writeLog("# Check if all the requested variables are provided by cesm end...")
+        local pass = true
+        for varname in x2o_wanted_varnames
+            if ! ( varname in x2o_available_varnames )
+                writeLog("Error: $(varname) is requested by ocean model but not provided on cesm side.")
+                pass = false
+            end 
+        end
+
+        if pass
+            writeLog("All variables requested are provided.")
+        else
+            throw(ErrorException("Some variable are not provided. Please check."))
+        end
+
+        writeLog("# List of provided x2o variables:")
         for (i, varname) in enumerate(x2o_available_varnames)
             push!(recv_data_list , ( x2o_wanted_flag[i] ) ? OMDATA.x2o[varname] :  zeros(Float64, lsize))
             println(format(" ({:d}) {:s} => {:s}", i, varname, ( x2o_wanted_flag[i] ) ? "Wanted" : "Dropped" ))
         end
+
 
         sendData(PTI, "OK", send_data_list)
         sendData(PTI, "mask",  [OMDATA.o2x["mask"],])
@@ -156,8 +175,21 @@ coupler_funcs = (
                 recv_data_list,
                 which=2,
             )
-     
+            
+            cesm_coupler_time = parseCESMTIME(msg["CESMTIME"], timetype)
+            if OMDATA.clock.time != cesm_coupler_time
+                writeLog("Warning: time inconsistent. `cesm_coupler_time` is $(string(cesm_coupler_time)), but ocean model's time is $(string(OMDATA.clock.time)). This can happen if this is a startup run or hybrid run. Because my implementation cannot tell, I have to just forward the model time. Please be extra cautious about this.")
+           
+                error_t = Second(cesm_coupler_time - OMDATA.clock.time)
+                if error_t.value < 0
+                    throw(ErrorException("Error: ocean model time is ahead of `cesm_coupler_time`. This is absolutely an error."))
+                end
+                advanceClock!(OMDATA.clock, error_t)
+                
+            end
+ 
             return_values = ( :RUN,  Δt, false )
+
         elseif msg["MSG"] == "END"
             return_values = ( :END, 0.0, true  )
         else

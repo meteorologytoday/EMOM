@@ -127,8 +127,10 @@ function runModel(
     while true
 
         step += 1
-        
-        writeLog("Current time: {:s}", clock2str(clock))
+       
+        if is_master 
+            writeLog("Current time: {:s}", clock2str(clock))
+        end
 
         stage = nothing
         Δt    = nothing
@@ -158,9 +160,11 @@ function runModel(
 
             if is_master
                 coupler_funcs.master_after_model_run!(OMMODULE, OMDATA)
+                advanceClock!(clock, Δt)
+                dropRungAlarm!(clock)
             end
             
-            advanceClock!(clock, Δt)
+
 
         elseif stage == :END
 
