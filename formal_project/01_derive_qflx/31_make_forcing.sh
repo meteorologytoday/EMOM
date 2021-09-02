@@ -26,5 +26,6 @@ done
 ncrcat -O tmp/monthly_mean_{01..12}.nc $forcing_file
 ncks -O -3 $forcing_file $forcing_file
 ncrename -d Nx,nlon -d Ny,nlat -d Nz,z_t -v WKRSTT,QFLX_TEMP -v WKRSTS,QFLX_SALT $forcing_file
+ncap2 -O -s 'QFLX_TEMP=QFLX_TEMP*3996*1026;' $forcing_file $forcing_file
 ncks -A -v SALT,TEMP,HMXL,time,z_w_top,z_w_bot $POP2_profile_used $forcing_file
 ncks -O -F -d z_t,1,$forcing_file_layers $forcing_file $forcing_file
