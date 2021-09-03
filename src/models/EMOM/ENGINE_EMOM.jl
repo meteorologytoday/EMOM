@@ -145,22 +145,22 @@ module ENGINE_EMOM
                 writeLog("No datastream is used.")
             end
         end
-        # Create plans
+
+        jdi = nothing
+        master_ev_config = nothing
         if is_master
             jdi = JobDistributionInfo(nworkers = comm_size - 1, Ny = master_ev.Ny; overlap=3)
-            #printJobDistributionInfo(jdi)
+            master_ev_config = master_ev.config
         end
+        jdi = MPI.bcast(jdi, 0, comm)
+        master_ev_config = MPI.bcast(master_ev_config, 0, comm)
      
-        # First, broadcast ev and create plan 
-        master_ev = MPI.bcast(master_ev, 0, comm)
-        jdi = JobDistributionInfo(nworkers = comm_size - 1, Ny = master_ev.Ny; overlap=3)
-
         # Second, create ModelBlocks based on ysplit_info
         if is_master
             my_ev = master_ev
             my_mb = master_mb
         else
-            my_ev          = EMOM.Env(master_ev.config; sub_yrng = getYsplitInfoByRank(jdi, rank).pull_fr_rng)
+            my_ev          = EMOM.Env(master_ev_config; sub_yrng = getYsplitInfoByRank(jdi, rank).pull_fr_rng)
             my_mb          = EMOM.ModelBlock(my_ev; init_core = true)
         end
 
