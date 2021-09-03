@@ -7,6 +7,11 @@ function parse_commandline()
 
     @add_arg_table s begin
 
+        "--project-root"
+            help = "Project root directory."
+            arg_type = String
+            default = ""
+
         "--casename"
             help = "Casename"
             arg_type = String
@@ -17,10 +22,6 @@ function parse_commandline()
             arg_type = String
             required = true
 
-        "--project-root"
-            help = "Project root directory."
-            arg_type = String
-            default = ""
 
         "--domain-file"
             help = "Horizontal domain file."

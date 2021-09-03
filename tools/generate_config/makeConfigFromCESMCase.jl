@@ -1,6 +1,63 @@
 using NCDatasets
-
 using ArgParse, JSON
+using DataStructures
+
+println("""
+This program is run after a CESM case has been setup before execute.
+It reads env_build.xml and env_run.xml to fill in paths and files.
+""")
+
+function runOneCmd(cmd)
+    println(">> ", string(cmd))
+    run(cmd)
+end
+
+
+function pleaseRun(cmd)
+    if isa(cmd, Array)
+        for i = 1:length(cmd)
+            runOneCmd(cmd[i])
+        end
+    else
+        runOneCmd(cmd)
+    end
+end
+
+function getOneEntryFromXML(id)
+    return readchomp(`./xmlquery $(id) -silent -valonly`)
+end
+
+function getCESMConfig(path, ids)
+
+    wdir = pwd()
+
+    cd(path)
+
+    d = OrderedDict()
+    for id in ids
+        d[id] = readchomp(`./xmlquery $(id) -silent -valonly`)
+    end
+
+    cd(wdir)
+
+    return d
+end
+
+#=
+function getXML(filename)
+    println("Reading XML file $(filename)")
+    xml_doc = parse_file(filename)
+    entries = get_elements_by_tagname(root(xml_doc), "entry")
+
+    d = OrderedDict()
+    for entry in entries
+        d[attribute(entry, "id")] = attribute(entry, "value")
+    end
+
+    return d 
+end
+=#
+
 function parse_commandline()
 
     s = ArgParseSettings()
@@ -8,39 +65,54 @@ function parse_commandline()
     @add_arg_table s begin
 
         "--caseroot"
-            help = "CESM caseroot folder."
-            arg_type = String
-            required = true
-
-        "--mode"
-            help = "Either `NUDGING` or `VERIFYING`. "
-            arg_type = String
-            required = true
-
-        "--project-root"
-            help = "Project root directory."
+            help = "CESM caseroot where env_run.xml and such are placed."
             arg_type = String
             default = ""
 
         "--domain-file"
-            help = "Horizontal domain file."
+            help = "Horizontal domain file containing z_w_top, z_w_bot in meters with z=0 is the surface."
             arg_type = String
             required = true
+
 
         "--zdomain-file"
             help = "Vertical domain file containing z_w_top, z_w_bot in meters with z=0 is the surface."
             arg_type = String
             required = true
 
-        "--ref-clim"
-            help = "The reference climate profile derived from POP2"
+        "--topo-file"
+            help = "File containing Nz_bot."
             arg_type = String
             required = true
+
+
+        "--forcing-file"
+            help = "The forcing file"
+            arg_type = String
+            required = true
+
+        "--init-file"
+            help = "The init ocean file."
+            arg_type = String
+            required = true
+
 
         "--ocn-model"
             help = "The name of ocean model. Can be: `SOM`, `MLM`, `EOM` and `EMOM`"
             arg_type = String
             required = true
+
+        "--output-filename"
+            help = "The output file name of config in TOML format."
+            arg_type = String
+            default = "config.toml"
+
+
+        "--output-path"
+            help = "The output path. Default is the same as RUNDIR in env_run.xml"
+            arg_type = String
+            default = ""
+
 
     end
 
@@ -48,46 +120,7 @@ function parse_commandline()
 end
 
 parsed = parse_commandline()
-
 JSON.print(parsed,4)
-
-if parsed["project-root"] == ""
-    parsed["project-root"] = @__DIR__
-end
-
-project_root_dir = parsed["project-root"]
-
-
-
-if ! (parsed["mode"] in ["NUDGING", "VERIFYING"])
-    throw(ErrorException("Unknown mode: $(parsed["mode"])"))
-end
-
-casename = "$(parsed["casename"])_$(parsed["mode"])"
-
-# Not to confuse casedir with caseroot.
-# `casedir` is where I put everything of a casename data inside.
-# `caseroot` is in cesm's framework where configuration are stored.
-case_dir = joinpath(project_root_dir, casename)
-inputdata_dir = joinpath(case_dir, "inputdata")
-
-if parsed["mode"] == "NUDGING"
-
-    cdata_file = parsed["ref-clim"] 
-
-    Qflx = "off"
-    τwk_TEMP = 5 * 86400.0
-    τwk_SALT = 5 * 86400.0
-
-elseif parsed["mode"] == "VERIFYING"
-
-    cdata_file = joinpath(inputdata_dir, "forcing.nc") 
-
-    Qflx = "on"
-    τwk_TEMP = 86400.0 * 365 * 1000
-    τwk_SALT = 86400.0 * 365 * 1
-
-end
 
 if parsed["ocn-model"] == "SOM"
     convective_adjustment = "off"
@@ -103,18 +136,44 @@ elseif parsed["ocn-model"] == "EOM"
     advection_scheme = "ekman_AGA2020"
 end
 
+
+cesm_config = getCESMConfig(
+
+    parsed["caseroot"],
+
+    [
+        "CASE",
+        "CASEROOT",
+        "RUNDIR",
+        "DOUT_S_ROOT",
+        "OCN_DOMAIN_PATH",
+        "OCN_DOMAIN_FILE",
+        "CALENDAR",
+    ],
+)
+
+calendar = Dict(
+    "NO_LEAP"   => "DateTimeNoLeap",
+    "GREGORIAN" => "DateTimeProlepticGregorian",
+)[cesm_config["CALENDAR"]]
+
+
+if basename(parsed["domain-file"]) != basename(cesm_config["OCN_DOMAIN_FILE"])
+    println("Warning: Input domain file is $(parsed["domain-file"]) but the CESM configureation uses $(cesm_config["OCN_DOMAIN_FILE"])")
+end
+
 config = Dict{Any, Any}(
 
     "DRIVER" => Dict(
-        "casename"           => casename,
-        "caseroot"           => joinpath(case_dir, "caseroot"),
-        "caserun"            => joinpath(case_dir, "caserun"),
-        "archive_root"       => joinpath(case_dir, "archive"),
+        "casename"           => cesm_config["CASE"],
+        "caseroot"           => cesm_config["CASEROOT"],
+        "caserun"            => cesm_config["RUNDIR"],
+        "archive_root"       => cesm_config["DOUT_S_ROOT"],
     ),
 
     "MODEL_MISC" => Dict(
-        "timetype"               => "DateTimeNoLeap",
-        "init_file"              => joinpath(inputdata_dir, "init_ocn.jld2"),
+        "timetype"               => calendar,
+        "init_file"              => parsed["init-file"],
         "rpointer_file"          => "rpointer.iom",
         "daily_record"           => [],
         "monthly_record"         => ["{ESSENTIAL}", "QFLX_TEMP", "QFLX_SALT"],
@@ -124,8 +183,8 @@ config = Dict{Any, Any}(
     "MODEL_CORE" => Dict(
 
         "domain_file"                  => parsed["domain-file"],
-        "topo_file"                    => joinpath(inputdata_dir, "Nz_bot.nc"),
-        "cdata_file"                   => cdata_file,
+        "topo_file"                    => parsed["topo-file"],
+        "cdata_file"                   => parsed["forcing-file"],
 
         "cdata_beg_time"               => "0001-01-01 00:00:00",
         "cdata_end_time"               => "0002-01-01 00:00:00",
@@ -135,15 +194,14 @@ config = Dict{Any, Any}(
 
         "substeps"                     => 8,
         "MLD_scheme"                   => "datastream",
-        "Qflx"                         => "$(Qflx)",
+        "Qflx"                         => "on",
         "Qflx_finding"                 => "off",
         "convective_adjustment"        => "$(convective_adjustment)",
         "advection_scheme"             => "$(advection_scheme)",
 
         "weak_restoring"               => "on",
-        "τwk_TEMP"                     => τwk_TEMP,
-        "τwk_SALT"                     => τwk_SALT,
-
+        "τwk_TEMP"                     => 365*86400.0*1000,
+        "τwk_SALT"                     => 365*86400.0*1,
 
         "Ekman_layers"                 => 5,
         "Returnflow_layers"            => 25,
@@ -166,18 +224,13 @@ Dataset(parsed["zdomain-file"], "r") do ds
 end
 
 
-println("Making necessary folders...")
-mkpath(inputdata_dir)
-mkpath(config["DRIVER"]["caseroot"])
-mkpath(config["DRIVER"]["caserun"])
-mkpath(config["DRIVER"]["archive_root"])
-
-
 using TOML
-output_config = joinpath("$(config["DRIVER"]["caseroot"])", "config.toml")
+
+output_path = ( parsed["output-path"] == "" ) ? config["DRIVER"]["caserun"] : parsed["output-path"]
+output_config = joinpath(output_path, "config.toml")
 println("Output file: $(output_config)")
 open(output_config, "w") do io
-    TOML.print(io, config)
+    TOML.print(io, config; sorted=true)
 end
 
 
