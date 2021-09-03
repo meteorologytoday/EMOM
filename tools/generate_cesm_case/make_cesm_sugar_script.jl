@@ -1,6 +1,6 @@
 using ArgParse
 using Formatting
-using JSON
+using JSON,TOML
 using DataStructures
 
 
@@ -20,38 +20,59 @@ function pleaseRun(cmd)
     end
 end
 
-function getOneEntryFromXML(filename, id)
-    return readchomp(`./xmlquery $(id) -silent -valonly`)
-end
+function getCESMConfig(path, ids)
 
-function getXML(filename, ids)
-    println("Reading XML file $(filename)")
+    wdir = pwd()
+
+    cd(path)
+
     d = OrderedDict()
     for id in ids
-        d[id] = getOneEntryFromXML(filename, id)
+        d[id] = readchomp(`./xmlquery $(id) -silent -valonly`)
     end
+
+    cd(wdir)
+
     return d
+end
+
+function setCESMConfig(path, filename, kv_list)
+
+    wdir = pwd()
+    cd(path)
+    for (key, val) in kv_list
+        pleaseRun(`
+            ./xmlchange -f $(filename) -id $(key) -val $(val)
+        `)
+    end
+    cd(wdir)
 end
 
 
 s = ArgParseSettings()
 @add_arg_table s begin
 
-    "--ncpu"
-        help = "The number of CPUs that IOM can use"
-        arg_type = Int64
+    "--project"
+        help = "Project code sent to PBS scheduling system"
+        arg_type = String
         required = true
 
+    "--casename"
+        help = "Casename"
+        arg_type = String
+        required = true
 
     "--root"
         help = "The folder where case folders are contained"
         arg_type = String
         required = true
 
-    "--project"
-        help = "Project code sent to PBS scheduling system"
-        arg_type = String
+
+    "--ncpu"
+        help = "The number of CPUs that IOM can use"
+        arg_type = Int64
         required = true
+
 
     "--walltime"
         help = "Walltime sent to PBS scheduling system"
@@ -63,11 +84,6 @@ s = ArgParseSettings()
         arg_type = String
         default = "economy"
 
-
-    "--casename"
-        help = "Casename"
-        arg_type = String
-        required = true
 
     "--resolution"
         help = "Casename"
@@ -94,13 +110,8 @@ s = ArgParseSettings()
         arg_type = String
         default = ""
 
-    "--env-run"
-        help = "The json file used to set env.xml"
-        arg_type = String
-        default = ""
-
-    "--env-mach-pes"
-        help = "The json file used to set env_mach_pes.xml"
+    "--cesm-env"
+        help = "The TOML file used to set env_mach_pes.xml, env_run.xml"
         arg_type = String
         default = ""
 
@@ -115,28 +126,13 @@ parsed = DataStructures.OrderedDict(parse_args(ARGS, s))
 
 JSON.print(parsed, 4)
 
-if parsed["env-run"] != ""
-    overwrite_env_run = JSON.parsefile(parsed["env-run"], dicttype=DataStructures.OrderedDict)
-
-    println("Loaded env-run file ", parsed["env-run"])
-    JSON.print(overwrite_env_run, 4)
+if parsed["cesm-env"] != ""
+    overwrite_cesm_env = TOML.parsefile(parsed["cesm-env"]) |> DataStructures.OrderedDict
+    println("Loaded env file ", parsed["cesm-env"])
+    JSON.print(overwrite_cesm_env, 4)
+else
+    overwrite_cesm_env = Dict()
 end
-
-if parsed["env-mach-pes"] != ""
-    overwrite_env_mach_pes = JSON.parsefile(parsed["env-mach-pes"], dicttype=DataStructures.OrderedDict)
-    println("Loaded env-run file ", parsed["env-mach-pes"])
-    JSON.print(overwrite_env_mach_pes, 4)
-end
-
-env_run_vars = [
-    "CASEROOT",
-    "RUNDIR",
-    "DIN_LOC_ROOT",
-    "DOUT_S_ROOT",
-    "OCN_DOMAIN_FILE",
-    "OCN_DOMAIN_PATH",
-]
-
 
 mkpath(parsed["root"])
 cd(parsed["root"])
@@ -169,20 +165,10 @@ if parsed["user-namelist-dir"] != ""
     `)
 end
 
-function setXML(filename, kv_list)
-    for (key, val) in kv_list
-        pleaseRun(`
-            ./xmlchange -f $(filename) -id $(key) -val $(val)
-        `)
+for k in ["env_run", "env_mach_pes"]
+    if haskey(overwrite_cesm_env, k)
+        setCESMConfig(pwd(), "$(k).xml", overwrite_cesm_env[k])
     end
-end
-
-if parsed["env-run"] != ""
-    setXML("env_run.xml", overwrite_env_run)
-end
-
-if parsed["env-mach-pes"] != ""
-    setXML("env_mach_pes.xml", overwrite_env_mach_pes)
 end
 
 pleaseRun(`./cesm_setup`)
@@ -193,61 +179,58 @@ pleaseRun(`./cesm_setup`)
 mv(format("{:s}.run", parsed["casename"]), format("{:s}.cesm.run", parsed["casename"]), force=true)
 
 
-env_run = getXML("env_run.xml", [
+cesm_env = getCESMConfig(pwd(), [
     "CASEROOT",
     "RUNDIR",
     "DIN_LOC_ROOT",
     "DOUT_S_ROOT",
     "OCN_DOMAIN_FILE",
     "OCN_DOMAIN_PATH",
-])
-
-env_mach_pes = getXML("env_mach_pes.xml", [
     "TOTALPES",
     "MAX_TASKS_PER_NODE",
 ])
 
 
-println("env_run data: ")
-JSON.print(env_run, 4)
+println("env data: ")
+JSON.print(cesm_env, 4)
 
 
-nodes = ceil(Int64, parse(Float64, env_mach_pes["TOTALPES"]) / parse(Float64, env_mach_pes["MAX_TASKS_PER_NODE"]))
+nodes = ceil(Int64, parse(Float64, cesm_env["TOTALPES"]) / parse(Float64, cesm_env["MAX_TASKS_PER_NODE"]))
 
-open(joinpath(env_run["CASEROOT"], "$(parsed["casename"]).run"), "w") do io
+open(joinpath(cesm_env["CASEROOT"], "$(parsed["casename"]).run"), "w") do io
     write(io, """
 #PBS -A $(parsed["project"])
 #PBS -N $(parsed["casename"])
 #PBS -q $(parsed["queue"])
-#PBS -l select=$(nodes):ncpus=$(env_mach_pes["MAX_TASKS_PER_NODE"]):mpiprocs=$(env_mach_pes["MAX_TASKS_PER_NODE"]):ompthreads=1
+#PBS -l select=$(nodes):ncpus=$(cesm_env["MAX_TASKS_PER_NODE"]):mpiprocs=$(cesm_env["MAX_TASKS_PER_NODE"]):ompthreads=1
 #PBS -l walltime="$(parsed["walltime"])"
 #PBS -j oe
 #PBS -S /bin/bash
 
 #!/bin/bash
 
-bash $(env_run["CASEROOT"]).destroy_tunnel
-/bin/csh $(env_run["CASEROOT"])/$(parsed["casename"]).cesm.run &
-$(env_run["CASEROOT"])/$(parsed["casename"]).ocn.run &
+bash $(cesm_env["CASEROOT"]).destroy_tunnel
+/bin/csh $(cesm_env["CASEROOT"])/$(parsed["casename"]).cesm.run &
+$(cesm_env["CASEROOT"])/$(parsed["casename"]).ocn.run &
 wait
 
 """)
 end
 
-open(joinpath(env_run["CASEROOT"],"$(parsed["casename"]).ocn.run"), "w") do io
+open(joinpath(cesm_env["CASEROOT"],"$(parsed["casename"]).ocn.run"), "w") do io
     write(io, """
 #!/bin/bash
-mpiexec -n $(parsed["ncpu"]) julia --project IOM/src/CESM_driver/main.jl --config-file=$(env_run["CASEROOT"])/config.jl
+mpiexec -n $(parsed["ncpu"]) julia --project IOM/src/CESM_driver/main.jl --config-file=$(cesm_env["CASEROOT"])/config.jl
 
 """)
 end
 
 
 # Create sh that removes x_tmp. This is useful when run on local machine for developing
-open(joinpath(env_run["CASEROOT"], "$(parsed["casename"]).destroy_tunnel"), "w") do io
+open(joinpath(cesm_env["CASEROOT"], "$(parsed["casename"]).destroy_tunnel"), "w") do io
     write(io, """
 #!/bin/bash
-rm -rf $(env_run["RUNDIR"])/x_tmp/*
+rm -rf $(cesm_env["RUNDIR"])/x_tmp/*
 """, )
 end
 
@@ -261,7 +244,9 @@ cd(joinpath("SourceMods", "src.docn"))
 pleaseRun(`ln -s ../../IOM/src/CESM_driver/cesm1_tb_docn_comp_mod.F90 ./docn_comp_mod.F90`)
 pleaseRun(`ln -s ../../IOM/src/CESM_driver/ProgramTunnel .`)
 
-cd(joinpath("..", ".."))    
+cd(joinpath("..", ".."))
+
+ 
 if parsed["build"]
     pleaseRun(`./$(parsed["casename"]).build`)
 end

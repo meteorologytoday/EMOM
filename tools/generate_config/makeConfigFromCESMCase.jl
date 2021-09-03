@@ -23,11 +23,9 @@ function pleaseRun(cmd)
     end
 end
 
-function getOneEntryFromXML(id)
-    return readchomp(`./xmlquery $(id) -silent -valonly`)
-end
-
 function getCESMConfig(path, ids)
+
+    println("CESM config path: $(path)")
 
     wdir = pwd()
 
@@ -136,6 +134,12 @@ elseif parsed["ocn-model"] == "EOM"
     advection_scheme = "ekman_AGA2020"
 end
 
+for k in ["env_run.xml", "env_mach_pes.xml", "env_case.xml"]
+    if ! isfile(joinpath(parsed["caseroot"], k))
+        throw(ErrorException("Error: file $(k) does not exists in caseroot folder $(parsed["caseroot"])"))
+    end
+end
+
 
 cesm_config = getCESMConfig(
 
@@ -226,7 +230,7 @@ end
 
 using TOML
 
-output_path = ( parsed["output-path"] == "" ) ? config["DRIVER"]["caserun"] : parsed["output-path"]
+output_path = ( parsed["output-path"] == "" ) ? config["DRIVER"]["caseroot"] : parsed["output-path"]
 output_config = joinpath(output_path, "config.toml")
 println("Output file: $(output_config)")
 open(output_config, "w") do io
