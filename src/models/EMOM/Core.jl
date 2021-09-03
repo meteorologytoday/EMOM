@@ -118,9 +118,6 @@ mutable struct Core
             K_cva=(cfg["convective_adjustment"] == "on") ? cfg["Ks_V_cva"] : cfg["Ks_V"],
         )
 
-        # freezing operator
-        mtx[:T_invτ_frz_T] = - amo.T_mask_T * spdiagm(0 => ones(Float64, amo.bmo.T_pts)) / cfg["τ_frz"]
-        
         # surface mask but is in 3D T grid. This one is different from the topo.sfcmask_sT. 
         sfcmask_T = zeros(Float64, amo.bmo.T_dim...)
         sfcmask_T[1, :, :] .= 1
