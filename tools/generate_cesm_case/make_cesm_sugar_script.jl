@@ -175,9 +175,6 @@ pleaseRun(`./cesm_setup`)
 pleaseRun(`./cesm_setup -clean`)
 pleaseRun(`./cesm_setup`)
 
-# The $casename.run file is created by cesm_setup and mk_batch files in CESM1 util codes
-mv(format("{:s}.run", parsed["casename"]), format("{:s}.cesm.run", parsed["casename"]), force=true)
-
 
 cesm_env = getCESMConfig(pwd(), [
     "CASEROOT",
@@ -193,6 +190,10 @@ cesm_env = getCESMConfig(pwd(), [
 
 println("env data: ")
 JSON.print(cesm_env, 4)
+
+# The $casename.run file is created by cesm_setup and mk_batch files in CESM1 util codes
+cp("$(parsed["casename"]).run", "$(parsed["casename"]).cesm.run", force=true)
+
 
 
 nodes = ceil(Int64, parse(Float64, cesm_env["TOTALPES"]) / parse(Float64, cesm_env["MAX_TASKS_PER_NODE"]))
@@ -220,7 +221,10 @@ end
 open(joinpath(cesm_env["CASEROOT"],"$(parsed["casename"]).ocn.run"), "w") do io
     write(io, """
 #!/bin/bash
-mpiexec -n $(parsed["ncpu"]) julia --project IOM/src/CESM_driver/main.jl --config-file=$(cesm_env["CASEROOT"])/config.jl
+
+ml load openmpi
+#julia --project -e 'ENV["JULIA_MPI_BINARY"]="system"; using Pkg; Pkg.build("MPI"; verbose=true)'
+mpiexec -n $(parsed["ncpu"]) julia --project IOM/src/CESM_driver/main.jl --config-file=$(cesm_env["CASEROOT"])/config.toml
 
 """)
 end
@@ -234,9 +238,22 @@ rm -rf $(cesm_env["RUNDIR"])/x_tmp/*
 """, )
 end
 
+# If user clean_build and rerun cesm_setup, the run file will be overwritten.
+cp("$(parsed["casename"]).run", "backup_$(parsed["casename"]).run", force=true)
+open(joinpath(cesm_env["CASEROOT"],"$(parsed["casename"]).recover_run_file"), "w") do io
+    write(io, """
+#!/bin/bash
+cp "$(parsed["casename"]).run" "$(parsed["casename"]).cesm.run"
+cp "backup_$(parsed["casename"]).run" "$(parsed["casename"]).run"
+
+""")
+end
+
 pleaseRun(`chmod +x $(parsed["casename"]).run`)
 pleaseRun(`chmod +x $(parsed["casename"]).ocn.run`)
 pleaseRun(`chmod +x $(parsed["casename"]).destroy_tunnel`)
+pleaseRun(`chmod +x $(parsed["casename"]).recover_run_file`)
+
 
 pleaseRun(`git clone --branch "dev/cesm-coupling" https://github.com/meteorologytoday/IOM.git`)
 
@@ -246,7 +263,7 @@ pleaseRun(`ln -s ../../IOM/src/CESM_driver/ProgramTunnel .`)
 
 cd(joinpath("..", ".."))
 
- 
+
 if parsed["build"]
     pleaseRun(`./$(parsed["casename"]).build`)
 end
