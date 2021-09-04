@@ -209,6 +209,8 @@ coupler_funcs = (
 
     master_finalize! = function(OMMODULE, OMDATA)
         writeLog("[Coupler] Finalize")
+        writeLog("Sleep for 30 seconds before archiving to avoid conflicting with CESM archiving process.")
+        sleep(30.0)
     end 
 )
 
