@@ -128,9 +128,10 @@ coupler_funcs = (
 
         global datastream
 
-        t_end_reached = OMDATA.clock.time >= t_end
+        write_restart = OMDATA.clock.time == t_end
+        end_phase = OMDATA.clock.time > t_end
 
-        if ! t_end_reached
+        if ! end_phase
 
             interpData!(cdatam, OMDATA.clock.time, datastream)
             OMDATA.x2o["SWFLX"]       .= datastream["SWFLX"]
@@ -139,9 +140,9 @@ coupler_funcs = (
             OMDATA.x2o["TAUX_east"]   .= datastream["TAUX"]
             OMDATA.x2o["TAUY_north"]  .= datastream["TAUY"]
 
-            return_values = ( :RUN,  Δt, t_end_reached )
+            return_values = ( :RUN,  Δt, write_restart )
         else
-            return_values = ( :END, 0.0, t_end_reached  )
+            return_values = ( :END, 0.0, write_restart  )
         end
 
         return return_values

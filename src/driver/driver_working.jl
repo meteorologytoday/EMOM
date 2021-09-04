@@ -159,10 +159,12 @@ function runModel(
 
             writeLog("Computation cost: {:.2f} secs.", cost)
 
+            writeLog("Write restart : $(write_restart)")
+
             if write_restart && is_master
 
                 writeLog("Writing restart time of driver")
-                JLD2.save("model_restart.jld2", "timestamp", clock.time)
+                JLD2.save(joinpath(config["DRIVER"]["caserun"], "model_restart.jld2"), "timestamp", clock.time)
 
                 archive_list_file = joinpath(
                     config["DRIVER"]["caserun"],
