@@ -463,6 +463,7 @@ module ENGINE_EMOM
     function run!(
         MD            :: EMOM_DATA;
         Δt            :: Second,
+        write_restart :: Bool,
     )
 
         comm = MPI.COMM_WORLD
@@ -540,20 +541,19 @@ module ENGINE_EMOM
         ) 
 
 
+        if write_restart
+            writeLog("`wrtie_restart` is true.")
+            if is_master 
+                writeRestart(MD)
+            end
+        end
+ 
     end
 
     function final(MD::EMOM_DATA)
- 
-        comm = MPI.COMM_WORLD
-        rank = MPI.Comm_rank(comm)
 
-        is_master = rank == 0
- 
-        if is_master 
-            writeLog("Finalizing the model. Write restart files.")
-            writeRestart(MD)
-        end      
-       
+        writeLog("Finalizing the model.") 
+      
     end
 
 

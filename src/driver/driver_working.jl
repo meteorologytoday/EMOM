@@ -150,6 +150,7 @@ function runModel(
                 OMMODULE.run!(
                     OMDATA;
                     Δt = Δt,
+                    write_restart = write_restart,
                 )
 
                 MPI.Barrier(comm)
@@ -157,6 +158,32 @@ function runModel(
             end
 
             writeLog("Computation cost: {:.2f} secs.", cost)
+
+            if write_restart && is_master
+
+                writeLog("Writing restart time of driver")
+                JLD2.save("model_restart.jld2", "timestamp", clock.time)
+
+                archive_list_file = joinpath(
+                    config["DRIVER"]["caserun"],
+                    config["DRIVER"]["archive_list"],
+                )
+
+                timestamp_str = format(
+                    "{:s}-{:05d}",
+                    Dates.format(clock.time, "yyyy-mm-dd"),
+                    floor(Int64, Dates.hour(clock.time)*3600+Dates.minute(clock.time)*60+Dates.second(clock.time)),
+                )
+
+                appendLine(archive_list_file,
+                    format("cp,{},{},{}",
+                        "model_restart.jld2",
+                        config["DRIVER"]["caserun"],
+                        joinpath(config["DRIVER"]["archive_root"], "rest", timestamp_str)
+                    )
+                ) 
+
+            end
 
             if is_master
                 coupler_funcs.master_after_model_run!(OMMODULE, OMDATA)
@@ -185,38 +212,15 @@ function runModel(
     end
     
     if is_master
-
+       
+        OMMODULE.final(OMDATA)
         coupler_funcs.master_finalize!(OMMODULE, OMDATA)
-
-        writeLog("Writing restart time of driver")
-        JLD2.save("model_restart.jld2", "timestamp", clock.time)
-
-        archive_list_file = joinpath(
-            config["DRIVER"]["caserun"],
-            config["DRIVER"]["archive_list"],
-        )
-
-        timestamp_str = format(
-            "{:s}-{:05d}",
-            Dates.format(clock.time, "yyyy-mm-dd"),
-            floor(Int64, Dates.hour(clock.time)*3600+Dates.minute(clock.time)*60+Dates.second(clock.time)),
-        )
-
-        appendLine(archive_list_file,
-            format("cp,{},{},{}",
-                "model_restart.jld2",
-                config["DRIVER"]["caserun"],
-                joinpath(config["DRIVER"]["archive_root"], "rest", timestamp_str)
-            )
-        ) 
-
-    end
-
-    if is_master
+        
         archive(joinpath(
             config["DRIVER"]["caserun"],
             config["DRIVER"]["archive_list"],
         ))
+
     end
  
     writeLog("Program Ends.")
