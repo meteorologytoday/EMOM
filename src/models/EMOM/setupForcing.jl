@@ -86,7 +86,7 @@ function setupForcing!(
 #        println("advection_scheme : $(cfg["advection_scheme"])")
 
         if ! haskey(co.mtx, :wϵ2invβ_sT)
-            co.mtx[:wϵ2invβ_sT] = co.mtx[:ϵ_sT].^2 * (gd.R / 2.0 / gd.Ω) .* (cos.(gd.ϕ_T).^2)
+            co.mtx[:wϵ2invβ_sT] = co.mtx[:ϵ_sT].^2 * (gd.R / 2.0 / gd.Ω) .* (cos.(gd_slab.ϕ_T).^2)
         end
 
         f_sT = co.mtx[:f_sT]
