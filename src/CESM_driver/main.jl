@@ -188,10 +188,12 @@ coupler_funcs = (
                 
             end
  
-            return_values = ( :RUN,  Δt, false )
+            write_restart = msg["WRITE_RESTART"] == "TRUE"
+
+            return_values = ( :RUN,  Δt, write_restart )
 
         elseif msg["MSG"] == "END"
-            return_values = ( :END, 0.0, true  )
+            return_values = ( :END, 0.0, false  )
         else
             throw(ErrorException("Unexpected `MSG` : " * string(msg["MSG"])))
         end
