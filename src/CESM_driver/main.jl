@@ -83,7 +83,7 @@ if is_master
         path = joinpath(config["DRIVER"]["caserun"], "x_tmp"),
         reverse_role  = true,
         recv_channels = 2,
-        chk_freq = 1.0,
+        chk_freq = 0.2,
     )
     nullbin  = [zeros(Float64, 1)]
 

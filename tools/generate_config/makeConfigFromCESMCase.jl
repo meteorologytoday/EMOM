@@ -128,10 +128,14 @@ elseif parsed["ocn-model"] == "MLM"
     convective_adjustment = "on"
     Ks_V = 1e-4
     advection_scheme = "static"
-elseif parsed["ocn-model"] == "EOM"
+elseif parsed["ocn-model"] in ["EOM", "EMOM"]
     convective_adjustment = "on"
     Ks_V = 1e-4
     advection_scheme = "ekman_AGA2020"
+else
+
+    throw(ErrorException("Error: Unknown ocean model `$(parsed["ocn-model"])`."))
+
 end
 
 for k in ["env_run.xml", "env_mach_pes.xml", "env_case.xml"]

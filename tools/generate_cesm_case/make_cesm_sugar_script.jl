@@ -196,14 +196,14 @@ cp("$(parsed["casename"]).run", "$(parsed["casename"]).cesm.run", force=true)
 
 
 
-nodes = ceil(Int64, parse(Float64, cesm_env["TOTALPES"]) / parse(Float64, cesm_env["MAX_TASKS_PER_NODE"]))
+cesm_nodes = ceil(Int64, parse(Float64, cesm_env["TOTALPES"]) / parse(Float64, cesm_env["MAX_TASKS_PER_NODE"]))
 
 open(joinpath(cesm_env["CASEROOT"], "$(parsed["casename"]).run"), "w") do io
     write(io, """
 #PBS -A $(parsed["project"])
 #PBS -N $(parsed["casename"])
 #PBS -q $(parsed["queue"])
-#PBS -l select=$(nodes):ncpus=$(cesm_env["MAX_TASKS_PER_NODE"]):mpiprocs=$(cesm_env["MAX_TASKS_PER_NODE"]):ompthreads=1
+#PBS -l select=$(cesm_nodes+1):ncpus=$(cesm_env["MAX_TASKS_PER_NODE"]):mpiprocs=$(cesm_env["MAX_TASKS_PER_NODE"]):ompthreads=1:mem=109GB
 #PBS -l walltime="$(parsed["walltime"])"
 #PBS -j oe
 #PBS -S /bin/bash
@@ -222,9 +222,12 @@ open(joinpath(cesm_env["CASEROOT"],"$(parsed["casename"]).ocn.run"), "w") do io
     write(io, """
 #!/bin/bash
 
+
 ml load openmpi
 #julia --project -e 'ENV["JULIA_MPI_BINARY"]="system"; using Pkg; Pkg.build("MPI"; verbose=true)'
-mpiexec -n $(parsed["ncpu"]) julia --project IOM/src/CESM_driver/main.jl --config-file=$(cesm_env["CASEROOT"])/config.toml
+
+LID=\$( date +%y%m%d-%H%M%S )
+mpiexec -n $(parsed["ncpu"]) julia --project IOM/src/CESM_driver/main.jl --config-file=$(cesm_env["CASEROOT"])/config.toml &> $(cesm_env["RUNDIR"])/iom.log.\$LID
 
 """)
 end

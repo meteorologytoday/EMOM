@@ -2,7 +2,7 @@
 
     STOP_OPTION = "ndays"
     STOP_N = 5
-    DOCN_SOM_FILENAME = "pop_frc.gx3v7.110128.nc"
+    DOCN_SOM_FILENAME = "pop_frc.gx1v6.100513.nc"
     OCN_NCPL = 1
     OCN_TIGHT_COUPLING = FALSE
 
