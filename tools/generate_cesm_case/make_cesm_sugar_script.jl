@@ -210,7 +210,7 @@ open(joinpath(cesm_env["CASEROOT"], "$(parsed["casename"]).run"), "w") do io
 
 #!/bin/bash
 
-bash $(cesm_env["CASEROOT"]).destroy_tunnel
+bash $(cesm_env["CASEROOT"])/$(parsed["casename"]).destroy_tunnel
 /bin/csh $(cesm_env["CASEROOT"])/$(parsed["casename"]).cesm.run &
 $(cesm_env["CASEROOT"])/$(parsed["casename"]).ocn.run &
 wait
