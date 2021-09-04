@@ -6,7 +6,8 @@ function setupForcing!(
     co = mb.co
     cfg = ev.config
 
-    gd = ev.gd 
+    gd = ev.gd
+    gd_slab = ev.gd_slab
     amo_slab = co.amo_slab
 
     if cfg["transform_vector_field"]
@@ -84,10 +85,13 @@ function setupForcing!(
 
 #        println("advection_scheme : $(cfg["advection_scheme"])")
 
+        if ! haskey(co.mtx, :wϵ2invβ_sT)
+            co.mtx[:wϵ2invβ_sT] = co.mtx[:ϵ_sT].^2 * (gd.R / 2.0 / gd.Ω) .* (cos.(gd.ϕ_T).^2)
+        end
+
         f_sT = co.mtx[:f_sT]
-        β_sT = co.mtx[:β_sT]
-        ϵ_sT = co.mtx[:ϵ_sT]
         invD_sT = co.mtx[:invD_sT]
+        wϵ2invβ_sT = co.mtx[:wϵ2invβ_sT]
 
         # First, I need to get the curl. I choose to
         # do the curl using line integral in ocean model
@@ -98,7 +102,7 @@ function setupForcing!(
         )
         
         M_east  = getSpace!(co.wksp, :sT; o=0.0)
-        M_north = ( - f_sT .* fi.TAUX_east + (ϵ_sT.^2) .* curlτ_sT ./ β_sT  ) .* co.mtx[:invD_sT] / ρ_sw
+        M_north = ( - f_sT .* fi.TAUX_east + wϵ2invβ_sT .* curlτ_sT ) .* co.mtx[:invD_sT] / ρ_sw
 
         #volflx_north_uv = (- f_uv .* τeast_uv + (ϵ_uv.^2) .* curlτ_uv ./ β_uv) ./ ρ0s2 
         
