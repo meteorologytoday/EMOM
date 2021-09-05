@@ -1,5 +1,0 @@
-mv,Sandbox_verify.EMOM.h0.mon.0001-01.nc,/billevans/projects/IOM/formal_project/01_derive_qflx/Sandbox_verify/caserun,/billevans/projects/IOM/formal_project/01_derive_qflx/Sandbox_verify/archive/ocn/hist
-mv,Sandbox_verify.EMOM.h0.mon.0001-02.nc,/billevans/projects/IOM/formal_project/01_derive_qflx/Sandbox_verify/caserun,/billevans/projects/IOM/formal_project/01_derive_qflx/Sandbox_verify/archive/ocn/hist
-cp,Sandbox_verify.snapshot.0001-02-01-00000.jld2,/billevans/projects/IOM/formal_project/01_derive_qflx/Sandbox_verify/caserun,/billevans/projects/IOM/formal_project/01_derive_qflx/Sandbox_verify/archive/rest/0001-02-01-00000
-cp,rpointer.iom,/billevans/projects/IOM/formal_project/01_derive_qflx/Sandbox_verify/caserun,/billevans/projects/IOM/formal_project/01_derive_qflx/Sandbox_verify/archive/rest/0001-02-01-00000
-cp,model_restart.jld2,/billevans/projects/IOM/formal_project/01_derive_qflx/Sandbox_verify/caserun,/billevans/projects/IOM/formal_project/01_derive_qflx/Sandbox_verify/archive/rest/0001-02-01-00000

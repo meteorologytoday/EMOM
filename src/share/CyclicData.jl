@@ -120,7 +120,7 @@ module CyclicData
             time_idx_beg = findfirst(test)
             time_idx_end = findlast(test)
 
-            println("$(time_idx_beg) : $(time_idx_end)")
+            #println("$(time_idx_beg) : $(time_idx_end)")
 
             if time_idx_end == nothing || time_idx_beg == nothing
                 println(beg_time)
