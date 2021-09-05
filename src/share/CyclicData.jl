@@ -6,6 +6,11 @@ module CyclicData
     using Formatting
 
     export CyclicDataManager, interpData!, makeDataContainer
+
+    function toSec(dt)
+        return Dates.Millisecond(dt).value / 1000.0
+    end
+
  
     mutable struct CyclicDataManager
 
@@ -17,6 +22,7 @@ module CyclicData
         end_time    :: AbstractCFDateTime
         align_time  :: AbstractCFDateTime
         period      :: Float64  # end_time - beg_time in seconds
+
         # The first and last index with in beg_time and end_time
         time_idx_beg   :: Integer
         time_idx_end   :: Integer
@@ -43,6 +49,9 @@ module CyclicData
         #   then use data of idx_l_arr[i] and idx_r_arr[i] for interpolation.
         idx_l_arr      :: AbstractArray{Integer, 1}   
         idx_r_arr      :: AbstractArray{Integer, 1}   
+
+        t_l_arr      :: AbstractArray{Float64, 1}   
+        t_r_arr      :: AbstractArray{Float64, 1}   
 
         # Time pointer. Indicating the last data read. If it is zero then no previous data is read
         t_ptr_l   :: Integer
@@ -81,8 +90,7 @@ module CyclicData
                 throw(ErrorException("User specifies time type of {:s}, but align_time has time type of {:s}", string(timetype), string(typeof(align_time))))
             end
 
-            period = Dates.Second(end_time - beg_time).value
-
+            period = toSec(end_time - beg_time)
             if period <= 0
                 throw(ErrorException("End time cannot be earlier than beg time"))
             end
@@ -112,6 +120,8 @@ module CyclicData
             time_idx_beg = findfirst(test)
             time_idx_end = findlast(test)
 
+            println("$(time_idx_beg) : $(time_idx_end)")
+
             if time_idx_end == nothing || time_idx_beg == nothing
                 println(beg_time)
                 println(end_time)
@@ -119,35 +129,75 @@ module CyclicData
                 throw(ErrorException("Time range is wrong that no time is within scope."))
             end
 
-            unit_fmt = format(
-                "seconds since {:s}",
-                Dates.format(align_time, "yyyy-mm-dd HH:MM:SS")
-            )
-            #=
-                "seconds since {:04d}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}",
-                year(align_time),
-                month(align_time),
-                day(align_time),
-                hour(align_time),
-                minute(align_time),
-                second(align_time),
-            )
-            =#
-            #println(timeencode(t_vec_raw[1], unit_fmt, timetype))
+#            println("($(time_idx_beg), $time_idx_end)")
 
-            t_vec = [ timeencode(t_vec_raw[i], unit_fmt, timetype) for i=time_idx_beg:time_idx_end ]
 
-            phantom_t_vec = zeros(Float64, length(t_vec)+2)
+
+
+            t_vec = [ 
+                mod(toSec(t_vec_raw[i] - beg_time), period) for i=time_idx_beg:time_idx_end
+            ]
+
+            if t_vec[1] == t_vec[end]
+                throw(ErrorException("The first and last data of the obtained time series overlap. Please check."))
+            end
+            
+
+#            for i in 1:length(t_vec)
+#                println("$(t_vec_raw[i]) - $(align_time) = $(t_vec_raw[i] - align_time)")
+#                println("t_vec[$(i)] = $(t_vec[i]/86400)")
+#            end
+#            println("Period = $(period / 86400)")
+
+
+            #
+            # - General idea of interpolation
+            # 
+            # phantom 
+            #     1       2        3                N        N+1      N+2 
+            #     0 --- t[1] --- t[2] --- ... --- t[N-1] --- t[N] --- p(=0) --- t[1]   (time)
+            #           d[1]     d[2]             d[N-1]     d[N]               d[1]   (data)
+            # box    1        2       3       N-1        N        N+1
+            # idx_l  N        1       2       N-2       N-1        N
+            # idx_r  1        2       3       N-1        N         1
+            #
+            # t_l   t[N]-p   t[1]    t[2]                        t[N]
+            # t_r   t[1]     t[2]    t[3]                        t[1]+p
+
+            N = length(t_vec)
+
+            phantom_t_vec = zeros(Float64, N+2)
             phantom_t_vec[1]       = 0.0
             phantom_t_vec[2:end-1] = t_vec
             phantom_t_vec[end]     = period
 
-            idx_r_arr = collect(1:length(phantom_t_vec)-1)
-            idx_l_arr = circshift(collect(1:length(phantom_t_vec)-1), (1,))
+#            for (i, phantom_t) in enumerate(phantom_t_vec)
+#                println("[$(i)] = $(phantom_t/86400)")
+#            end
 
+            # idx_r_arr[i] stores the index of right-point of box i
+            idx_r_arr = collect(1:N+1)
             idx_r_arr[end] = 1
-            idx_l_arr[1]   = length(idx_l_arr) - 1
+ 
+            # idx_l_arr[i] stores the index of left-point of box i
+            idx_l_arr = circshift(idx_r_arr, (1, ))
+            idx_l_arr[1] = N
+
+            # Important: Need to offset the idx because we select the data
+            # range according to beg_time and end_time
+            idx_r_arr .+= time_idx_beg - 1
+            idx_l_arr .+= time_idx_beg - 1
+
+
+            # t_l_arr[i] stores the time used for left-point of box i
+            t_l_arr = zeros(Float64, N+1)
+            t_l_arr[1] = t_vec[end] - period
+            t_l_arr[2:end] = t_vec
             
+            # t_r_arr[i] stores the time used for right-point of box i
+            t_r_arr = zeros(Float64, N+1)
+            t_r_arr[1:end-1] = t_vec
+            t_r_arr[end] = t_vec[1] + period
 
             obj = new(
                 timetype,
@@ -163,6 +213,8 @@ module CyclicData
                 phantom_t_vec,
                 idx_l_arr,
                 idx_r_arr,
+                t_l_arr,
+                t_r_arr,
                 0,
                 0,
                 sub_yrng,
@@ -191,20 +243,15 @@ module CyclicData
 
         t_c = mod( Second(t - cdm.align_time).value, cdm.period)
         for i = 1:length(cdm.phantom_t_vec)-1
-            #println(format("t_c={}, left={}, right={} ", t_c,  cdm.phantom_t_vec[i], cdm.phantom_t_vec[i+1]))
+#            println(format("t_c={}, left={}, right={} ", t_c,  cdm.phantom_t_vec[i], cdm.phantom_t_vec[i+1]))
 
             if cdm.phantom_t_vec[i] <= t_c <= cdm.phantom_t_vec[i+1]
                 idx_l = cdm.idx_l_arr[i]
                 idx_r = cdm.idx_r_arr[i]
-                t_l = cdm.t_vec[idx_l]
-                t_r = cdm.t_vec[idx_r]
-           
-                if i == 1
-                    t_l -= cdm.period
-                elseif i == length(cdm.phantom_t_vec)-1
-                    t_r += cdm.period 
-                end 
-
+                t_l = cdm.t_l_arr[i]
+                t_r = cdm.t_r_arr[i]
+            
+#                println(format("Found $(i): t_c={}, left={}, right={} ", t_c,  t_l, t_r))
                 break
             end
         end
