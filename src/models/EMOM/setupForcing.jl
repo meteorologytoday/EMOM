@@ -34,7 +34,7 @@ function setupForcing!(
         fi._v .= 0.0
         fi._w .= 0.0
 
-    elseif cfg["advection_scheme"] in [ "ekman_AGA2020", "ekman_KSC2018", "ekman_CO2012" ]
+    elseif cfg["advection_scheme"] in [ "ekman_AGA2020", "ekman_AGA2020_allowU", "ekman_KSC2018", "ekman_CO2012" ]
 
         Mx_east = nothing
         My_north = nothing
@@ -57,13 +57,14 @@ function setupForcing!(
             My_north = ( - f_sT .* fi.TAUX_east + ϵ_sT .* fi.TAUY_north * switch  ) .* invD_sT / ρ_sw
 
 
-        elseif cfg["advection_scheme"] == "ekman_AGA2020"
+        elseif cfg["advection_scheme"] in [ "ekman_AGA2020", "ekman_AGA2020_allowU" ]
 
             if ! haskey(co.mtx, :wϵ2invβ_sT)
                 co.mtx[:wϵ2invβ_sT] = co.mtx[:ϵ_sT].^2 * (gd.R / 2.0 / gd.Ω) .* (cos.(gd_slab.ϕ_T).^2)
             end
 
             f_sT = co.mtx[:f_sT]
+            ϵ_sT = co.mtx[:ϵ_sT]
             invD_sT = co.mtx[:invD_sT]
             wϵ2invβ_sT = co.mtx[:wϵ2invβ_sT]
 
@@ -74,8 +75,16 @@ function setupForcing!(
                 amo_slab.T_CURLx_T * view(fi.TAUY, :) + amo_slab.T_CURLy_T * view(fi.TAUX, :),
                 1, gd.Nx, gd.Ny,
             )
-            
-            Mx_east  = getSpace!(co.wksp, :sT; o=0.0)
+           
+            if cfg["advection_scheme"] == "ekman_AGA2020_allowU"
+                switch = 1.0
+            elseif cfg["advection_scheme"] == "ekman_AGA2020"
+                switch = 0.0
+            else
+                throw(ErrorException("Unexpected scenario. Please check."))
+            end
+
+            Mx_east  = (   ϵ_sT .* fi.TAUX_east + f_sT .* fi.TAUY_north  ) .* invD_sT / ρ_sw * switch
             My_north = ( - f_sT .* fi.TAUX_east + wϵ2invβ_sT .* curlτ_sT ) .* co.mtx[:invD_sT] / ρ_sw
 
         else
