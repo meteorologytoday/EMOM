@@ -53,8 +53,7 @@ println("Making CyclicDataManager")
 _t = DateTimeNoLeap(3,1, 1)
 cdm = CyclicDataManager(;
     timetype = DateTimeNoLeap,
-    filename = test_file,
-    varnames = ["v"],
+    var_file_map = Dict("v" => test_file),
     beg_time = DateTimeNoLeap(0, 1, 1),
     end_time = DateTimeNoLeap(2, 1, 1),
     align_time = _t,
