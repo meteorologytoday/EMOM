@@ -51,31 +51,31 @@ sum_dom = sum(dom)
 sum_dom == 365 || throw(ErrorException("Sum of dom is $(sum_dom) rather than 365."))
 
 _t    = zeros(Float64, length(dom))
-_bnds = zeros(Float64, length(dom), 2)
+_bnds = zeros(Float64, 2, length(dom))
 
 for m=1:length(dom)
     #bnds[m, 1] = beg of month  m
     #bnds[m, 2] = end of month  m
     if m==1
-        _bnds[m, 1] = 0.0
+        _bnds[1, m] = 0.0
     else
-        _bnds[m, 1] = _bnds[m-1, 2]
+        _bnds[1, m] = _bnds[2, m-1]
     end
 
-    _bnds[m, 2] = _bnds[m, 1] + dom[m]
+    _bnds[2, m] = _bnds[1, m] + dom[m]
 
-    _t[m] = (_bnds[m, 1] + _bnds[m, 2]) / 2.0
+    _t[m] = (_bnds[1, m] + _bnds[2, m]) / 2.0
 end
 
 t    = zeros(Float64, 12*parsed["years"])
-bnds = zeros(Float64, 12*parsed["years"], 2)
+bnds = zeros(Float64, 2, 12*parsed["years"])
 
 
 for y = 1:parsed["years"]
     i_offset = (y-1)*12
     t_offset = (y-1)*sum_dom
     t[i_offset+1:i_offset+12]       .+= _t    .+ t_offset
-    bnds[i_offset+1:i_offset+12, :] .+= _bnds .+ t_offset
+    bnds[:, i_offset+1:i_offset+12] .+= _bnds .+ t_offset
 end
 
 Dataset(parsed["output"], "c") do ds
@@ -90,7 +90,7 @@ Dataset(parsed["output"], "c") do ds
         "units"     => "days since 0001-01-01 00:00:00",
     ))
 
-    defVar(ds, "time_bound", bnds, ("time", "d2"), ; attrib = Dict(
+    defVar(ds, "time_bound", bnds, ("d2", "time"), ; attrib = Dict(
         "long_name" => "boundaries for time-averaging interval",
         "units"     => "days since 0001-01-01 00:00:00",
     ))

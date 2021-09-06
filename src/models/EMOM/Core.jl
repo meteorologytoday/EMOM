@@ -123,17 +123,14 @@ mutable struct Core
         sfcmask_T[1, :, :] .= 1
         mtx[:T_sfcmask_T] = spdiagm(0 => amo.T_mask_T * reshape(sfcmask_T, :))
 
-
+        
         if length(ev.cdata_varnames) == 0
             cdatam = nothing
         else
 
-            if cfg["cdata_file"] == ""
+            if cfg["cdata_var_file_map"] == nothing
                 throw(ErrorException("Some config require cyclic data forcing file"))
             else
-                    
-
-                
                 function parseDateTime(timetype, str)
                     m = match(r"(?<year>[0-9]+)-(?<month>[0-9]{2})-(?<day>[0-9]{2})\s+(?<hour>[0-9]{2}):(?<min>[0-9]{2}):(?<sec>[0-9]{2})", str)
                     if m == nothing
@@ -149,13 +146,17 @@ mutable struct Core
                         parse(Int64, m[:sec]),
                     )
                 end
-                
+               
                 timetype   = getproperty(CFTime, Symbol(cfg["timetype"]))
+
+                var_file_map = Dict()
+                for varname in ev.cdata_varnames
+                    var_file_map[varname] = cfg["cdata_var_file_map"][varname]
+                end
 
                 cdatam = CyclicDataManager(;
                     timetype     = timetype,
-                    filename     = cfg["cdata_file"],
-                    varnames     = ev.cdata_varnames,
+                    var_file_map = var_file_map,
                     beg_time     = parseDateTime(timetype, cfg["cdata_beg_time"]),
                     end_time     = parseDateTime(timetype, cfg["cdata_end_time"]),
                     align_time   = parseDateTime(timetype, cfg["cdata_align_time"]),
