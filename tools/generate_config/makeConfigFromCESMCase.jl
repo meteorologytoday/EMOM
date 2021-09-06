@@ -108,6 +108,13 @@ function parse_commandline()
             arg_type = String
             default = ""
 
+        "--forcing-time"
+            help = "Beg, end, align"
+            arg_type = String
+            nargs = 3
+            required = true
+
+
         "--init-file"
             help = "The init ocean file."
             arg_type = String
@@ -124,12 +131,15 @@ function parse_commandline()
             arg_type = String
             default = "config.toml"
 
-
         "--output-path"
             help = "The output path. Default is the same as RUNDIR in env_run.xml"
             arg_type = String
             default = ""
 
+        "--finding-QFLX"
+            help = "If this is a finding QFLX run"
+            arg_type = Bool
+            default = false
 
     end
 
@@ -150,12 +160,21 @@ elseif parsed["ocn-model"] == "MLM"
 elseif parsed["ocn-model"] in ["EOM", "EMOM"]
     convective_adjustment = "on"
     Ks_V = 1e-4
-    advection_scheme = "ekman_AGA2020"
+    advection_scheme = "ekman_AGA2020_addU"
 else
-
     throw(ErrorException("Error: Unknown ocean model `$(parsed["ocn-model"])`."))
-
 end
+
+if parsed["finding-QFLX"]
+    Qflx = "off"
+    τwk_SALT = 86400.0 * 5
+    τwk_TEMP = 86400.0 * 5
+else
+    Qflx = "on"
+    τwk_SALT = 86400.0 * 365
+    τwk_TEMP = 86400.0 * 365 * 1000
+end
+
 
 for k in ["env_run.xml", "env_mach_pes.xml", "env_case.xml"]
     if ! isfile(joinpath(parsed["caseroot"], k))
@@ -195,7 +214,7 @@ var_file_map = Dict()
 for var in ["HMXL", "TEMP", "SALT", "QFLX_TEMP", "QFLX_SALT"]
     file = parsed["forcing-file-$(var)"]
     if file != ""
-        var_file_map[v] = file
+        var_file_map[var] = file
     end
 end
 
@@ -225,25 +244,25 @@ config = Dict{Any, Any}(
         "topo_file"                    => parsed["topo-file"],
         "cdata_var_file_map"           => var_file_map,
 
-        "cdata_beg_time"               => "0001-01-01 00:00:00",
-        "cdata_end_time"               => "0002-01-01 00:00:00",
-        "cdata_align_time"             => "0001-01-01 00:00:00",
+        "cdata_beg_time"               => parsed["forcing-time"][1],
+        "cdata_end_time"               => parsed["forcing-time"][2],
+        "cdata_align_time"             => parsed["forcing-time"][3],
 
         "z_w"                          => nothing,
 
         "substeps"                     => 8,
         "MLD_scheme"                   => "datastream",
-        "Qflx"                         => "on",
+        "Qflx"                         => Qflx,
         "Qflx_finding"                 => "off",
-        "convective_adjustment"        => "$(convective_adjustment)",
-        "advection_scheme"             => "$(advection_scheme)",
+        "convective_adjustment"        => convective_adjustment,
+        "advection_scheme"             => advection_scheme,
 
         "weak_restoring"               => "on",
-        "τwk_TEMP"                     => 365*86400.0*1000,
-        "τwk_SALT"                     => 365*86400.0*1,
+        "τwk_TEMP"                     => τwk_TEMP,
+        "τwk_SALT"                     => τwk_SALT,
 
         "Ekman_layers"                 => 5,
-        "Returnflow_layers"            => 25,
+        "Returnflow_layers"            => 28,
     
         "transform_vector_field"       => true,
     ),
