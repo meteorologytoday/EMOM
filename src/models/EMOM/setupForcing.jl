@@ -34,92 +34,71 @@ function setupForcing!(
         fi._v .= 0.0
         fi._w .= 0.0
 
-    elseif cfg["advection_scheme"] == "ekman_codron2012_partition"
- 
-      
-        f_sT = co.mtx[:f_sT]
-        ϵ_sT = co.mtx[:ϵ_sT]
-        invD_sT = co.mtx[:invD_sT]
-        
-        M_north = ( - f_sT .* fi.TAUX_east + 0 * ϵ_sT .* fi.TAUY_north  ) .* co.mtx[:invD_sT] / ρ_sw
-        M_east  = 0 * (   ϵ_sT .* fi.TAUX_east + f_sT .* fi.TAUY_north  ) .* co.mtx[:invD_sT] / ρ_sw
+    elseif cfg["advection_scheme"] in [ "ekman_AGA2020", "ekman_KSC2018", "ekman_CO2012" ]
 
-        Mx_sT = copy(M_east)
-        My_sT = copy(M_north)
+        Mx_east = nothing
+        My_north = nothing
+
+        if cfg["advection_scheme"] in [ "ekman_CO2012", "ekman_KSC2018" ]
+            
+            f_sT = co.mtx[:f_sT]
+            ϵ_sT = co.mtx[:ϵ_sT]
+            invD_sT = co.mtx[:invD_sT]
+           
+            if cfg["advection_scheme"] == "ekman_CO2012"
+                switch = 1.0
+            elseif cfg["advection_scheme"] == "ekman_KSC2018"
+                switch = 0.0
+            else
+                throw(ErrorException("Unexpected scenario. Please check."))
+            end
  
-        if cfg["transform_vector_field"]
-            PolelikeCoordinate.project!(
-                gd, 
-                M_east,
-                M_north,
-                Mx_sT,
-                My_sT;
-                direction=:Forward,
-                grid=:T,
+            Mx_east  = (   ϵ_sT .* fi.TAUX_east + f_sT .* fi.TAUY_north  ) .* invD_sT / ρ_sw
+            My_north = ( - f_sT .* fi.TAUX_east + ϵ_sT .* fi.TAUY_north * switch  ) .* invD_sT / ρ_sw
+
+
+        elseif cfg["advection_scheme"] == "ekman_AGA2020"
+
+            if ! haskey(co.mtx, :wϵ2invβ_sT)
+                co.mtx[:wϵ2invβ_sT] = co.mtx[:ϵ_sT].^2 * (gd.R / 2.0 / gd.Ω) .* (cos.(gd_slab.ϕ_T).^2)
+            end
+
+            f_sT = co.mtx[:f_sT]
+            invD_sT = co.mtx[:invD_sT]
+            wϵ2invβ_sT = co.mtx[:wϵ2invβ_sT]
+
+            # First, I need to get the curl. I choose to
+            # do the curl using line integral in ocean model
+            # space
+            curlτ_sT = reshape(
+                amo_slab.T_CURLx_T * view(fi.TAUY, :) + amo_slab.T_CURLy_T * view(fi.TAUX, :),
+                1, gd.Nx, gd.Ny,
             )
-        end
- 
-        # notice that we drop the z dimension for simplicity in the for loop
-        Mx_u = reshape( co.amo_slab.U_interp_T * view(Mx_sT, :), gd.Nx, gd.Ny)
-        My_v = reshape( co.amo_slab.V_interp_T * view(My_sT, :), gd.Nx, gd.Ny+1)
+            
+            Mx_east  = getSpace!(co.wksp, :sT; o=0.0)
+            My_north = ( - f_sT .* fi.TAUX_east + wϵ2invβ_sT .* curlτ_sT ) .* co.mtx[:invD_sT] / ρ_sw
 
-        H_Ek = sum(gd.Δz_T[1:cfg["Ekman_layers"], 1, 1]) 
-        H_Rf = sum(gd.Δz_T[(cfg["Ekman_layers"]+1):(cfg["Ekman_layers"]+cfg["Returnflow_layers"]), 1, 1]) 
-
-
-        for k = 1:cfg["Ekman_layers"]
-            fi.sv[:UVEL][k, :, :] .= Mx_u / H_Ek
-            fi.sv[:VVEL][k, :, :] .= My_v / H_Ek
-        end
- 
-        for k = (cfg["Ekman_layers"]+1):(cfg["Ekman_layers"]+cfg["Returnflow_layers"])
-            fi.sv[:UVEL][k, :, :] .= - Mx_u / H_Rf
-            fi.sv[:VVEL][k, :, :] .= - My_v / H_Rf
-        end
-        
-        fi._u[:] = co.amo.U_flowmask_U * fi._u  
-        fi._v[:] = co.amo.V_flowmask_V * fi._v
-        fi._w[:] = co.amo.W_flowmask_W * fi._w
-
-    elseif cfg["advection_scheme"] == "ekman_AGA2020"
-
-#        println("advection_scheme : $(cfg["advection_scheme"])")
-
-        if ! haskey(co.mtx, :wϵ2invβ_sT)
-            co.mtx[:wϵ2invβ_sT] = co.mtx[:ϵ_sT].^2 * (gd.R / 2.0 / gd.Ω) .* (cos.(gd_slab.ϕ_T).^2)
+        else
+            throw(ErrorException("Unexpected scenario. Please check."))
         end
 
-        f_sT = co.mtx[:f_sT]
-        invD_sT = co.mtx[:invD_sT]
-        wϵ2invβ_sT = co.mtx[:wϵ2invβ_sT]
+        if Mx_east == nothing || My_north == nothing
+            throw(ErrorException("Error: Either or both Mx_east or My_north are not assigned."))
+        end
 
-        # First, I need to get the curl. I choose to
-        # do the curl using line integral in ocean model
-        # space
-        curlτ_sT = reshape(
-            amo_slab.T_CURLx_T * view(fi.TAUY, :) + amo_slab.T_CURLy_T * view(fi.TAUX, :),
-            1, gd.Nx, gd.Ny,
-        )
-        
-        M_east  = getSpace!(co.wksp, :sT; o=0.0)
-        M_north = ( - f_sT .* fi.TAUX_east + wϵ2invβ_sT .* curlτ_sT ) .* co.mtx[:invD_sT] / ρ_sw
-
-        #volflx_north_uv = (- f_uv .* τeast_uv + (ϵ_uv.^2) .* curlτ_uv ./ β_uv) ./ ρ0s2 
-        
         Mx_sT = getSpace!(co.wksp, :sT; o=0.0)
         My_sT = getSpace!(co.wksp, :sT; o=0.0)
- 
+
         PolelikeCoordinate.project!(
             gd, 
-            M_east,
-            M_north,
+            Mx_east,
+            My_north,
             Mx_sT,
             My_sT;
             direction=:Forward,
             grid=:T,
         )
 
-#        println("SUM of M_north: ", sum(M_north))
         # notice that we drop the z dimension for simplicity in the for loop
         Mx_u = reshape( co.amo_slab.U_interp_T * view(Mx_sT, :), gd.Nx, gd.Ny)
         My_v = reshape( co.amo_slab.V_interp_T * view(My_sT, :), gd.Nx, gd.Ny+1)

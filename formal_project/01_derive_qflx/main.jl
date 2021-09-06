@@ -109,8 +109,8 @@ coupler_funcs = (
             timetype     = getproperty(CFTime, Symbol(cfgmm["timetype"])),
             filename     = parsed["forcing-file"],
             varnames     = ["TAUX", "TAUY", "SWFLX", "NSWFLX", "VSFLX"],
-            beg_time     = DateTimeNoLeap(0, 1, 1),
-            end_time     = DateTimeNoLeap(1, 1, 1),
+            beg_time     = DateTimeNoLeap(1, 1, 1),
+            end_time     = DateTimeNoLeap(2, 1, 1),
             align_time   = DateTimeNoLeap(1, 1, 1),
         )
 

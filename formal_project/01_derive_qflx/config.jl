@@ -71,6 +71,6 @@ end
 
 using TOML
 
-open("config.toml", "w") do io
+open("config_verify.toml", "w") do io
     TOML.print(io, config)
 end

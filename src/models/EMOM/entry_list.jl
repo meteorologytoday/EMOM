@@ -105,7 +105,7 @@ function getConfigDescriptor()
             ConfigEntry(
                 "advection_scheme",
                 :required,
-                ["static", "ekman_codron2012_partition", "ekman_AGA2020"],
+                ["static", "ekman_KSC2018", "ekman_CO2012", "ekman_AGA2020"],
             ),
 
             ConfigEntry(

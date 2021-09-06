@@ -18,6 +18,7 @@ mean_annual=mean_${yr_rng_str}_annual
 mean_01=mean_${yr_rng_str}_01
 mean_07=mean_${yr_rng_str}_07
 
+set -x
 
 eval "ncra -O $hist_root/*.h0.*.${yr_rng}-{01..12}.nc ${mean_annual}.nc"
 eval "ncra -O $hist_root/*.h0.*.${yr_rng}-01.nc ${mean_01}.nc"

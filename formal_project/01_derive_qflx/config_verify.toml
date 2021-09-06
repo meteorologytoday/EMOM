@@ -7,15 +7,15 @@ timetype = "DateTimeNoLeap"
 daily_record = []
 
 [DRIVER]
-archive_root = "/billevans/projects/IOM/formal_project/01_derive_qflx/Sandbox/archive"
-casename = "Sandbox"
-caserun = "/billevans/projects/IOM/formal_project/01_derive_qflx/Sandbox/caserun"
-caseroot = "/billevans/projects/IOM/formal_project/01_derive_qflx/Sandbox/caseroot"
+archive_root = "/billevans/projects/IOM/formal_project/01_derive_qflx/Sandbox_verify/archive"
+casename = "Sandbox_verify"
+caserun = "/billevans/projects/IOM/formal_project/01_derive_qflx/Sandbox_verify/caserun"
+caseroot = "/billevans/projects/IOM/formal_project/01_derive_qflx/Sandbox_verify/caseroot"
 
 [MODEL_CORE]
 MLD_scheme = "datastream"
 Ekman_layers = 5
-advection_scheme = "ekman_KSC2018"
+advection_scheme = "ekman_AGA2020"
 z_w = [-0.0, -10.0, -20.0, -30.0, -40.0, -50.0, -60.0, -70.0, -80.0, -90.0, -100.0, -110.0, -120.0, -130.0, -140.0, -150.0, -160.0, -170.19681640625, -180.7612890625, -191.82125, -203.49931640625, -215.9234375, -229.233125, -243.58453125, -259.15580078125, -276.15259765625, -294.81470703125, -315.42373046875, -338.312265625, -363.8747265625, -392.58046875, -424.9888671875, -461.7665625, -503.706875, -551.7491015625, -606.9966796875, -670.72859375, -744.398046875, -829.606953125, -928.043515625, -1041.368203125, -1171.04015625, -1318.09359375, -1482.90078125, -1664.99203125, -1863.014375, -2074.87390625, -2298.0390625, -2529.9040625, -2768.0984375, -3010.670625, -3256.1384375, -3503.44875, -3751.891875, -4001.0115625, -4250.5246875, -4500.260625, -4750.12, -5000.046875, -5250.009375, -5499.990625]
 weak_restoring = "on"
 cdata_align_time = "0001-01-01 00:00:00"
