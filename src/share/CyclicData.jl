@@ -16,7 +16,7 @@ module CyclicData
 
         timetype  :: DataType
 
-        filename  :: String
+        var_file_map:: Dict
 
         beg_time    :: AbstractCFDateTime
         end_time    :: AbstractCFDateTime
@@ -58,21 +58,19 @@ module CyclicData
         t_ptr_r   :: Integer
 
         sub_yrng  :: Union{Colon, UnitRange}
-        varnames  :: Array{String, 1}
 
         data_l   :: Union{Dict, Nothing}     # Data on the lower point. Used for interpolation
         data_r   :: Union{Dict, Nothing}     # Data on the upper point. Used for interpolation
 
 
         function CyclicDataManager(;
-            timetype        :: DataType,
-            filename        :: String,
-            varnames        :: Array,
-            beg_time        :: AbstractCFDateTime,
-            end_time        :: AbstractCFDateTime,
-            align_time      :: AbstractCFDateTime,
-            sub_yrng        :: Union{UnitRange, Colon} = Colon(),
-            varname_time    :: String = "time",
+            timetype         :: DataType,
+            var_file_map :: Dict,
+            beg_time         :: AbstractCFDateTime,
+            end_time         :: AbstractCFDateTime,
+            align_time       :: AbstractCFDateTime,
+            sub_yrng         :: Union{UnitRange, Colon} = Colon(),
+            varname_time     :: String = "time",
         )
 
             data = Dict()
@@ -96,18 +94,41 @@ module CyclicData
             end
 
             local t_vec_raw
-            Dataset(filename, "r") do ds
-                    
-                t_vec_raw = nomissing(ds[varname_time][:])
-                t_attrib = ds[varname_time].attrib
-                
-                if typeof(t_vec_raw[1]) != timetype
-                    throw(ErrorException("User specifies time type of {:s}, but data file has time type of {:s}", string(timetype), string(typeof(t_vec_raw[1]))))
-                end
 
-                #t_vec = [ timeencode(t_vec[i], t_attrib["units"], t_attrib["calendar"]) for i = 1:length(t_vec) ]
-                #t_vec = [ timeencode(t_vec[i], "seconds since 0001-01-01 00:00:00", timetype) for i = 1:length(t_vec) ]
-                
+            local _compare_filename = nothing
+            local _compare_t_vec = nothing
+            local t_vec_raw
+
+            for (varname, filename) in var_file_map
+
+                Dataset(filename, "r") do ds
+                    t_vec_raw = nomissing(ds[varname_time][:])
+                    t_attrib = ds[varname_time].attrib
+                    
+                    if typeof(t_vec_raw[1]) != timetype
+                        throw(ErrorException("User specifies time type of $(string(timetype)), but data file has time type of $(string(typeof(t_vec_raw[1])))."))
+                    end
+
+                    if ! haskey(ds, varname)
+                        throw(ErrorException("File $(filename) does not have variable $(varname)."))
+                    end
+
+                    if _compare_t_vec == nothing
+                        _compare_filename = "$(filename)"
+                        _compare_t_vec = copy(t_vec_raw)
+                    end
+                    
+                    if length(t_vec_raw) != length(_compare_t_vec)
+                        throw(ErrorException("File $(filename) does not agree with other time dimension length in $(_compare_filename)."))
+                    end
+
+                    for i=1:length(t_vec_raw)
+                        if t_vec_raw[i] != _compare_t_vec[i]
+                            throw(ErrorException("`time` variable in file $(filename) is not the same as $(_compare_filename) at index $(i)"))
+                        end
+                    end
+                end                
+            
             end
 
             if any(t_vec_raw[2:end] .<= t_vec_raw[1:end-1])
@@ -201,7 +222,7 @@ module CyclicData
 
             obj = new(
                 timetype,
-                filename,
+                var_file_map,
                 beg_time,
                 end_time,
                 align_time,
@@ -218,7 +239,6 @@ module CyclicData
                 0,
                 0,
                 sub_yrng,
-                varnames,
                 nothing,
                 nothing,
             )
@@ -266,9 +286,9 @@ module CyclicData
 
         local data = Dict()
 
-        Dataset(cdm.filename, "r") do ds
+        for (varname, filename) in cdm.var_file_map
+            Dataset(filename, "r") do ds
 
-            for varname in cdm.varnames
                 s = size(ds[varname])
 
                 Ny = s[2]
@@ -286,7 +306,6 @@ module CyclicData
                 end
 
             end
-
         end
         
         return data
@@ -301,9 +320,8 @@ module CyclicData
 
         missing_data = 0.0
 
-        Dataset(cdm.filename, "r") do ds
-
-            for varname in cdm.varnames
+        for (varname, filename) in cdm.var_file_map
+            Dataset(filename, "r") do ds
                 var = ds[varname]
                 s = size(var)
 
@@ -321,9 +339,7 @@ module CyclicData
                 end
 
             end
-
-        end
-        
+        end 
     end
 
 
@@ -380,7 +396,7 @@ module CyclicData
             throw(ErrorException("Δt sign error."))
         end
 
-        for varname in cdm.varnames
+        for varname in keys(cdm.var_file_map)
     
             tmp = view(data[varname], :)
 

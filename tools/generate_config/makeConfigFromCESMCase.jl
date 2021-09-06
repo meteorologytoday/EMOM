@@ -83,11 +83,30 @@ function parse_commandline()
             arg_type = String
             required = true
 
-
-        "--forcing-file"
+        "--forcing-file-HMXL"
             help = "The forcing file"
             arg_type = String
-            required = true
+            default = ""
+
+        "--forcing-file-TEMP"
+            help = "The forcing file"
+            arg_type = String
+            default = ""
+
+        "--forcing-file-SALT"
+            help = "The forcing file"
+            arg_type = String
+            default = ""
+
+        "--forcing-file-QFLX_TEMP"
+            help = "The forcing file"
+            arg_type = String
+            default = ""
+
+        "--forcing-file-QFLX_SALT"
+            help = "The forcing file"
+            arg_type = String
+            default = ""
 
         "--init-file"
             help = "The init ocean file."
@@ -170,6 +189,18 @@ if basename(parsed["domain-file"]) != basename(cesm_config["OCN_DOMAIN_FILE"])
     println("Warning: Input domain file is $(parsed["domain-file"]) but the CESM configureation uses $(cesm_config["OCN_DOMAIN_FILE"])")
 end
 
+
+var_file_map = Dict()
+
+for var in ["HMXL", "TEMP", "SALT", "QFLX_TEMP", "QFLX_SALT"]
+    file = parsed["forcing-file-$(var)"]
+    if file != ""
+        var_file_map[v] = file
+    end
+end
+
+
+
 config = Dict{Any, Any}(
 
     "DRIVER" => Dict(
@@ -192,7 +223,7 @@ config = Dict{Any, Any}(
 
         "domain_file"                  => parsed["domain-file"],
         "topo_file"                    => parsed["topo-file"],
-        "cdata_file"                   => parsed["forcing-file"],
+        "cdata_var_file_map"           => var_file_map,
 
         "cdata_beg_time"               => "0001-01-01 00:00:00",
         "cdata_end_time"               => "0002-01-01 00:00:00",
