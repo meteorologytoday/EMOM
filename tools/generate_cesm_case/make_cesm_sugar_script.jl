@@ -203,7 +203,7 @@ open(joinpath(cesm_env["CASEROOT"], "$(parsed["casename"]).run"), "w") do io
 #PBS -A $(parsed["project"])
 #PBS -N $(parsed["casename"])
 #PBS -q $(parsed["queue"])
-#PBS -l select=$(cesm_nodes+1):ncpus=$(cesm_env["MAX_TASKS_PER_NODE"]):mpiprocs=$(cesm_env["MAX_TASKS_PER_NODE"]):ompthreads=1:mem=109GB
+#PBS -l select=$(cesm_nodes+1):ncpus=$(cesm_env["MAX_TASKS_PER_NODE"]):mpiprocs=$(cesm_env["MAX_TASKS_PER_NODE"]):ompthreads=1
 #PBS -l walltime="$(parsed["walltime"])"
 #PBS -j oe
 #PBS -S /bin/bash

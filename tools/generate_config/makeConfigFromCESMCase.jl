@@ -160,7 +160,7 @@ elseif parsed["ocn-model"] == "MLM"
 elseif parsed["ocn-model"] in ["EOM", "EMOM"]
     convective_adjustment = "on"
     Ks_V = 1e-4
-    advection_scheme = "ekman_AGA2020_addU"
+    advection_scheme = "ekman_AGA2020_allowU"
 else
     throw(ErrorException("Error: Unknown ocean model `$(parsed["ocn-model"])`."))
 end
