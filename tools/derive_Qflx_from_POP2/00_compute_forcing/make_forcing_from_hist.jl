@@ -102,7 +102,10 @@ function parse_commandline()
             nargs    = 2
             required = true
 
-
+        "--output-file"
+            help = "Casename"
+            arg_type = String
+            default = "forcing_cyclic.nc"
 
     end
 
