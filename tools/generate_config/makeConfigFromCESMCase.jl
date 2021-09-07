@@ -136,10 +136,10 @@ function parse_commandline()
             arg_type = String
             default = ""
 
-        "--finding-QFLX"
-            help = "If this is a finding QFLX run"
-            arg_type = Bool
-            default = false
+        "--finding-QFLX-timescale"
+            help = "If this is set to a real number, finding QFLX mode is on. And timescale is in days."
+            arg_type = Float64
+            default = NaN
 
     end
 
@@ -165,14 +165,18 @@ else
     throw(ErrorException("Error: Unknown ocean model `$(parsed["ocn-model"])`."))
 end
 
-if parsed["finding-QFLX"]
+if parsed["finding-QFLX-timescale"] > 0.0
+    println("QFLX finding mode on. Timescale = $(parsed["finding-QFLX-timescale"]) days.")
     Qflx = "off"
-    τwk_SALT = 86400.0 * 5
-    τwk_TEMP = 86400.0 * 5
-else
+    τwk_SALT = 86400.0 * parsed["finding-QFLX-timescale"]
+    τwk_TEMP = 86400.0 * parsed["finding-QFLX-timescale"]
+elseif isnan(parsed["finding-QFLX-timescale"])
+    println("QFLX finding mode off. Timescale = 1000 years and 1 year for TEMP and Salt.")
     Qflx = "on"
     τwk_SALT = 86400.0 * 365
     τwk_TEMP = 86400.0 * 365 * 1000
+else
+    throw(ErrorException("Unknown scenario: got `finding-QFLX-timescale` = $(parsed["finding-QFLX-timescale"])"))
 end
 
 
