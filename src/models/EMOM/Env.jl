@@ -59,16 +59,24 @@ mutable struct Env
         gd_slab = PolelikeCoordinate.genGrid(gf, [0, -1.0]; sub_yrng=sub_yrng) 
 
 
+        if config["Returnflow_layers"] + config["Ekman_layers"] > gd.Nz
+            throw(ErrorException("Sum of `Returnflow_layers` and `Ekman_layers` exceeds Nz = $(gd.Nz)"))
+        end
         #
         topo = nothing
-        Dataset(config["topo_file"], "r") do ds
-            Nz_bot = ds["Nz_bot"][:, sub_yrng]
-            #println(Nz_bot)
-            topo = Topography(
-                Nz_bot, gf.Nx, length(sub_yrng), config["z_w"];
-                deep_depth = - config["z_w"][config["Returnflow_layers"] + config["Ekman_layers"] + 1]
-            )
+
+        if config["topo_file"] != ""
+            Dataset(config["topo_file"], "r") do ds
+                Nz_bot = ds["Nz_bot"][:, sub_yrng]
+            end
+        else
+            Nz_bot = zeros(Int64, gd.Nx, gd.Ny) .+ gd.Nz
+            Nz_bot[gf.mask[:, sub_yrng] .== 0.0 ] .= 0.0
         end
+        topo = Topography(
+            Nz_bot, gf.Nx, length(sub_yrng), config["z_w"];
+            deep_depth = - config["z_w"][config["Returnflow_layers"] + config["Ekman_layers"] + 1]
+        )
 
         if any(view(topo.mask_T, 1, :, :) .!= gf.mask[:, sub_yrng])
             throw(ErrorException("Topo surface mask is inconsistent with mask loaded from domain file. It can be that the `deep_depth` in Topography is set too low, or simply because topography file is not consistent with domain file."))

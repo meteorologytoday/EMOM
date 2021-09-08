@@ -191,6 +191,15 @@ function getConfigDescriptor()
             ),
 
             ConfigEntry(
+                "τfrz",
+                :optional,
+                [Float64,],
+                3600.0;
+                desc = "Timescale of surface water below freezing point.",
+            ),
+
+
+            ConfigEntry(
                 "rad_R",
                 :optional,
                 [Float64,],
