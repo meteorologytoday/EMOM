@@ -226,8 +226,19 @@ open(joinpath(cesm_env["CASEROOT"],"$(parsed["casename"]).ocn.run"), "w") do io
 ml load openmpi
 #julia --project -e 'ENV["JULIA_MPI_BINARY"]="system"; using Pkg; Pkg.build("MPI"; verbose=true)'
 
+caseroot="$(cesm_env["CASEROOT"])"
+caserun="$(cesm_env["RUNDIR"])"
+archive_log_dir="$(cesm_env["DOUT_S_ROOT"])/ocn/logs"
+
+logfile="iom.log.\${LID}"
+
+
 LID=\$( date +%y%m%d-%H%M%S )
-mpiexec -n $(parsed["ncpu"]) julia --project IOM/src/CESM_driver/main.jl --config-file=$(cesm_env["CASEROOT"])/config.toml &> $(cesm_env["RUNDIR"])/iom.log.\$LID
+mpiexec -n $(parsed["ncpu"]) julia --project \${caseroot}/IOM/src/CESM_driver/main.jl --config-file=\${caseroot}/config.toml &> \${caserun}/\${logfile}
+
+
+mv \${caserun}/\${logfile} \${archive_log_dir}/
+
 
 """)
 end
