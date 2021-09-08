@@ -188,8 +188,8 @@ function stepColumn!(
     Q_FRZMLTPOT_NEG .= 0.0
 
     @. ΔT_sT = NEWSST - T_sw_frz
-    below_frz_mask_sT = ΔT_sT < 0.0
-    above_frz_mask_sT = ΔT_sT >= 0.0
+    below_frz_mask_sT = ΔT_sT .< 0.0
+    above_frz_mask_sT = ΔT_sT .>= 0.0
    
     tmp_sT .= 0.0
     tmp_sT[below_frz_mask_sT] .= - 1.0 / cfg["τfrz"]
@@ -199,10 +199,20 @@ function stepColumn!(
     NEWSST[:] = lu( I - Δt * op_frz ) \ ( NEWSST - Δt * op_frz * tmp_sT )
     
     Q_FRZHEAT[:]   = ρcp_sw * sfcΔz_sT .* (op_frz * (NEWSST .- T_sw_frz))
-    @. Q_FRZMLTPOT = ρcp_sw * sfcΔz_sT * ΔT_sT
-    Q_FRZMLTPOT_NEG[above_frz_mask_sT] = Q_FRZMLTPOT[above_frz_mask_sT]
+  
+    # Capping freezing potential at 5 W/m^2 to avoid instability
+    # in cice model due to advection noise in Ekman flow. However, 
+    # this breaks energy conservation.
+    Q_FRZHEAT[Q_FRZHEAT .> 5.0] .= 5.0
+
+    @. tmp_sT = - ρcp_sw * sfcΔz_sT * ΔT_sT / Δt
+
+    Q_FRZMLTPOT_NEG[above_frz_mask_sT] = tmp_sT[above_frz_mask_sT]
+
+    Q_FRZMLTPOT[above_frz_mask_sT]     = tmp_sT[above_frz_mask_sT]
+    Q_FRZMLTPOT[below_frz_mask_sT]     = Q_FRZHEAT[below_frz_mask_sT]
  
- 
+    #= 
     if any(fi.Q_FRZMLTPOT_NEG .> 0)
         throw(ErrorException("[1] Something is wrong when computing freeze melt potential."))
     end
@@ -210,5 +220,5 @@ function stepColumn!(
     if any(fi.Q_FRZHEAT .< 0)
         throw(ErrorException("[2] Something is wrong when computing freeze melt potential."))
     end    
-
+    =#
 end
