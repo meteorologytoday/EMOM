@@ -164,48 +164,51 @@ function stepColumn!(
     #
     # Maybe it is worth asking this question on CESM forum.
     #
-    #sfc_below_frz_mask_T = co.mtx[:T_sfcmask_T] * (fi.sv[:_TEMP] .<  T_sw_frz)
-    #sfc_above_frz_mask_T = co.mtx[:T_sfcmask_T] * (fi.sv[:_TEMP] .>= T_sw_frz)
-    #T_sfc_below_frz_mask_T = spdiagm(0 => sfc_below_frz_mask_T)
-    #T_sfc_above_frz_mask_T = spdiagm(0 => sfc_above_frz_mask_T)
-    #op_frz   = - T_sfc_below_frz_mask_T * co.mtx[:T_invτ_frz_T]
-    #op_TEMP += op_frz
-    #RHS_TEMP .-= Δt * op_frz * (T_sw_frz * co.mtx[:ones_T])
+
+    # *** Restoring ***
+    # (b_t+1 - b_t) / dt =  OP1 * b_t+1 + OP2 * (b_t+1 - b_target) + const
+    # b_t+1 - b_t =  dt * OP1 * b_t+1 + dt * OP2 * (b_t+1 - b_target) + dt * const
+    # (I - OP1 * dt - OP2 * dt) b_t+1 = b_t - dt * OP2 * b_target + dt * const
+    # b_t+1 = (I - OP1 * dt - OP2 * dt) \ (b_t - dt * OP2 * b_target + dt * const)
+    # Δb = b_t+1 - b_t = Δt * OP1 * b_t+1 + Δt * OP2 * (b_t+1 - b_target) + Δt * const
 
     # Tackle freeze / melt potential
-    ΔT_sT = getSpace!(wksp, sT, true)
+    ΔT_sT  = getSpace!(wksp, :sT, true)
+    tmp_sT = getSpace!(wksp, :sT, true)
+
     NEWSST = reshape(view(tmpfi.sv[:NEWTEMP], 1:1, :, :), :)
+    sfcΔz_sT = reshape(view(co.amo.gd.Δz_T, 1:1, :, :), :)
+    
+    Q_FRZHEAT        = reshape(fi.Q_FRZHEAT,       :)
+    Q_FRZMLTPOT      = reshape(fi.Q_FRZMLTPOT,     :)
+    Q_FRZMLTPOT_NEG  = reshape(fi.Q_FRZMLTPOT_NEG, :)
+
+    Q_FRZHEAT       .= 0.0
+    Q_FRZMLTPOT     .= 0.0
+    Q_FRZMLTPOT_NEG .= 0.0
+
     @. ΔT_sT = NEWSST - T_sw_frz
-    tmp = zeros(Float64, co.amo_slab.bmo.T_pts)
-    tmp[ΔT_sT < 0.0] .= - 1.0 / cfg["τfrz"]
-    T_frz_T = co.amo_slab.T_mask_T * spdiagm(0 => tmp)
-            
-    ΔT_sT = NEWSST .-  T_sw_frz
-    sfc_below_frz_mask_sT = ΔT_sT .<  0
-    sfc_above_frz_mask_sT = ΔT_sT .>= 0
-
-    # Restore the surface water temperature
-    NEWSST[sfc_below_frz_mask_sT] .= T_sw_frz
-
-    # Determine the frz melt potential
-    sfcΔz_sT = view(co.amo.gd.Δz_T, 1:1, :, :)
-
-    fi.Q_FRZMLTPOT .= - (sfcΔz_sT .* ΔT_sT) * ρcp_sw / Δt
-
-    fi.Q_FRZHEAT                              .= 0
-    fi.Q_FRZHEAT[sfc_below_frz_mask_sT]       .= fi.Q_FRZMLTPOT[sfc_below_frz_mask_sT]
-    fi.Q_FRZMLTPOT_NEG[sfc_above_frz_mask_sT] .= fi.Q_FRZMLTPOT[sfc_above_frz_mask_sT]
+    below_frz_mask_sT = ΔT_sT < 0.0
+    above_frz_mask_sT = ΔT_sT >= 0.0
    
-    #= 
-    # It is possible that some of the Q_FRZHEAT and Q_FRZMLTPOT_NEG are not positive and negative anymore because
-    # the mask is the old one while the Δ_TEMP is the new one. So in order to be consistent
-    # with the energy, I will overwrite these values with zeros.
+    tmp_sT .= 0.0
+    tmp_sT[below_frz_mask_sT] .= - 1.0 / cfg["τfrz"]
+    op_frz = co.amo_slab.T_mask_T * spdiagm(0 => tmp_sT)
+
+    tmp_sT .= T_sw_frz
+    NEWSST[:] = lu( I - Δt * op_frz ) \ ( NEWSST - Δt * op_frz * tmp_sT )
+    
+    Q_FRZHEAT[:]   = ρcp_sw * sfcΔz_sT .* (op_frz * (NEWSST .- T_sw_frz))
+    @. Q_FRZMLTPOT = ρcp_sw * sfcΔz_sT * ΔT_sT
+    Q_FRZMLTPOT_NEG[above_frz_mask_sT] = Q_FRZMLTPOT[above_frz_mask_sT]
+ 
+ 
+    if any(fi.Q_FRZMLTPOT_NEG .> 0)
+        throw(ErrorException("[1] Something is wrong when computing freeze melt potential."))
+    end
+   
     if any(fi.Q_FRZHEAT .< 0)
         throw(ErrorException("[2] Something is wrong when computing freeze melt potential."))
     end    
 
-    if any(fi.Q_FRZMLTPOT_NEG .> 0)
-        throw(ErrorException("[1] Something is wrong when computing freeze melt potential."))
-    end
-    =# 
 end
