@@ -8,6 +8,7 @@ function stepColumn!(
     co    = mb.co
     ev    = mb.ev
     cfg   = ev.config
+    wksp  = co.wksp
 
     # *** Diffusion and restoring ***
     # (b_t+1 - b_t) / dt =  OP1 * b_t+1 + OP2 * (b_t+1 - b_target) + const
@@ -41,55 +42,6 @@ function stepColumn!(
     # Surface fluxes of salinity
     RHS_SALT = view(tmpfi._INTMX_, :, 2) + Δt * co.mtx[:T_sfcflxConv_sT] * view(fi.VSFLX, :)
 
-    # Freezing
-    # By reading the code of CICE, I know that Q_FRZMLTPOT in my model is
-    # the variable "frzmlt" in CICE.
-    #
-    # If frzmlt < 0:
-    # In ice_therm_vertical.F90 of lines 703-740, CICE model uses
-    # frzmlt only when it is negative (T_ocean > T_sw_frz) to
-    # compute the melting of sea ice.
-    #
-    # If frzmlt > 0:
-    # In ice_therm_itd.F90 of lines 1000-1022, CIMICE uses positive frzmlt
-    # to compute the amount of newly formed sea ice. 
-    #
-    # So, frzmlt > 0 has to be consistent with my energy gain due to freezing.
-    # I can safely adapt the original "instant response" scheme to Newtonion
-    # relaxation.
-    #
-    # If frzmlt < 0, I guess this melting potential is used by CICE model and
-    # recompute the actual heat that would be taken away by sea ice, and this
-    # amount of energy is then passed to "Fioi_melth". So it looks like I cannot
-    # modify its definition because frzmlt positive and negative do not share
-    # the same concep. frzmlt > 0 represents the actual energy transfer while
-    # frzmlt < 0 represents temperature differences.
-    #
-    # *** This is potentially a CESM design flaw because freezing and
-    # melting can happen at the same time. For example, ocean
-    # surface is above freezing point and the bottom of ocean is
-    # below freezing point. So, a way to imagine this still works is to modify
-    # the convective adjustment scheme:
-    #
-    # If freezing happens somewhere below the ocean surface (top grid), the 
-    # formed sea ice will float upward due to less density. This indirectly
-    # produce turbulence, and hence increase the vertical diffusivity above 
-    # this deep ocean grid.
-    #
-    # Also, I surprisingly find that sensible heat flux between atm and ocn
-    # is not affected by the presence of sea ice. At least I cannot find anything
-    # considering the sea ice when the coupler computes sensible heat flux in
-    # "csm_share/shr/shr_flux_mod.F90" "Faox_sen, Foxx_sen"
-    #
-    # Maybe it is worth asking this question on CESM forum.
-    #
-    #sfc_below_frz_mask_T = co.mtx[:T_sfcmask_T] * (fi.sv[:_TEMP] .<  T_sw_frz)
-    #sfc_above_frz_mask_T = co.mtx[:T_sfcmask_T] * (fi.sv[:_TEMP] .>= T_sw_frz)
-    #T_sfc_below_frz_mask_T = spdiagm(0 => sfc_below_frz_mask_T)
-    #T_sfc_above_frz_mask_T = spdiagm(0 => sfc_above_frz_mask_T)
-    #op_frz   = - T_sfc_below_frz_mask_T * co.mtx[:T_invτ_frz_T]
-    #op_TEMP += op_frz
-    #RHS_TEMP .-= Δt * op_frz * (T_sw_frz * co.mtx[:ones_T])
 
     if cfg["weak_restoring"] == "on"
         op_TEMP   += co.mtx[:T_invτwk_TEMP_T]
@@ -149,9 +101,85 @@ function stepColumn!(
         fi._WKRSTX_ .= 0.0
     end
 
-    # Tackle freeze / melt potential
-    NEWSST = view(tmpfi.sv[:NEWTEMP], 1:1, :, :)
+    # 
+    # Freezing Potential
+    #
+    # Please read:
+    # "CICE: the Los Alamos Sea Ice Model Documentation and Software User’s Manual"
+    # https://csdms.colorado.edu/w/images/CICE_documentation_and_software_user's_manual.pdf
+    #
+    # Section 2.2 "Ocean":
+    #
+    # New sea ice forms when the ocean temperature drops below its freezing temperature, Tf = −µS, where S
+    # is the seawater salinity and µ = 0.054 psu is the ratio of the freezing temperature of brine to its salinity.
+    # The ocean model performs this calculation; if the freezing/melting potential Ffrzmlt is positive, its value
+    # represents a certain amount of frazil ice that has formed in one or more layers of the ocean and floated to the
+    # surface. (The ocean model assumes that the amount of new ice implied by the freezing potential actually
+    # forms.) In general, this ice is added to the thinnest ice category. The new ice is grown in the open water area
+    # of the grid cell to a specified minimum thickness; if the open water area is nearly zero or if there is more
+    # new ice than will fit into the thinnest ice category, then the new ice is spread over the entire cell.
+    # If Ffrzmlt is negative, it is used to heat already existing ice from below. In particular, the sea surface
+    # temperature and salinity are used to compute an oceanic heat flux Fw (|Fw| ≤ |Ffrzmlt|) which is applied at
+    # the bottom of the ice. The portion of the melting potential actually used to melt ice is returned to the coupler
+    # in Fhocn.
+    #
+    # By reading the code of CICE, I know that Q_FRZMLTPOT in my model is
+    # the variable "frzmlt" in CICE.
+    #
+    # If frzmlt < 0:
+    # In ice_therm_vertical.F90 of lines 703-740, CICE model uses
+    # frzmlt only when it is negative (T_ocean > T_sw_frz) to
+    # compute the melting of sea ice.
+    #
+    # If frzmlt > 0:
+    # In ice_therm_itd.F90 of lines 1000-1022, CIMICE uses positive frzmlt
+    # to compute the amount of newly formed sea ice. 
+    #
+    # So, frzmlt > 0 has to be consistent with my energy gain due to freezing.
+    # I can safely adapt the original "instant response" scheme to Newtonion
+    # relaxation.
+    #
+    # If frzmlt < 0, I guess this melting potential is used by CICE model and
+    # recompute the actual heat that would be taken away by sea ice, and this
+    # amount of energy is then passed to "Fioi_melth". So it looks like I cannot
+    # modify its definition because frzmlt positive and negative do not share
+    # the same concep. frzmlt > 0 represents the actual energy transfer while
+    # frzmlt < 0 represents temperature differences.
+    #
+    # *** This is potentially a CESM design flaw because freezing and
+    # melting can happen at the same time. For example, ocean
+    # surface is above freezing point and the bottom of ocean is
+    # below freezing point. So, a way to imagine this still works is to modify
+    # the convective adjustment scheme:
+    #
+    # If freezing happens somewhere below the ocean surface (top grid), the 
+    # formed sea ice will float upward due to less density. This indirectly
+    # produce turbulence, and hence increase the vertical diffusivity above 
+    # this deep ocean grid.
+    #
+    # Also, I surprisingly find that sensible heat flux between atm and ocn
+    # is not affected by the presence of sea ice. At least I cannot find anything
+    # considering the sea ice when the coupler computes sensible heat flux in
+    # "csm_share/shr/shr_flux_mod.F90" "Faox_sen, Foxx_sen"
+    #
+    # Maybe it is worth asking this question on CESM forum.
+    #
+    #sfc_below_frz_mask_T = co.mtx[:T_sfcmask_T] * (fi.sv[:_TEMP] .<  T_sw_frz)
+    #sfc_above_frz_mask_T = co.mtx[:T_sfcmask_T] * (fi.sv[:_TEMP] .>= T_sw_frz)
+    #T_sfc_below_frz_mask_T = spdiagm(0 => sfc_below_frz_mask_T)
+    #T_sfc_above_frz_mask_T = spdiagm(0 => sfc_above_frz_mask_T)
+    #op_frz   = - T_sfc_below_frz_mask_T * co.mtx[:T_invτ_frz_T]
+    #op_TEMP += op_frz
+    #RHS_TEMP .-= Δt * op_frz * (T_sw_frz * co.mtx[:ones_T])
 
+    # Tackle freeze / melt potential
+    ΔT_sT = getSpace!(wksp, sT, true)
+    NEWSST = reshape(view(tmpfi.sv[:NEWTEMP], 1:1, :, :), :)
+    @. ΔT_sT = NEWSST - T_sw_frz
+    tmp = zeros(Float64, co.amo_slab.bmo.T_pts)
+    tmp[ΔT_sT < 0.0] .= - 1.0 / cfg["τfrz"]
+    T_frz_T = co.amo_slab.T_mask_T * spdiagm(0 => tmp)
+            
     ΔT_sT = NEWSST .-  T_sw_frz
     sfc_below_frz_mask_sT = ΔT_sT .<  0
     sfc_above_frz_mask_sT = ΔT_sT .>= 0

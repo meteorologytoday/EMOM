@@ -1,0 +1,1 @@
+ncap2 -O -v -s '*dz=dz_cT(:, 0, 0); *area=area_sT(0, :, :); *QT_vol[$time,$z_t,$nlat,$nlon]=QFLX_TEMP*dz*area; *vol[$z_t,$nlat,$nlon]=dz*area; sum_vol=vol.ttl(); QT_ttl=QT_vol.ttl($z_t, $nlat, $nlon); QT_ttll=QT_ttl.ttl(); mean_QT=QT_ttll/sum_vol;' frc.nc int_frc.nc
