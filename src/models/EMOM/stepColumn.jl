@@ -200,10 +200,10 @@ function stepColumn!(
     
     Q_FRZHEAT[:]   = ρcp_sw * sfcΔz_sT .* (op_frz * (NEWSST .- T_sw_frz))
   
-    # Capping freezing potential at 5 W/m^2 to avoid instability
+    # Capping freezing potential at 10 W/m^2 to avoid instability
     # in cice model due to advection noise in Ekman flow. However, 
     # this breaks energy conservation.
-    Q_FRZHEAT[Q_FRZHEAT .> 5.0] .= 5.0
+    Q_FRZHEAT[Q_FRZHEAT .> 10.0] .= 10.0
 
     @. tmp_sT = - ρcp_sw * sfcΔz_sT * ΔT_sT / Δt
 
