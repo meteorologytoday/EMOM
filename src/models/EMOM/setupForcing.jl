@@ -160,17 +160,21 @@ function setupForcing!(
         fi.sv[:WVEL][k+1, :, :] .= fi.sv[:WVEL][k, :, :] + DIVvol_T[k, :, :] * gd.Δz_T[k, 1, 1]
     end
 
-    CFL_pass = true
+    CFL_break = 0
+    violate_w_max = 0.0
+    violate_w_min = 0.0
     for (i, w) in enumerate(fi._w)
         if w > w_max
-            CFL_pass = false
+            CFL_break += 1
             fi._w[i] = w_max
+            violate_w_max = max(violate_w_max, w)
         elseif w < - w_max
-            CFL_pass = false
+            CFL_break += 1
             fi._w[i] = - w_max
+            violate_w_min = min(violate_w_min, w)
         end
     end
-    if ! CFL_pass
-        println("CFL condition breaks. Arbitrarily cap w value.")
+    if CFL_break != 0
+        println("CFL condition breaks in $(CFL_break) grid points. Arbitrarily cap w = ±$(w_max). Violated w (min, max) = $(violate_w_min, violate_w_max)")
     end
 end
