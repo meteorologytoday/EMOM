@@ -519,6 +519,7 @@ module ENGINE_EMOM
         end
 
         if ! is_master
+            EMOM.updateBuoyancy!(MD.mb)
             EMOM.stepColumn!(MD.mb, Δt_float)
             EMOM.checkBudget!(MD.mb, Δt_float; stage=:AFTER_STEPPING)
 
