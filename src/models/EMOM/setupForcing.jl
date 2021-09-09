@@ -175,6 +175,6 @@ function setupForcing!(
         end
     end
     if CFL_break != 0
-        println("CFL condition breaks in $(CFL_break) grid points. Arbitrarily cap w = ±$(w_max). Violated w (min, max) = $(violate_w_min, violate_w_max)")
+        println("CFL condition breaks in $(CFL_break) grid points. Arbitrarily cap w = ±$(w_max). Violated w (min, max) = ($(violate_w_min), $(violate_w_max))")
     end
 end
