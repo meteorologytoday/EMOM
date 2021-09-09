@@ -4,7 +4,7 @@ enable_archive = true
 monthly_record = ["{ESSENTIAL}"]
 rpointer_file = "rpointer.iom"
 timetype = "DateTimeNoLeap"
-daily_record = []
+daily_record = ["{ESSENTIAL}"]
 
 [DRIVER]
 archive_root = "/billevans/projects/paper2021/IOM/test/test04_restartability/project/Sandbox/archive"
@@ -30,7 +30,7 @@ cdata_beg_time = "0001-01-01 00:00:00"
 "τwk_SALT" = 3.1536e10
 "τwk_TEMP" = 3.1536e10
 "τ_frz" = 3600.0
-substeps = 8
+substeps = 12
 Qflx_finding = "off"
 
     [MODEL_CORE.cdata_var_file_map]

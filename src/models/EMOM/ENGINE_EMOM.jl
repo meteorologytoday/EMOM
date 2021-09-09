@@ -115,7 +115,7 @@ module ENGINE_EMOM
                     throw(ErrorException(format("Initial file \"{:s}\" does not exist!", snapshot_filename)))
                 end
 
-                master_mb = EMOM.loadSnapshot(snapshot_filename)
+                master_mb = EMOM.loadSnapshot(snapshot_filename; overwrite_config=core_config)
             else
 
                 init_file = misc_config["init_file"]
