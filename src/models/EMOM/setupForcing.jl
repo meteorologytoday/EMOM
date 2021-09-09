@@ -2,6 +2,8 @@ function setupForcing!(
     mb    :: ModelBlock;
     w_max :: Float64,
 )
+    println("w_max = $(w_max)")
+
     ev = mb.ev
     fi = mb.fi
     co = mb.co

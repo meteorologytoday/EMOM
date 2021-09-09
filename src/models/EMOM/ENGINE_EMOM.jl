@@ -489,7 +489,7 @@ module ENGINE_EMOM
             EMOM.updateBuoyancy!(MD.mb)
             EMOM.checkBudget!(MD.mb, Δt_float; stage=:BEFORE_STEPPING)
 
-            Δz_min = minimum(view(MD.ev.gd.Δz_T, :, 1, 1))
+            Δz_min = minimum(view(MD.mb.ev.gd.Δz_T, :, 1, 1))
             EMOM.setupForcing!(MD.mb; w_max = Δz_min / Δt_substep * 0.9)
 
         end
