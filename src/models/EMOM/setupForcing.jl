@@ -11,6 +11,7 @@ function setupForcing!(
     wksp = co.wksp
     gd = ev.gd
     gd_slab = ev.gd_slab
+    amo = co.amo
     amo_slab = co.amo_slab
     
     if cfg["transform_vector_field"]
@@ -154,14 +155,26 @@ function setupForcing!(
     mul!(tmp_T, co.amo.T_DIVy_V, fi._v, 1.0, 1.0)
 
     # compute w
-    DIVvol_T = reshape( tmp_T ) 
+    DIVvol_T = reshape( tmp_T, amo.bmo.T_dim...) 
     
     fi.sv[:WVEL][1, :, :] .= 0.0
     for k=1:gd.Nz
         fi.sv[:WVEL][k+1, :, :] .= fi.sv[:WVEL][k, :, :] + DIVvol_T[k, :, :] * gd.Δz_T[k, 1, 1]
     end
 
-    f._w[f._w .>   w_max] .=   w_max
-    f._w[f._w .< - w_max] .= - w_max
+    CFL_pass = true
+    for i = 1:amo.bmo.W_pts
+        w = f._w[i]
 
+        if w > w_max
+            CFL_pass = false
+            f._w[i] = w_max
+        elseif w < - w_max
+            CFL_pass = false
+            f._w[i] = - w_max
+        end
+    end
+    if ! CFL_pass
+        println("CFL condition breaks. Arbitrarily cap w value.")
+    end
 end
