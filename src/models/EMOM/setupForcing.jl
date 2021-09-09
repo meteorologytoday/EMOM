@@ -2,8 +2,6 @@ function setupForcing!(
     mb    :: ModelBlock;
     w_max :: Float64,
 )
-    println("w_max = $(w_max)")
-
     ev = mb.ev
     fi = mb.fi
     co = mb.co
@@ -163,15 +161,13 @@ function setupForcing!(
     end
 
     CFL_pass = true
-    for i = 1:amo.bmo.W_pts
-        w = f._w[i]
-
+    for (i, w) in enumerate(fi._w)
         if w > w_max
             CFL_pass = false
-            f._w[i] = w_max
+            fi._w[i] = w_max
         elseif w < - w_max
             CFL_pass = false
-            f._w[i] = - w_max
+            fi._w[i] = - w_max
         end
     end
     if ! CFL_pass
