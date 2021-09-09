@@ -1,15 +1,16 @@
 function setupForcing!(
-    mb   :: ModelBlock,
+    mb    :: ModelBlock;
+    w_max :: Float64,
 )
     ev = mb.ev
     fi = mb.fi
     co = mb.co
     cfg = ev.config
-
+    wksp = co.wksp
     gd = ev.gd
     gd_slab = ev.gd_slab
     amo_slab = co.amo_slab
-
+    
     if cfg["transform_vector_field"]
         PolelikeCoordinate.project!(
             gd, 
@@ -95,8 +96,8 @@ function setupForcing!(
             throw(ErrorException("Error: Either or both Mx_east or My_north are not assigned."))
         end
 
-        Mx_sT = getSpace!(co.wksp, :sT; o=0.0)
-        My_sT = getSpace!(co.wksp, :sT; o=0.0)
+        Mx_sT = getSpace!(wksp, :sT; o=0.0)
+        My_sT = getSpace!(wksp, :sT; o=0.0)
 
         PolelikeCoordinate.project!(
             gd, 
@@ -117,30 +118,48 @@ function setupForcing!(
 
 
         for k = 1:cfg["Ekman_layers"]
-            fi.sv[:UVEL][k, :, :] .= Mx_u / H_Ek
-            fi.sv[:VVEL][k, :, :] .= My_v / H_Ek
+            fi.sv[:UVEL][k, :, :] .= Mx_u ./ H_Ek
+            fi.sv[:VVEL][k, :, :] .= My_v ./ H_Ek
         end
  
         for k = (cfg["Ekman_layers"]+1):(cfg["Ekman_layers"]+cfg["Returnflow_layers"])
-            fi.sv[:UVEL][k, :, :] .= - Mx_u / H_Rf
-            fi.sv[:VVEL][k, :, :] .= - My_v / H_Rf
+            fi.sv[:UVEL][k, :, :] .= - Mx_u ./ H_Rf
+            fi.sv[:VVEL][k, :, :] .= - My_v ./ H_Rf
         end
         
-        fi._u[:] = co.amo.U_flowmask_U * fi._u  
-        fi._v[:] = co.amo.V_flowmask_V * fi._v
-        fi._w[:] = co.amo.W_flowmask_W * fi._w
-
     else
         throw(ErrorException("Unknown scheme: " * string(cfg["advection_scheme"])))
 
     end 
+
+
+    _u = getSpace!(wksp, :U, true)
+    _v = getSpace!(wksp, :V, true)
+    _w = getSpace!(wksp, :W, true)
+
+    _u[:] = fi._u
+    _v[:] = fi._v
+    _w[:] = fi._w
+
+    mul!(fi._u, co.amo.U_flowmask_U, _u) 
+    mul!(fi._v, co.amo.V_flowmask_V, _v) 
+    mul!(fi._w, co.amo.W_flowmask_W, _w) 
     
+    tmp_T  = getSpace!(wksp, :T, true)
+    tmp2_T = getSpace!(wksp, :T, true)
+    
+    mul!(tmp_T, co.amo.T_DIVx_U, fi._u)
+    mul!(tmp_T, co.amo.T_DIVy_V, fi._v, 1.0, 1.0)
+
     # compute w
-    DIVvol_T = reshape( co.amo.T_DIVy_V * fi._v + co.amo.T_DIVx_U * fi._u , co.amo.bmo.T_dim...)
+    DIVvol_T = reshape( tmp_T ) 
     
     fi.sv[:WVEL][1, :, :] .= 0.0
     for k=1:gd.Nz
         fi.sv[:WVEL][k+1, :, :] .= fi.sv[:WVEL][k, :, :] + DIVvol_T[k, :, :] * gd.Δz_T[k, 1, 1]
     end
+
+    f._w[f._w .>   w_max] .=   w_max
+    f._w[f._w .< - w_max] .= - w_max
 
 end

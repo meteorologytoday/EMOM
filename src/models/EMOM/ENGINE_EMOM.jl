@@ -471,6 +471,9 @@ module ENGINE_EMOM
         is_master = rank == 0
         
         Δt_float = Float64(Δt.value)
+        
+        substeps = MD.mb.ev.config["substeps"]
+        Δt_substep = Δt_float / substeps
 
         syncField!(
             MD.sync_data[:forcing],
@@ -480,16 +483,18 @@ module ENGINE_EMOM
         )
 
         if ! is_master
-            
+
             EMOM.reset!(MD.mb.co.wksp)
             EMOM.updateDatastream!(MD.mb, MD.clock)
             EMOM.updateBuoyancy!(MD.mb)
             EMOM.checkBudget!(MD.mb, Δt_float; stage=:BEFORE_STEPPING)
-            EMOM.setupForcing!(MD.mb)
+
+            Δz_min = minimum(view(MD.ev.gd.Δz_T, :, 1, 1))
+            EMOM.setupForcing!(MD.mb; w_max = Δz_min / Δt_substep * 0.9)
 
         end
         
-        substeps = MD.mb.ev.config["substeps"]
+
         if ! is_master
             # Because substep in stepAdvection updates _INTMX_
             # based on _INTMX_ itself, we need to copy it first.
@@ -499,7 +504,7 @@ module ENGINE_EMOM
 
             if ! is_master
                 EMOM.reset!(MD.mb.co.wksp)
-                EMOM.stepAdvection!(MD.mb, Δt_float/substeps)
+                EMOM.stepAdvection!(MD.mb, Δt_substep)
                 EMOM.checkBudget!(MD.mb, Δt_float; stage=:SUBSTEP_AFTER_ADV, substeps=substeps)
             end
 
