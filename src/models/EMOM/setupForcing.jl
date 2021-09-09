@@ -59,14 +59,14 @@ function setupForcing!(
 
         elseif cfg["advection_scheme"] in [ "ekman_AGA2020", "ekman_AGA2020_allowU" ]
 
-            if ! haskey(co.mtx, :wϵ2invβ_sT)
-                co.mtx[:wϵ2invβ_sT] = co.mtx[:ϵ_sT].^2 * (gd.R / 2.0 / gd.Ω) .* (cos.(gd_slab.ϕ_T).^2)
+            if ! haskey(co.mtx, :ϵ2invβ_sT)
+                co.mtx[:ϵ2invβ_sT] = co.mtx[:ϵ_sT].^2 * (gd.R / 2.0 / gd.Ω)
             end
 
             f_sT = co.mtx[:f_sT]
             ϵ_sT = co.mtx[:ϵ_sT]
             invD_sT = co.mtx[:invD_sT]
-            wϵ2invβ_sT = co.mtx[:wϵ2invβ_sT]
+            ϵ2invβ_sT = co.mtx[:ϵ2invβ_sT]
 
             # First, I need to get the curl. I choose to
             # do the curl using line integral in ocean model
@@ -85,7 +85,7 @@ function setupForcing!(
             end
 
             Mx_east  = (   ϵ_sT .* fi.TAUX_east + f_sT .* fi.TAUY_north  ) .* invD_sT / ρ_sw * switch
-            My_north = ( - f_sT .* fi.TAUX_east + wϵ2invβ_sT .* curlτ_sT ) .* co.mtx[:invD_sT] / ρ_sw
+            My_north = ( - f_sT .* fi.TAUX_east + ϵ2invβ_sT .* curlτ_sT ) .* co.mtx[:invD_sT] / ρ_sw
 
         else
             throw(ErrorException("Unexpected scenario. Please check."))

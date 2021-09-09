@@ -1,4 +1,29 @@
 using Formatting
+using ArgParse
+using DataStructures, JSON
+
+s = ArgParseSettings()
+@add_arg_table s begin
+
+    "--casename"
+        help = "Casename"
+        arg_type = String
+        required = true
+
+    "--year-rng"
+        help = "How many years?"
+        arg_type = Int64
+        nargs = 2
+        required = true
+
+end
+
+parsed = DataStructures.OrderedDict(parse_args(ARGS, s))
+
+JSON.print(parsed, 4)
+
+
+
 
 function runOneCmd(cmd)
     println(">> ", string(cmd))
@@ -16,15 +41,15 @@ function pleaseRun(cmd)
     end
 end
 
-beg_year =  1
-end_year = 50
+casename = parsed["casename"]
+beg_year = parsed["year-rng"][1]
+end_year = parsed["year-rng"][2]
 
 println("Begin year: $(beg_year)")
 println("End   year: $(end_year)")
 
 
 layers = 33
-casename = "paper2021_CTL_POP2"
 in_dir = "/glade/u/home/tienyiao/scratch-tienyiao/archive/$(casename)/ocn/hist"
 
 coord = "z_t,z_w,z_w_top,z_w_bot,TAREA"
@@ -39,14 +64,14 @@ coord_file="$(out_dir)/coord.nc"
 time_file="$(out_dir)/time.nc"
 
 
-#pleaseRun(`rm -rf $(out_dir)`)
-#pleaseRun(`mkdir -p $(out_dir)`)
-#pleaseRun(`julia make_monthly_time.jl --output $(time_file) --years $( end_year - beg_year + 1 )`)
+pleaseRun(`rm -rf $(out_dir)`)
+pleaseRun(`mkdir -p $(out_dir)`)
+pleaseRun(`julia make_monthly_time.jl --output $(time_file) --years $( end_year - beg_year + 1 )`)
 
 println("Output directory: $(out_dir)")
 
-#pleaseRun(`ncks -O -F -v $coord -d z_t,1,$(layers) -d z_w_top,1,$(layers) -d z_w_bot,1,$(layers) -d z_w,1,$(layers) $ref_file $coord_file`)
-#pleaseRun(`ncap2 -O -s 'z_t=-z_t/100.0;z_w_top=-z_w_top/100.0;z_w_bot=-z_w_bot/100.0;z_w=-z_w/100.0' $coord_file $coord_file`)
+pleaseRun(`ncks -O -F -v $coord -d z_t,1,$(layers) -d z_w_top,1,$(layers) -d z_w_bot,1,$(layers) -d z_w,1,$(layers) $ref_file $coord_file`)
+pleaseRun(`ncap2 -O -s 'z_t=-z_t/100.0;z_w_top=-z_w_top/100.0;z_w_bot=-z_w_bot/100.0;z_w=-z_w/100.0' $coord_file $coord_file`)
 
 output_files = Dict()
 
@@ -55,7 +80,7 @@ for varname in split(varnames, ",")
     output_files[varname] = output_file
 
     println("Concatnating var: $varname to $(output_file)")
-#    pleaseRun(`bash -c "ncrcat -O -F -v $(varname) -d z_t,1,$(layers) -d z_w_top,1,$(layers) -d z_w_bot,1,$(layers) -O $(in_dir)/$(casename).pop.h.{$(year_rng_eval)}-{01..12}.nc $(output_file)"`)
+    pleaseRun(`bash -c "ncrcat -O -F -v $(varname) -d z_t,1,$(layers) -d z_w_top,1,$(layers) -d z_w_bot,1,$(layers) -O $(in_dir)/$(casename).pop.h.{$(year_rng_eval)}-{01..12}.nc $(output_file)"`)
 
 
 end
@@ -66,21 +91,21 @@ for varname in ["VSFLX", "HMXL", "SWFLX", "NSWFLX"]
     output_files[varname] = "$(out_dir)/$(varname).nc"
 end
 
-#pleaseRun(`ncap2 -O -v -s 'VSFLX=SFWF;'      $(output_files["SFWF"]) $(output_files["VSFLX"])`)
-#pleaseRun(`ncap2 -O -v -s 'HMXL=HBLT/100.0;' $(output_files["HBLT"]) $(output_files["HMXL"])`)
-#pleaseRun(`ncap2 -O -v -s 'TAUX=TAUX/10.0;'  $(output_files["TAUX"]) $(output_files["TAUX"])`)
-#pleaseRun(`ncap2 -O -v -s 'TAUY=TAUY/10.0;'  $(output_files["TAUY"]) $(output_files["TAUY"])`)
-#pleaseRun(`ncap2 -O -v -s 'SWFLX=-SHF_QSW;'  $(output_files["SHF_QSW"]) $(output_files["SWFLX"])`)
+pleaseRun(`ncap2 -O -v -s 'VSFLX=SFWF;'      $(output_files["SFWF"]) $(output_files["VSFLX"])`)
+pleaseRun(`ncap2 -O -v -s 'HMXL=HBLT/100.0;' $(output_files["HBLT"]) $(output_files["HMXL"])`)
+pleaseRun(`ncap2 -O -v -s 'TAUX=TAUX/10.0;'  $(output_files["TAUX"]) $(output_files["TAUX"])`)
+pleaseRun(`ncap2 -O -v -s 'TAUY=TAUY/10.0;'  $(output_files["TAUY"]) $(output_files["TAUY"])`)
+pleaseRun(`ncap2 -O -v -s 'SWFLX=-SHF_QSW;'  $(output_files["SHF_QSW"]) $(output_files["SWFLX"])`)
 
-#pleaseRun(`ncks  -O    -v SHF                      $(output_files["SHF"])     $(output_files["NSWFLX"])`)
-#pleaseRun(`ncks     -A -v SHF_QSW                  $(output_files["SHF_QSW"]) $(output_files["NSWFLX"])`)
-#pleaseRun(`ncap2 -O -v -s 'NSWFLX=-(SHF-SHF_QSW);' $(output_files["NSWFLX"])  $(output_files["NSWFLX"])`)
+pleaseRun(`ncks  -O    -v SHF                      $(output_files["SHF"])     $(output_files["NSWFLX"])`)
+pleaseRun(`ncks     -A -v SHF_QSW                  $(output_files["SHF_QSW"]) $(output_files["NSWFLX"])`)
+pleaseRun(`ncap2 -O -v -s 'NSWFLX=-(SHF-SHF_QSW);' $(output_files["NSWFLX"])  $(output_files["NSWFLX"])`)
 
 
 for (_, output_file) in output_files
     println(coord_file, "; ", output_file)
-#    pleaseRun(`ncks -A -v $coord         $coord_file $output_file`)
-#    pleaseRun(`ncks -A -v time,time_bound $time_file $output_file`)
+    pleaseRun(`ncks -A -v $coord         $coord_file $output_file`)
+    pleaseRun(`ncks -A -v time,time_bound $time_file $output_file`)
 end
 
 
@@ -105,7 +130,7 @@ for varname in keys(output_files)
 
 end
 
-rm(tmp_dir, resursive=true, force=true)
+rm(tmp_dir, recursive=true, force=true)
 
 
 
