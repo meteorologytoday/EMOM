@@ -124,7 +124,7 @@ yr_rng_str  = format( "{:04d}-{:04d}", beg_yr, end_yr )
 yr_rng_eval = format( "{:04d}..{:04d}", beg_yr, end_yr )
 
 
-output_file = "$(parsed["data-dir"])/forcing_cyclic.nc"
+output_file = parsed["output-file"]
 
 println("Make time file: tmp_time.nc")
 makeTimeFile("tmp_time.nc", 1)
@@ -147,5 +147,10 @@ pleaseRun(`ncks -A -v SALT,z_w_top,z_w_bot  $(parsed["data-dir"])/monthly/SALT_m
 pleaseRun(`ncks -A -v TEMP                  $(parsed["data-dir"])/monthly/TEMP_monthly.nc $output_file`)
 pleaseRun(`ncks -A -v HMXL                  $(parsed["data-dir"])/monthly/HMXL_monthly.nc $output_file`)
 pleaseRun(`ncks -A -v time                  tmp_time.nc $output_file`)
+
 rm("tmp_time.nc", force=true)
+
+
+
+
 

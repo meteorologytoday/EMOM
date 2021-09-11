@@ -64,7 +64,12 @@ coord_file="$(out_dir)/coord.nc"
 time_file="$(out_dir)/time.nc"
 
 
-pleaseRun(`rm -rf $(out_dir)`)
+if isdir(out_dir)
+    throw(ErrorException("ERROR: directory $(out_dir) already exists."))
+end
+
+#pleaseRun(`rm -rf $(out_dir)`)
+
 pleaseRun(`mkdir -p $(out_dir)`)
 pleaseRun(`julia make_monthly_time.jl --output $(time_file) --years $( end_year - beg_year + 1 )`)
 
@@ -114,6 +119,10 @@ println("Doing monthly mean:")
 out_dir_monthly = "./$(out_dir)/monthly"
 tmp_dir = "$(out_dir_monthly)/tmp"
 mkpath(tmp_dir)
+
+a_year_time_file = "$(tmp_dir)/time.nc"
+
+pleaseRun(`julia make_monthly_time.jl --output $(a_year_time_file) --years 1`)
     
 output_files_monthly = Dict()
 for varname in keys(output_files)
@@ -127,6 +136,7 @@ for varname in keys(output_files)
     end
     
     pleaseRun(`bash -c "ncrcat -O -F $tmp_dir/$(varname)_{01..12}.nc $(output_files_monthly[varname])"`)
+    pleaseRun(`ncks -A -v time,time_bound $a_year_time_file $(output_files_monthly[varname])`)
 
 end
 
