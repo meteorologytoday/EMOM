@@ -222,9 +222,10 @@ open(joinpath(cesm_env["CASEROOT"],"$(parsed["casename"]).ocn.run"), "w") do io
     write(io, """
 #!/bin/bash
 
-
-ml load openmpi
-#julia --project -e 'ENV["JULIA_MPI_BINARY"]="system"; using Pkg; Pkg.build("MPI"; verbose=true)'
+ml av
+ml load openmpi/4.0.3
+ml load julia/1.6.0
+julia --project -e 'ENV["JULIA_MPI_BINARY"]="system"; using Pkg; Pkg.build("MPI"; verbose=true)'
 
 caseroot="$(cesm_env["CASEROOT"])"
 caserun="$(cesm_env["RUNDIR"])"
@@ -237,7 +238,15 @@ LID=\$( date +%y%m%d-%H%M%S )
 mpiexec -n $(parsed["ncpu"]) julia --project \${caseroot}/IOM/src/CESM_driver/main.jl --config-file=\${caseroot}/config.toml &> \${caserun}/\${logfile}
 
 
-mv \${caserun}/\${logfile} \${archive_log_dir}/
+ret_code=\$?
+echo "Return code: \$ret_code"
+
+if [ \$ret_code -eq 0 ]; then 
+    echo "Program ends succefully. Move log file to arcihve."
+    mv "\${caserun}/\${logfile}" "\${archive_log_dir}/"
+else
+    echo "Program ends abnomally. Please check."
+fi
 
 
 """)
