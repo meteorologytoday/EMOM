@@ -227,14 +227,13 @@ ml load openmpi/4.0.3
 ml load julia/1.6.0
 julia --project -e 'ENV["JULIA_MPI_BINARY"]="system"; using Pkg; Pkg.build("MPI"; verbose=true)'
 
+LID=\$( date +%y%m%d-%H%M%S )
+
 caseroot="$(cesm_env["CASEROOT"])"
 caserun="$(cesm_env["RUNDIR"])"
 archive_log_dir="$(cesm_env["DOUT_S_ROOT"])/ocn/logs"
-
 logfile="iom.log.\${LID}"
 
-
-LID=\$( date +%y%m%d-%H%M%S )
 mpiexec -n $(parsed["ncpu"]) julia --project \${caseroot}/IOM/src/CESM_driver/main.jl --config-file=\${caseroot}/config.toml &> \${caserun}/\${logfile}
 
 
