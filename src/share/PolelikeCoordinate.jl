@@ -381,10 +381,8 @@ module PolelikeCoordinate
         direction :: Symbol = :Forward,
     )
 
-        if ovf_x == nothing || ovf_y == nothing
-            ovf_x = similar(ivf_x)
-            ovf_y = similar(ivf_y)
-        end
+        ovf_x = similar(ivf_x)
+        ovf_y = similar(ivf_y)
 
         project!(
             gi,
@@ -394,7 +392,7 @@ module PolelikeCoordinate
             grid=grid,
         )
 
-        return ovf_e, ovf_n
+        return ovf_x, ovf_y
     end
 
 

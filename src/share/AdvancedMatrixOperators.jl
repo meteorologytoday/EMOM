@@ -131,13 +131,12 @@ mutable struct AdvancedMatrixOperators
         U_mask_U = spdiagm(0 => U_mask)
         W_mask_W = spdiagm(0 => W_mask)
 
+        # border in horizontal direction
         T_bordermask_T = spdiagm( 0 => ( 
                (bmo.T_N_T  * mask3_flat)
             .* (bmo.T_S_T  * mask3_flat)
             .* (bmo.T_E_T  * mask3_flat)
             .* (bmo.T_W_T  * mask3_flat)
-            .* (bmo.T_UP_T * mask3_flat)
-            .* (bmo.T_DN_T * mask3_flat)
         ))
 
         # Create flowmask for Ekman flow
@@ -301,8 +300,8 @@ mutable struct AdvancedMatrixOperators
         # CURL operators needs interpolation in practical usage
 
         # used for ∂v/∂x
-        T_CURLx_U =   T_mask_T * T_invΔa_T * (bmo.T_W_U - bmo.T_E_U) * U_Δy_U
-        T_CURLy_V = - T_mask_T * T_invΔa_T * (bmo.T_S_V - bmo.T_N_V) * V_Δx_V
+        T_CURLx_U =   T_bordermask_T * T_invΔa_T * (bmo.T_W_U - bmo.T_E_U) * U_Δy_U
+        T_CURLy_V = - T_bordermask_T * T_invΔa_T * (bmo.T_S_V - bmo.T_N_V) * V_Δx_V
 
         T_CURLx_T = T_CURLx_U * U_interp_T
         T_CURLy_T = T_CURLy_V * V_interp_T
