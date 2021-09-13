@@ -1,0 +1,35 @@
+[MODEL_MISC]
+init_file = "/billevans/projects/paper2021/IOM/formal_project/02_derive_qflx_direct/data/init_ocn.jld2"
+enable_archive = true
+monthly_record = ["{ESSENTIAL}", "QFLX_TEMP", "QFLX_SALT"]
+rpointer_file = "rpointer.iom"
+timetype = "DateTimeNoLeap"
+daily_record = []
+
+[DRIVER]
+archive_root = "/billevans/projects/paper2021/IOM/formal_project/02_derive_qflx_direct/Sandbox_verify/archive"
+casename = "Sandbox_verify"
+caserun = "/billevans/projects/paper2021/IOM/formal_project/02_derive_qflx_direct/Sandbox_verify/caserun"
+caseroot = "/billevans/projects/paper2021/IOM/formal_project/02_derive_qflx_direct/Sandbox_verify/caseroot"
+
+[MODEL_CORE]
+MLD_scheme = "datastream"
+Ekman_layers = 5
+advection_scheme = "ekman_AGA2020"
+z_w = [0.0, 1000.0, 2000.0, 3000.0, 4000.0, 5000.0, 6000.0, 7000.0, 8000.0, 9000.0, 10000.0, 11000.0, 12000.0, 13000.0, 14000.0, 15000.0, 16000.0, 17019.681640625, 18076.12890625, 19182.125, 20349.931640625, 21592.34375, 22923.3125, 24358.453125, 25915.580078125, 27615.259765625, 29481.470703125, 31542.373046875, 33831.2265625, 36387.47265625, 39258.046875, 42498.88671875, 46176.65625, 50370.6875, 55174.91015625, 60699.66796875, 67072.859375, 74439.8046875, 82960.6953125, 92804.3515625, 104136.8203125, 117104.015625, 131809.359375, 148290.078125, 166499.203125, 186301.4375, 207487.390625, 229803.90625, 252990.40625, 276809.84375, 301067.0625, 325613.84375, 350344.875, 375189.1875, 400101.15625, 425052.46875, 450026.0625, 475012.0, 500004.6875, 525000.9375, 549999.0625]
+weak_restoring = "on"
+cdata_align_time = "0001-01-01 00:00:00"
+Qflx = "on"
+topo_file = "/billevans/projects/paper2021/IOM/formal_project/02_derive_qflx_direct/data/Nz_bot.nc"
+cdata_end_time = "0002-01-01 00:00:00"
+domain_file = "/billevans/projects/paper2021/IOM/formal_project/02_derive_qflx_direct/CESM_domains/domain.ocn.gx3v7.120323.nc"
+convective_adjustment = "on"
+Returnflow_layers = 25
+transform_vector_field = true
+cdata_beg_time = "0001-01-01 00:00:00"
+"τwk_SALT" = 3.1536e10
+"τwk_TEMP" = 3.1536e10
+cdata_file = "/billevans/projects/paper2021/IOM/formal_project/02_derive_qflx_direct/data/forcing.g37.nc"
+"τ_frz" = 3600.0
+substeps = 8
+Qflx_finding = "off"
