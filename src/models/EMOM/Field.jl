@@ -18,6 +18,7 @@ mutable struct Field
     
     _WKRSTX_   :: AbstractArray{Float64, 2}
     _VDIFFX_   :: AbstractArray{Float64, 2}
+    _QFLXX_    :: AbstractArray{Float64, 2}
 
 
     HMXL     :: AbstractArray{Float64, 3}
@@ -76,6 +77,7 @@ mutable struct Field
         _WKRSTX_ = zeros(Float64, T_pts, 2)
  
         _VDIFFX_ = zeros(Float64, T_pts, 2)
+        _QFLXX_  = zeros(Float64, T_pts, 2)
 
         HMXL = zeros(Float64, 1, Nx, Ny)
         SWFLX = zeros(Float64, 1, Nx, Ny)
@@ -111,6 +113,7 @@ mutable struct Field
             _ADVX_,
             _WKRSTX_,
             _VDIFFX_,
+            _QFLXX_,
 
             HMXL,
 

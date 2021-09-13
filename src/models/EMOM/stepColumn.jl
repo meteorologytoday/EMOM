@@ -56,8 +56,8 @@ function stepColumn!(
     end
  
     if cfg["Qflx"] == "on"
-        RHS_TEMP .+= Δt * co.amo.T_mask_T * view( tmpfi.datastream["QFLX_TEMP"] , :) / ρcp_sw
-        RHS_SALT .+= Δt * co.amo.T_mask_T * view( tmpfi.datastream["QFLX_SALT"] , :) 
+        RHS_TEMP .+= Δt * co.amo.T_mask_T * view( fi._QFLXX_, :, 1) / ρcp_sw
+        RHS_SALT .+= Δt * co.amo.T_mask_T * view( fi._QFLXX_, :, 2)
     end
 
     F_EBM_TEMP = lu( I - Δt * op_TEMP )

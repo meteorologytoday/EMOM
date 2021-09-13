@@ -92,15 +92,6 @@ mutable struct Core
         D_sT = f_sT.^2 + ϵ_sT.^2
         invD_sT = D_sT.^(-1.0)
 
-        #=
-        println("gd_slab.Ω = ", gd_slab.Ω)
-        println("ϕ_sT(1, 60,75) = ", gd_slab.ϕ_T[1,60,75], "; ", rad2deg(gd_slab.ϕ_T[1,60,75]))
-        println("f computed (1, 60,75) = ", 2*gd_slab.Ω * sin(gd_slab.ϕ_T[1,60,75]))
-        println("f_sT(1, 60,75) = ", f_sT[1,60,75])
-        println("D_sT(1, 60,75) = ", D_sT[1,60,75])
-        println("invD_sT(1, 60,75) = ", invD_sT[1,60,75])
-        =#
-
         mtx = Dict(
             :ones_T          => ones(Float64, amo.bmo.T_pts),
             :T_swflxConv_sT  => - amo.T_mask_T * amo.T_DIVz_W * spdiagm(0 => view(swflx_factor_W, :)) * W_broadcast_sT,

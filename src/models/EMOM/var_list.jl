@@ -51,12 +51,10 @@ function getCompleteVariableList(
                 d["WKRST_TARGET_SALT"] = ( mb.tmpfi.datastream["SALT"], :T , :mask)
             end
 
-            if mb.ev.config["Qflx"] == "on"
-                d["QFLX_TEMP"] = ( mb.tmpfi.datastream["QFLX_TEMP"], :T, :mask )
-                d["QFLX_SALT"] = ( mb.tmpfi.datastream["QFLX_SALT"], :T, :mask )
-            end
-
         end
+        
+        d["QFLX_TEMP"] = ( mb.fi.sv["QFLX_TEMP"], :T, :mask )
+        d["QFLX_SALT"] = ( mb.fi.sv["QFLX_SALT"], :T, :mask )
 
     elseif vartype == :static
 
