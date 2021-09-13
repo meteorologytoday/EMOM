@@ -8,10 +8,16 @@ using MPI
 using CFTime, Dates
 using ArgParse
 using TOML
+using DataStructures
 
 using .PolelikeCoordinate
 using .LogSystem
 using .CyclicData
+
+include("func_checkData.jl")
+include("func_loadData.jl")
+
+
 function parse_commandline()
 
     s = ArgParseSettings()
@@ -23,29 +29,16 @@ function parse_commandline()
             arg_type = String
             required = true
 
-        "--forcing-file"
+        "--hist-dir"
             help = "Annual forcing file. It should contain: TAUX, TAUY, SWFLX, NSWFLX, VSFLX"
             arg_type = String
             required = true
 
-        "--nudging-timescale-day"
-            help = "Nudging timescale used to replace weak restoring timescale when finding Q-flux in days. Default is 5 days."
-            arg_type = Float64
-            default = 5.0
-
-        "--stop-n"
-            help = "Core of the model."
+        "--year-rng"
+            help = "The year range that the user wants to run."
+            nargs = 2
+            required = true
             arg_type = Int64
-
-        
-        "--time-unit"
-            help = "."
-            arg_type = String
-
-        "--verify-mode"
-            help = "If specified then Qflx is applied and nudging timescale is changed to 1000 years."
-            action = :store_true
-
 
     end
 
@@ -62,38 +55,30 @@ is_master = rank == 0
 config = nothing
 if is_master
 
+    year_rng = parsed["year-rng"]
+    cdata_varnames = ["TEMP", "SALT", "SFWF", "TAUX", "TAUY", "SHF", "SHF_QSW"]
+
+    # check forcing files
+    OGCM_files = checkData(
+        parsed["hist-dir"],
+        "paper2021_POP2_CTL",
+        cdata_varnames,
+        year_rng;
+        verbose = true,
+    )
+
+
     config = TOML.parsefile(parsed["config-file"])
 
-
-
-    time_unit = Dict(
-        "year" => Dates.Year,
-        "month" => Dates.Month,
-        "day"   => Dates.Day,
-    )[parsed["time-unit"]]
-
     t_simulation = time_unit(parsed["stop-n"])
-
     Δt = Dates.Second(86400)
     read_restart = false
 
     cfgmc = config["MODEL_CORE"]
     cfgmm = config["MODEL_MISC"]
 
-
     cfgmc["Qflx"] = "off"
-    cfgmc["weak_restoring"] = "on"
-    cfgmc["τwk_TEMP"] = parsed["nudging-timescale-day"] * 86400.0
-    cfgmc["τwk_SALT"] = parsed["nudging-timescale-day"] * 86400.0
-
-    if parsed["verify-mode"]
-        cfgmc["Qflx"] = "on"
-        cfgmc["weak_restoring"] = "on"
-        cfgmc["τwk_TEMP"] = 86400.0 * 365 * 1000.0
-        cfgmc["τwk_SALT"] = 86400.0 * 365 * 1000.0
-    end
-
-
+    cfgmc["weak_restoring"] = "off"
     cfgmc["transform_vector_field"] = false
 
     t_start = DateTimeNoLeap(1, 1, 1, 0, 0, 0)
@@ -105,17 +90,6 @@ coupler_funcs = (
 
     master_before_model_init = function()
 
-        global cdatam = CyclicDataManager(;
-            timetype     = getproperty(CFTime, Symbol(cfgmm["timetype"])),
-            filename     = parsed["forcing-file"],
-            varnames     = ["TAUX", "TAUY", "SWFLX", "NSWFLX", "VSFLX"],
-            beg_time     = DateTimeNoLeap(1, 1, 1),
-            end_time     = DateTimeNoLeap(2, 1, 1),
-            align_time   = DateTimeNoLeap(1, 1, 1),
-        )
-
-        global datastream = makeDataContainer(cdatam)
-
         return read_restart, t_start
     end,
 
@@ -125,6 +99,27 @@ coupler_funcs = (
     end,
 
     master_before_model_run! = function(OMMODULE, OMDATA)
+
+        global cdata_var_file_map
+
+        if flag_new_month
+            cdata_var_file_map = Dict()
+        for varname in cdata_varnames
+            cdata_var_file_map[varname] = 
+        end
+
+
+            global cdatam = CyclicDataManager(;
+                timetype     = getproperty(CFTime, Symbol(cfgmm["timetype"])),
+                filename     = parsed["forcing-file"],
+                varnames     = ["TAUX", "TAUY", "SWFLX", "NSWFLX", "VSFLX"],
+                beg_time     = DateTimeNoLeap(1, 1, 1),
+                end_time     = DateTimeNoLeap(2, 1, 1),
+                align_time   = DateTimeNoLeap(1, 1, 1),
+            )
+
+            global datastream = makeDataContainer(cdatam)
+
 
         global datastream
 
