@@ -39,8 +39,8 @@ function getCompleteVariableList(
 
             "WKRST_TARGET_TEMP"         => nothing,
             "WKRST_TARGET_SALT"         => nothing,
-            "QFLX_TEMP"          => nothing,
-            "QFLX_SALT"          => nothing,
+            "QFLXT"          => nothing,
+            "QFLXS"          => nothing,
  
         )
         
@@ -53,8 +53,8 @@ function getCompleteVariableList(
 
         end
         
-        d["QFLX_TEMP"] = ( mb.fi.sv["QFLX_TEMP"], :T, :mask )
-        d["QFLX_SALT"] = ( mb.fi.sv["QFLX_SALT"], :T, :mask )
+        d["QFLXT"] = ( mb.fi.sv["QFLXT"], :T, :mask )
+        d["QFLXS"] = ( mb.fi.sv["QFLXS"], :T, :mask )
 
     elseif vartype == :static
 

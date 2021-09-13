@@ -147,6 +147,14 @@ function runModel(
 
             cost = @elapsed let
 
+                # This advanced option is needed when deriving
+                # qflux in direct method: Coupler needs to load
+                # the initial data of each day and force master
+                # to sync thermo variables with slaves. 
+                if config["DRIVER"]["compute_QFLX_direct_method"]
+                    OMMODULE.syncM2S!(OMDATA)
+                end
+
                 OMMODULE.run!(
                     OMDATA;
                     Δt = Δt,
@@ -188,6 +196,13 @@ function runModel(
 
             if is_master
                 coupler_funcs.master_after_model_run!(OMMODULE, OMDATA)
+            end
+            
+            if config["DRIVER"]["compute_QFLX_direct_method"]
+                OMMODULE.syncM2S!(OMDATA)
+            end
+
+            if is_master
                 advanceClock!(clock, Δt)
                 dropRungAlarm!(clock)
             end
@@ -261,6 +276,14 @@ function getDriverConfigDescriptor()
                 [String,],
                 "archive_list.txt",
             ),
+
+            ConfigEntry(
+                "compute_QFLX_direct_method",
+                :optional,
+                [Bool,],
+                false,
+            ),
+
    ]
 end
 

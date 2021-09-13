@@ -6,7 +6,8 @@ function loadData(
     varnames :: AbstractArray{String, 1},
     y :: Int64,
     m :: Int64,
-    d :: Int64,
+    d :: Int64;
+    layers :: Union{UnitRange, Colon} = Colon(),
 )
 
     key = format("{:04d}-{:02}", y, m)
@@ -23,7 +24,7 @@ function loadData(
         dim = length(size(v))
 
         if dim == 4
-            rng = (:, :, :, d)
+            rng = (:, :, layers, d)
         elseif dim == 3
             rng = (:, :, d)
         else
@@ -31,6 +32,10 @@ function loadData(
         end
 
         data[varname] = nomissing(ds[varname][rng...], NaN)
+
+        if dim == 4
+            data[varname] = permutedims(data[varname], [3, 1, 2])
+        end
     end
     close(ds)
 

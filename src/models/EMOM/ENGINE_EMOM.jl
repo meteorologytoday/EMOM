@@ -562,7 +562,6 @@ module ENGINE_EMOM
       
     end
 
-
     function createRecordFile!(
         MD     :: EMOM_DATA, 
         group  :: String,
@@ -640,5 +639,16 @@ module ENGINE_EMOM
         
     end
 
-    
+
+    function syncM2S!(
+        MD,
+    )
+        syncField!(
+            MD.sync_data[:thermo_state],
+            MD.jdi,
+            :M2S,
+            :BLOCK,
+        ) 
+
+    end    
 end

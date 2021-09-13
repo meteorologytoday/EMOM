@@ -16,6 +16,7 @@ using .CyclicData
 
 include("func_checkData.jl")
 include("func_loadData.jl")
+include("func_reinitModel.jl")
 
 
 function parse_commandline()
@@ -35,7 +36,7 @@ function parse_commandline()
             required = true
 
         "--year-rng"
-            help = "The year range that the user wants to run."
+            help = "The year range that the user wants to run. The begin date will be set to 12/31 of the year before the first year."
             nargs = 2
             required = true
             arg_type = Int64
@@ -56,7 +57,7 @@ config = nothing
 if is_master
 
     year_rng = parsed["year-rng"]
-    cdata_varnames = ["TEMP", "SALT", "SFWF", "TAUX", "TAUY", "SHF", "SHF_QSW"]
+    cdata_varnames = ["TEMP", "SALT", "SFWF", "TAUX", "TAUY", "SHF", "SHF_QSW", "HMXL"]
 
     # check forcing files
     OGCM_files = checkData(
@@ -69,9 +70,11 @@ if is_master
 
 
     config = TOML.parsefile(parsed["config-file"])
+    config["DRIVER"]["sync_thermo_state_before_stepping"] = true
 
     t_simulation = time_unit(parsed["stop-n"])
-    Δt = Dates.Second(86400)
+    Δt_float = 86400.0
+    Δt = Dates.Second(Δt_float)
     read_restart = false
 
     cfgmc = config["MODEL_CORE"]
@@ -81,9 +84,10 @@ if is_master
     cfgmc["weak_restoring"] = "off"
     cfgmc["transform_vector_field"] = false
 
-    t_start = DateTimeNoLeap(1, 1, 1, 0, 0, 0)
-    t_end = t_start + t_simulation
+    t_start = DateTimeNoLeap(year_rng[1],   1, 1, 0, 0, 0) - Δt
+    t_end   = DateTimeNoLeap(year_rng[2]+1, 1, 1, 0, 0, 0)
 
+    first_run = true
 end
 
 coupler_funcs = (
@@ -100,28 +104,23 @@ coupler_funcs = (
 
     master_before_model_run! = function(OMMODULE, OMDATA)
 
-        global cdata_var_file_map
+        global first_run
 
-        if flag_new_month
-            cdata_var_file_map = Dict()
-        for varname in cdata_varnames
-            cdata_var_file_map[varname] = 
-        end
+        if first_run
 
+            first_run = false
 
-            global cdatam = CyclicDataManager(;
-                timetype     = getproperty(CFTime, Symbol(cfgmm["timetype"])),
-                filename     = parsed["forcing-file"],
-                varnames     = ["TAUX", "TAUY", "SWFLX", "NSWFLX", "VSFLX"],
-                beg_time     = DateTimeNoLeap(1, 1, 1),
-                end_time     = DateTimeNoLeap(2, 1, 1),
-                align_time   = DateTimeNoLeap(1, 1, 1),
+            t = OMDATA.clock.time 
+            data = loadData(
+                OGCM_files,
+                varnames,
+                Dates.year(t),
+                Dates.month(t),
+                Dates.day(t), 
             )
-
-            global datastream = makeDataContainer(cdatam)
-
-
-        global datastream
+            reinitModel!(OMDATA, data) 
+           
+        end
 
         write_restart = OMDATA.clock.time == t_end
         end_phase = OMDATA.clock.time > t_end
@@ -134,6 +133,7 @@ coupler_funcs = (
             OMDATA.x2o["VSFLX"]       .= datastream["VSFLX"]
             OMDATA.x2o["TAUX_east"]   .= datastream["TAUX"]
             OMDATA.x2o["TAUY_north"]  .= datastream["TAUY"]
+            OMDATA.x2o["HMXL"]  .= datastream["TAUY"]
 
             return_values = ( :RUN,  Δt, write_restart )
         else
@@ -144,6 +144,23 @@ coupler_funcs = (
     end,
 
     master_after_model_run! = function(OMMODULE, OMDATA)
+
+        data = loadData(
+            OGCM_files,
+            varnames,
+            Dates.year(t),
+            Dates.month(t),
+            Dates.day(t), 
+        )
+
+        fi = OMDATA.mb.fi
+
+        # compute QFLX
+        @. fi.sv[:QFLXT] = (data["TEMP"] - fi.TEMP) / Δt_float
+        @. fi.sv[:QFLXS] = (data["SALT"] - fi.SALT) / Δt_float
+
+        reinitModel!(OMDATA, data) 
+
     end,
 
     master_finalize! = function(OMMODULE, OMDATA)

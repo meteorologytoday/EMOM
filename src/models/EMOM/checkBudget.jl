@@ -53,8 +53,8 @@ function checkBudget!(
 
         # Qfluxes check
         if cfg["Qflx"] == "on"
-            tmpfi._CHKX_[:, 1] .-= reshape(sum( reshape(co.amo.T_Δz_T * reshape(tmpfi.datastream["QFLX_TEMP"], :, 1), Nz, :), dims=1 ), :) / ρcp_sw
-            tmpfi._CHKX_[:, 2] .-= reshape(sum( reshape(co.amo.T_Δz_T * reshape(tmpfi.datastream["QFLX_SALT"], :, 1), Nz, :), dims=1 ), :)
+            tmpfi._CHKX_[:, 1] .-= reshape(sum( reshape(co.amo.T_Δz_T * view(fi._QFLXX_, :, 1), Nz, :), dims=1 ), :)
+            tmpfi._CHKX_[:, 2] .-= reshape(sum( reshape(co.amo.T_Δz_T * view(fi._QFLXX_, :, 2), Nz, :), dims=1 ), :)
         end
 
 

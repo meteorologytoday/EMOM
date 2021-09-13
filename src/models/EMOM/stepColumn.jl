@@ -56,7 +56,7 @@ function stepColumn!(
     end
  
     if cfg["Qflx"] == "on"
-        RHS_TEMP .+= Δt * co.amo.T_mask_T * view( fi._QFLXX_, :, 1) / ρcp_sw
+        RHS_TEMP .+= Δt * co.amo.T_mask_T * view( fi._QFLXX_, :, 1)
         RHS_SALT .+= Δt * co.amo.T_mask_T * view( fi._QFLXX_, :, 2)
     end
 
