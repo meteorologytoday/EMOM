@@ -1,11 +1,12 @@
 using NCDatasets
+using DataStructures
 
 project_root_dir = @__DIR__
 data_dir = joinpath(project_root_dir, "data")
 domain_dir = joinpath(project_root_dir, "CESM_domains")
 casename = "Sandbox"
-
-config = Dict{Any, Any}(
+Nz = 33
+config = OrderedDict{Any, Any}(
 
     "DRIVER" => Dict(
         "casename"           => casename,
@@ -19,7 +20,7 @@ config = Dict{Any, Any}(
         "init_file"              => joinpath(data_dir, "init_ocn.jld2"),
         "rpointer_file"          => "rpointer.iom",
         "daily_record"           => [],
-        "monthly_record"         => ["{ESSENTIAL}", "QFLX_TEMP", "QFLX_SALT"],
+        "monthly_record"         => ["{ESSENTIAL}", "QFLXT", "QFLXS"],
         "enable_archive"         => true,
     ),
 
@@ -36,7 +37,7 @@ config = Dict{Any, Any}(
         "z_w"                          => nothing,
 
         "substeps"                     => 8,
-        "MLD_scheme"                   => "datastream",
+        "MLD_scheme"                   => "static",
         "Qflx"                         => "on",
         "Qflx_finding"                 => "off",
         "convective_adjustment"        => "on",
@@ -49,17 +50,19 @@ config = Dict{Any, Any}(
 
         "τ_frz"                        => 3600.0,
         "Ekman_layers"                 => 5,
-        "Returnflow_layers"            => 25,
+        "Returnflow_layers"            => 28,
     
         "transform_vector_field"       => true,
     ),
 
 )
 
-Dataset("coord.nc", "r") do ds
+Dataset("data/coord.nc", "r") do ds
 
-    z_w_top = nomissing(ds["z_w_top"][:], NaN)
-    z_w_bot = nomissing(ds["z_w_bot"][:], NaN)
+    println("Using $(Nz) vertical layers...")
+
+    z_w_top = nomissing(ds["z_w_top"][1:Nz], NaN)
+    z_w_bot = nomissing(ds["z_w_bot"][1:Nz], NaN)
 
     z_w      = zeros(Float64, length(z_w_top)+1)
     z_w[1:end-1]   = z_w_top
@@ -71,6 +74,6 @@ end
 
 using TOML
 
-open("config_verify.toml", "w") do io
+open("data/config.toml", "w") do io
     TOML.print(io, config)
 end

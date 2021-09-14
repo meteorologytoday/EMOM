@@ -53,8 +53,8 @@ function getCompleteVariableList(
 
         end
         
-        d["QFLXT"] = ( mb.fi.sv["QFLXT"], :T, :mask )
-        d["QFLXS"] = ( mb.fi.sv["QFLXS"], :T, :mask )
+        d["QFLXT"] = ( mb.fi.sv[:QFLXT], :T, :mask )
+        d["QFLXS"] = ( mb.fi.sv[:QFLXS], :T, :mask )
 
     elseif vartype == :static
 

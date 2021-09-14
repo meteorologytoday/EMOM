@@ -71,7 +71,7 @@ function getConfigDescriptor()
             ConfigEntry(
                 "cdata_var_file_map",
                 :optional,
-                [Dict,],
+                [Dict, Nothing],
                 nothing,
             ),
 

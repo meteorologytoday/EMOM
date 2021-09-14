@@ -72,7 +72,6 @@ if is_master
     config = TOML.parsefile(parsed["config-file"])
     config["DRIVER"]["sync_thermo_state_before_stepping"] = true
 
-    t_simulation = time_unit(parsed["stop-n"])
     Δt_float = 86400.0
     Δt = Dates.Second(Δt_float)
     read_restart = false
@@ -83,6 +82,8 @@ if is_master
     cfgmc["Qflx"] = "off"
     cfgmc["weak_restoring"] = "off"
     cfgmc["transform_vector_field"] = false
+    
+    Nz = length(cfgmc["z_w"])-1
 
     t_start = DateTimeNoLeap(year_rng[1],   1, 1, 0, 0, 0) - Δt
     t_end   = DateTimeNoLeap(year_rng[2]+1, 1, 1, 0, 0, 0)
@@ -113,10 +114,11 @@ coupler_funcs = (
             t = OMDATA.clock.time 
             data = loadData(
                 OGCM_files,
-                varnames,
+                cdata_varnames,
                 Dates.year(t),
                 Dates.month(t),
-                Dates.day(t), 
+                Dates.day(t);
+                layers = 1:Nz, 
             )
             reinitModel!(OMDATA, data) 
            
@@ -126,15 +128,6 @@ coupler_funcs = (
         end_phase = OMDATA.clock.time > t_end
 
         if ! end_phase
-
-            interpData!(cdatam, OMDATA.clock.time, datastream)
-            OMDATA.x2o["SWFLX"]       .= datastream["SWFLX"]
-            OMDATA.x2o["NSWFLX"]      .= datastream["NSWFLX"]
-            OMDATA.x2o["VSFLX"]       .= datastream["VSFLX"]
-            OMDATA.x2o["TAUX_east"]   .= datastream["TAUX"]
-            OMDATA.x2o["TAUY_north"]  .= datastream["TAUY"]
-            OMDATA.x2o["HMXL"]  .= datastream["TAUY"]
-
             return_values = ( :RUN,  Δt, write_restart )
         else
             return_values = ( :END, 0.0, write_restart  )
@@ -147,7 +140,7 @@ coupler_funcs = (
 
         data = loadData(
             OGCM_files,
-            varnames,
+            cdata_varnames,
             Dates.year(t),
             Dates.month(t),
             Dates.day(t), 

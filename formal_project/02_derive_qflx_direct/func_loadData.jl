@@ -2,8 +2,8 @@ using Formatting
 using NCDatasets
 
 function loadData(
-    datafiles :: Dict,
-    varnames :: AbstractArray{String, 1},
+    datafiles :: AbstractDict,
+    varnames :: AbstractArray{String},
     y :: Int64,
     m :: Int64,
     d :: Int64;

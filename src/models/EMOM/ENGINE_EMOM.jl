@@ -120,7 +120,14 @@ module ENGINE_EMOM
 
                 init_file = misc_config["init_file"]
 
-                if init_file != ""
+
+                if init_file == "BLANK_PROFILE"
+
+                    writeLog("`init_file` == '$(init_file)'. Initialize an empty ocean.")
+                    master_ev = EMOM.Env(core_config, verbose=is_master)
+                    master_mb = EMOM.ModelBlock(master_ev; init_core=false)
+
+                elseif init_file != ""
 
                     println("Initial ocean with profile: ", init_file)
                     println("Initial ocean with domain file: ", core_config["domain_file"])
@@ -128,9 +135,7 @@ module ENGINE_EMOM
                 
                 else
 
-                    writeLog("Debugging status. Initialize an empty ocean.")
-                    master_ev = EMOM.Env(core_config, verbose=is_master)
-                    master_mb = EMOM.ModelBlock(master_ev; init_core=false)
+                    throw(ErrorException("`init_file` cannot be empty string"))
 
                 end
             end

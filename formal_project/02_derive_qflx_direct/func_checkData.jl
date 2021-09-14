@@ -12,9 +12,15 @@ function checkData(
 )
 
     expect_filenames = DataStructures.OrderedDict()
+
+    println("I will also check a month prior to the begin year because we are using 12/31 of previous year as initial profile.")
     
-    for y=year_rng[1]:year_rng[2], m=1:12
+    for y=(year_rng[1]-1):year_rng[2], m=1:12
         
+        if y == year_rng[1] - 1 && m != 12
+            continue
+        end
+
         key = format("{:04d}-{:02d}", y, m)
 
 

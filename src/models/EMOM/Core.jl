@@ -120,7 +120,7 @@ mutable struct Core
         else
 
             if cfg["cdata_var_file_map"] == nothing
-                throw(ErrorException("Some config require cyclic data forcing file"))
+                throw(ErrorException("Some config require cyclic data forcing file: $(ev.cdata_varnames)"))
             else
                 function parseDateTime(timetype, str)
                     m = match(r"(?<year>[0-9]+)-(?<month>[0-9]{2})-(?<day>[0-9]{2})\s+(?<hour>[0-9]{2}):(?<min>[0-9]{2}):(?<sec>[0-9]{2})", str)
