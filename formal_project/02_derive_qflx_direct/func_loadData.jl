@@ -10,7 +10,7 @@ function loadData(
     layers :: Union{UnitRange, Colon} = Colon(),
 )
 
-    key = format("{:04d}-{:02}", y, m)
+    key = format("{:04d}-{:02d}", y, m)
 
     full_path = datafiles[key][:fp]
 

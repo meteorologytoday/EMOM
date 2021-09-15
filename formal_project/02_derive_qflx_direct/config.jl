@@ -13,6 +13,7 @@ config = OrderedDict{Any, Any}(
         "caseroot"           => joinpath(project_root_dir, casename, "caseroot"),
         "caserun"            => joinpath(project_root_dir, casename, "caserun"),
         "archive_root"       => joinpath(project_root_dir, casename, "archive"),
+        "compute_QFLX_direct_method" => true,
     ),
 
     "MODEL_MISC" => Dict(
@@ -34,6 +35,7 @@ config = OrderedDict{Any, Any}(
         "cdata_end_time"               => "0002-01-01 00:00:00",
         "cdata_align_time"             => "0001-01-01 00:00:00",
 
+        "ϵ"                            => 5e-6,
         "z_w"                          => nothing,
 
         "substeps"                     => 8,
@@ -43,7 +45,7 @@ config = OrderedDict{Any, Any}(
         "convective_adjustment"        => "on",
         "advection_scheme"             => "ekman_AGA2020",
 
-        "weak_restoring"               => "on",
+        "weak_restoring"               => "off",
         "τwk_TEMP"                     => 86400.0 * 365 * 1000,
         "τwk_SALT"                     => 86400.0 * 365 * 1000,
 
@@ -61,8 +63,8 @@ Dataset("data/coord.nc", "r") do ds
 
     println("Using $(Nz) vertical layers...")
 
-    z_w_top = nomissing(ds["z_w_top"][1:Nz], NaN)
-    z_w_bot = nomissing(ds["z_w_bot"][1:Nz], NaN)
+    z_w_top = - nomissing(ds["z_w_top"][1:Nz], NaN) / 100.0
+    z_w_bot = - nomissing(ds["z_w_bot"][1:Nz], NaN) / 100.0
 
     z_w      = zeros(Float64, length(z_w_top)+1)
     z_w[1:end-1]   = z_w_top

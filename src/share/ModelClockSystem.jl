@@ -12,7 +12,7 @@ module ModelClockSystem
         time      :: AbstractCFDateTime
         priority  :: Integer   # There might be multiple alarms ring at the same time. And if order is important, then the higher the number the higher the priority.
         callbacks :: Array{Function, 1}
-        recurring :: Union{Nothing, Period, CompoundPeriod}
+        recurring :: Union{Nothing, Period, CompoundPeriod, Function}
         done      :: Bool
     end
 
@@ -120,16 +120,21 @@ module ModelClockSystem
             alarm.done = true
 
             if alarm.recurring != nothing
-                    
-                #println("Current time: $(string(alarm.time)) and recur: $(alarm.recurring)")
-                #println("Next alarm: " * string(alarm.time + alarm.recurring))
+                
+                if isa(alarm.recurring, Function)
+                    next_time = alarm.recurring(alarm.time)
+                else
+                    next_time = alarm.time + alarm.recurring
+                end
+                #println("Current time: $(string(alarm.time))")
+                #println("Next alarm: " * string(next_time))
                 addAlarm!(
                     mc,
                     alarm.name,
-                    alarm.time + alarm.recurring,
+                    next_time,
                     alarm.priority;
                     callback = alarm.callbacks,
-                    recurring = alarm.recurring * 1,
+                    recurring = alarm.recurring,
                 )
             end
         end
@@ -153,7 +158,7 @@ module ModelClockSystem
         time :: AbstractCFDateTime,
         priority :: Integer;
         callback :: Union{Array{Function, 1}, Function, Nothing} = nothing,
-        recurring :: Union{ Nothing, Period, CompoundPeriod} = nothing,
+        recurring :: Union{ Nothing, Period, CompoundPeriod, Function } = nothing,
     )
 
         checkType(time, mc.time)

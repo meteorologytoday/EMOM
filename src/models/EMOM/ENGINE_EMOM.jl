@@ -369,6 +369,13 @@ module ENGINE_EMOM
             # run of the first day is not called in CESM
             if misc_config["enable_archive"]
 
+                function begOfNextMonth(t::AbstractCFDateTime)
+                    y = Dates.year(t)
+                    m = Dates.month(t)
+                    return typeof(t)(y, m, 1) + Month(1)
+                end
+
+
                 if "daily_record" in activated_record
                     recorder_day = MD.recorders["daily_record"]
                     addAlarm!(
@@ -379,7 +386,7 @@ module ENGINE_EMOM
                         callback = function (clk, alm)
                             createRecordFile!(MD, "h1.day", recorder_day)
                         end,
-                        recurring = Month(1),
+                        recurring = begOfNextMonth,
                     )
 
 
@@ -420,7 +427,7 @@ module ENGINE_EMOM
                         callback = function (clk, alm)
                             createRecordFile!(MD, "h0.mon", recorder_mon)
                         end,
-                        recurring = Month(1),
+                        recurring = begOfNextMonth,
                     )
                     
                     addAlarm!(
@@ -437,12 +444,12 @@ module ENGINE_EMOM
                     addAlarm!(
                         clock,
                         "[Monthly] Average and output monthly data.",
-                        clock.time + Month(1), # Start from next month
+                        begOfNextMonth(clock.time), # Start from next month
                         3;  # Higher priority so it outputs data before creating next new monthly file
                         callback = function (clk, alm)
                             avgAndOutput!(recorder_mon)
                         end,
-                        recurring = Month(1),
+                        recurring = begOfNextMonth,
                     )
      
                 end

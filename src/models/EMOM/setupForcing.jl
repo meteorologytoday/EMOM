@@ -55,7 +55,8 @@ function setupForcing!(
                 throw(ErrorException("Unexpected scenario. Please check."))
             end
  
-            Mx_east  = (   ϵ_sT .* fi.TAUX_east + f_sT .* fi.TAUY_north  ) .* invD_sT / ρ_sw
+            #Mx_east  = (   ϵ_sT .* fi.TAUX_east + f_sT .* fi.TAUY_north  ) .* invD_sT / ρ_sw
+            Mx_east  = (   f_sT .* fi.TAUY_north  ) .* invD_sT / ρ_sw
             My_north = ( - f_sT .* fi.TAUX_east + ϵ_sT .* fi.TAUY_north * switch  ) .* invD_sT / ρ_sw
 
 

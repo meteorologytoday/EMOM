@@ -9,7 +9,7 @@ using CFTime, Dates
 using ArgParse
 using TOML
 using DataStructures
-
+using NCDatasets
 using .PolelikeCoordinate
 using .LogSystem
 using .CyclicData
@@ -57,7 +57,7 @@ config = nothing
 if is_master
 
     year_rng = parsed["year-rng"]
-    cdata_varnames = ["TEMP", "SALT", "SFWF", "TAUX", "TAUY", "SHF", "SHF_QSW", "HMXL"]
+    cdata_varnames = ["TEMP", "SALT", "SFWF", "TAUX", "TAUY", "SHF", "SHF_QSW", "HMXL", "HBLT"]
 
     # check forcing files
     OGCM_files = checkData(
@@ -86,9 +86,18 @@ if is_master
     Nz = length(cfgmc["z_w"])-1
 
     t_start = DateTimeNoLeap(year_rng[1],   1, 1, 0, 0, 0) - Δt
-    t_end   = DateTimeNoLeap(year_rng[2]+1, 1, 1, 0, 0, 0)
+    #t_end   = DateTimeNoLeap(year_rng[2]+1, 1, 1, 0, 0, 0)
+    t_end   = DateTimeNoLeap(year_rng[1], 2, 1, 0, 0, 0)
 
     first_run = true
+
+    pred_steps = 5
+    pred_cnt = 0
+
+    Dataset("mixedlayer.nc", "r") do ds
+        global h_mean = nomissing(ds["HBLT"][:, :, 1], NaN)
+    end
+
 end
 
 coupler_funcs = (
@@ -100,6 +109,8 @@ coupler_funcs = (
 
     master_after_model_init! = function(OMMODULE, OMDATA)
             # setup forcing
+        println("# Model beg time: $(string(t_start))")
+        println("# Model end time: $(string(t_end))")
 
     end,
 
@@ -110,7 +121,7 @@ coupler_funcs = (
         if first_run
 
             first_run = false
-
+            
             t = OMDATA.clock.time 
             data = loadData(
                 OGCM_files,
@@ -120,8 +131,11 @@ coupler_funcs = (
                 Dates.day(t);
                 layers = 1:Nz, 
             )
-            reinitModel!(OMDATA, data) 
-           
+            reinitModel!(OMDATA, data; forcing=true, thermal=true) 
+ 
+            global pred_reinit = false
+            global pred_cnt = 0
+          
         end
 
         write_restart = OMDATA.clock.time == t_end
@@ -138,22 +152,46 @@ coupler_funcs = (
 
     master_after_model_run! = function(OMMODULE, OMDATA)
 
+        global pred_reinit, pred_cnt
+            
+        fi = OMDATA.mb.fi
+
+        t = OMDATA.clock.time + Δt # remember we need to step once more because clock has not advanced yet 
         data = loadData(
             OGCM_files,
             cdata_varnames,
             Dates.year(t),
             Dates.month(t),
-            Dates.day(t), 
+            Dates.day(t);
+            layers = 1:Nz, 
         )
+#            data["TEMP"] .= 10.0
+#            data["SALT"] .= 35.0
+#            data["SHF"]  .= 100.0
+#            data["SHF_QSW"] .= 0.0
+            data["HBLT"] .= h_mean
 
-        fi = OMDATA.mb.fi
+        pred_cnt += 1
 
-        # compute QFLX
-        @. fi.sv[:QFLXT] = (data["TEMP"] - fi.TEMP) / Δt_float
-        @. fi.sv[:QFLXS] = (data["SALT"] - fi.SALT) / Δt_float
+        if pred_cnt == pred_steps
 
-        reinitModel!(OMDATA, data) 
+            writeLog("Compare to OGCM, compute QFLX and reinitialize")
 
+            # compute QFLX
+            _Δt = Δt_float #* pred_steps
+            @. fi.sv[:QFLXT] = (data["TEMP"] - fi.sv[:TEMP]) / _Δt
+            @. fi.sv[:QFLXS] = (data["SALT"] - fi.sv[:SALT]) / _Δt
+
+#            data["TEMP"] .= 10.0
+#            data["SALT"] .= 35.0
+            reinitModel!(OMDATA, data; forcing=true, thermal=true) 
+             
+            pred_cnt = 0
+        else
+
+            reinitModel!(OMDATA, data; forcing=true, thermal=false) 
+            fi._QFLXX_ .= 0.0
+        end
     end,
 
     master_finalize! = function(OMMODULE, OMDATA)

@@ -160,9 +160,8 @@ function runModel(
                     Δt = Δt,
                     write_restart = write_restart,
                 )
-
                 MPI.Barrier(comm)
-
+                
             end
 
             writeLog("Computation cost: {:.2f} secs.", cost)
@@ -199,6 +198,7 @@ function runModel(
             end
             
             if config["DRIVER"]["compute_QFLX_direct_method"]
+                writeLog("compute_QFLX_direct_method is true")
                 OMMODULE.syncM2S!(OMDATA)
             end
 

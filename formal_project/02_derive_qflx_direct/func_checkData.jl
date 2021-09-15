@@ -15,9 +15,9 @@ function checkData(
 
     println("I will also check a month prior to the begin year because we are using 12/31 of previous year as initial profile.")
     
-    for y=(year_rng[1]-1):year_rng[2], m=1:12
+    for y=(year_rng[1]-1):(year_rng[2]+1), m=1:12
         
-        if y == year_rng[1] - 1 && m != 12
+        if (y == year_rng[1] - 1 && m != 12) || (y == year_rng[2]+1 && m != 1)
             continue
         end
 
@@ -44,9 +44,6 @@ function checkData(
             end
         end
         close(ds)
-
-
-
 
         expect_filenames[key] = Dict(
             :fp => full_path,
