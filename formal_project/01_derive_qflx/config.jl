@@ -19,7 +19,7 @@ config = Dict{Any, Any}(
         "init_file"              => joinpath(data_dir, "init_ocn.jld2"),
         "rpointer_file"          => "rpointer.iom",
         "daily_record"           => [],
-        "monthly_record"         => ["{ESSENTIAL}", "QFLXT", "QFLXS"],
+        "monthly_record"         => ["{ESSENTIAL}", "QFLX_TEMP", "QFLX_SALT"],
         "enable_archive"         => true,
     ),
 

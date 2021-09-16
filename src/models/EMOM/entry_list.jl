@@ -71,7 +71,7 @@ function getConfigDescriptor()
             ConfigEntry(
                 "cdata_var_file_map",
                 :optional,
-                [Dict, Nothing],
+                [Dict,],
                 nothing,
             ),
 
@@ -170,7 +170,7 @@ function getConfigDescriptor()
                 "Ks_V_cva",
                 :optional,
                 [Float64,],
-                1000.0;
+                1.0;
                 desc = "Convective adjustment diffusivity. Will be overwritten if `init_file` is used.",
             ),
 

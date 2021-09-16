@@ -10,28 +10,6 @@ function stepColumn!(
     cfg   = ev.config
     wksp  = co.wksp
 
-    _INTMT_ = view(tmpfi._INTMX_, :, 1)
-    _INTMS_ = view(tmpfi._INTMX_, :, 2)
-
-    # Surface fluxes of temperature
-    rad = ( co.mtx[:T_swflxConv_sT] * view(fi.SWFLX, :) + co.mtx[:T_sfcflxConv_sT] * view(fi.NSWFLX, :)) / ρcp_sw
-    @. _INTMT_ += Δt * rad
-
-    # Surface fluxes of salinity
-    fflx = co.mtx[:T_sfcflxConv_sT] * view(fi.VSFLX, :)
-    @. _INTMS_ += Δt * fflx
-
-    # Surface fluxes and QFLX
-
-    if cfg["Qflx"] == "on"
-
-        qflxt = co.amo.T_mask_T * view( fi._QFLXX_, :, 1)
-        qflxs = co.amo.T_mask_T * view( fi._QFLXX_, :, 2)
-        @. _INTMT_ += Δt * qflxt
-        @. _INTMS_ += Δt * qflxs
-
-    end
-
     # *** Diffusion and restoring ***
     # (b_t+1 - b_t) / dt =  OP1 * b_t+1 + OP2 * (b_t+1 - b_target) + const
     # b_t+1 - b_t =  dt * OP1 * b_t+1 + dt * OP2 * (b_t+1 - b_target) + dt * const
@@ -49,21 +27,21 @@ function stepColumn!(
     # ensure that physical stepping will be steady state
     # too.
     # 
-    
-    @. fi._b = TS2b(fi.sv[:_TEMP], fi.sv[:_SALT])
-    op_vdiff = calOp_vdiff(co.vd, fi._b, fi.HMXL)
-    
+    op_vdiff = calOp_vdiff(co.vd, fi._b, fi.HMXL, fi.sv[:_TEMP])
+
     op_TEMP = op_vdiff
     op_SALT = op_vdiff
   
     # Save this operator for diagnostic purpose 
     mb.tmpfi.op_vdiff = op_vdiff
-    
-    RHS_TEMP = getSpace!(wksp, :T, true; o=0.0)
-    RHS_SALT = getSpace!(wksp, :T, true; o=0.0)
+ 
+    # Surface fluxes of temperature
+    rad = ( co.mtx[:T_swflxConv_sT] * view(fi.SWFLX, :) + co.mtx[:T_sfcflxConv_sT] * view(fi.NSWFLX, :)) / ρcp_sw
+    RHS_TEMP = view(tmpfi._INTMX_, :, 1) + Δt * rad
 
-    RHS_TEMP[:] = _INTMT_
-    RHS_SALT[:] = _INTMS_
+    # Surface fluxes of salinity
+    RHS_SALT = view(tmpfi._INTMX_, :, 2) + Δt * co.mtx[:T_sfcflxConv_sT] * view(fi.VSFLX, :)
+
 
     if cfg["weak_restoring"] == "on"
         op_TEMP   += co.mtx[:T_invτwk_TEMP_T]
@@ -77,6 +55,11 @@ function stepColumn!(
         RHS_SALT .-= Δt * co.amo.T_mask_T * co.mtx[:T_invτwk_SALT_T] * reshape( tmpfi.datastream["SALT"] , :)
     end
  
+    if cfg["Qflx"] == "on"
+        RHS_TEMP .+= Δt * co.amo.T_mask_T * view( tmpfi.datastream["QFLX_TEMP"] , :) / ρcp_sw
+        RHS_SALT .+= Δt * co.amo.T_mask_T * view( tmpfi.datastream["QFLX_SALT"] , :) 
+    end
+
     F_EBM_TEMP = lu( I - Δt * op_TEMP )
     F_EBM_SALT = lu( I - Δt * op_SALT )
     
@@ -85,7 +68,6 @@ function stepColumn!(
     #tmpfi.sv[:NEWTEMP][:] = RHS_TEMP
     #tmpfi.sv[:NEWSALT][:] = RHS_SALT
 
-    # Compute the change of tracers attributed to vertical diffusion
    fi.sv[:VDIFFT][:] = op_vdiff * reshape(tmpfi.sv[:NEWTEMP], :, 1) 
    fi.sv[:VDIFFS][:] = op_vdiff * reshape(tmpfi.sv[:NEWSALT], :, 1) 
 
@@ -109,8 +91,7 @@ function stepColumn!(
         beg_idx += jmp
     end
     =#
-
-    # Compute source and sink of tracers due to weak restoring
+    # Recompute source and sink of tracers due to weak restoring
     if cfg["weak_restoring"] == "on"
         tmpfi._WKRSTΔX_[:, 1] = tmpfi._NEWX_[:, 1] - reshape(tmpfi.datastream["TEMP"], :)
         tmpfi._WKRSTΔX_[:, 2] = tmpfi._NEWX_[:, 2] - reshape(tmpfi.datastream["SALT"], :)
@@ -201,12 +182,10 @@ function stepColumn!(
     Q_FRZHEAT        = reshape(fi.Q_FRZHEAT,       :)
     Q_FRZMLTPOT      = reshape(fi.Q_FRZMLTPOT,     :)
     Q_FRZMLTPOT_NEG  = reshape(fi.Q_FRZMLTPOT_NEG, :)
-    Q_LOST           = reshape(fi.Q_LOST,          :)
 
     Q_FRZHEAT       .= 0.0
     Q_FRZMLTPOT     .= 0.0
     Q_FRZMLTPOT_NEG .= 0.0
-    Q_LOST          .= 0.0
 
     @. ΔT_sT = NEWSST - T_sw_frz
     below_frz_mask_sT = ΔT_sT .< 0.0
@@ -223,14 +202,8 @@ function stepColumn!(
   
     # Capping freezing potential at 10 W/m^2 to avoid instability
     # in cice model due to advection noise in Ekman flow. However, 
-    # this breaks energy conservation so we record this with Q_LOST.
-    for (i, q_frzheat) in enumerate(Q_FRZHEAT)
-        if q_frzheat > 10.0
-            Q_FRZHEAT[i] = 10.0
-            Q_LOST[i] = q_frzheat - 10.0
-        end    
-    end
-    #Q_FRZHEAT[Q_FRZHEAT .> 10.0] .= 10.0
+    # this breaks energy conservation.
+    Q_FRZHEAT[Q_FRZHEAT .> 10.0] .= 10.0
 
     @. tmp_sT = - ρcp_sw * sfcΔz_sT * ΔT_sT / Δt
 

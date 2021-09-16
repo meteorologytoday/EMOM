@@ -29,8 +29,8 @@ JSON.print(parsed, 4)
 
 scheme = parsed["scheme"]
 
-Nϵ = 51
-Nϵp = 51
+Nϵ = 31
+Nϵp = 11
 
 ϵ_vec  = range(0.01, 2.0, length=Nϵ) / 86400.0
 ϵp_vec = range(0.01, 2.0, length=Nϵp) / 86400.0
@@ -38,7 +38,7 @@ Nϵp = 51
 Δϵ  = ϵ_vec[2] - ϵ_vec[1]
 Δϵp  = ϵp_vec[2] - ϵp_vec[1]
 lat_rng = [-20.0, 20.0]
-yr_rng = [1, 10]
+yr_rng = [1, 1]
 σ_w = 10e-5  # 10m/day tolerance
 σ_u = 1e-2  # 1cm/s   tolerance
 N_layer = 5

@@ -75,6 +75,7 @@ function calOp_vdiff(
     vd   :: VerticalDiffusion,
     b    :: AbstractArray, # of grid :T
     HMXL :: AbstractArray, # of grid :sT
+    TEMP :: AbstractArray, # of grid :T
 )
 
     amo = vd.amo
