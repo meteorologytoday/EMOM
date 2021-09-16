@@ -170,7 +170,7 @@ function getConfigDescriptor()
                 "Ks_V_cva",
                 :optional,
                 [Float64,],
-                1.0;
+                1000.0;
                 desc = "Convective adjustment diffusivity. Will be overwritten if `init_file` is used.",
             ),
 

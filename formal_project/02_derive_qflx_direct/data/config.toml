@@ -8,21 +8,20 @@ compute_QFLX_direct_method = true
 [MODEL_MISC]
 init_file = "/billevans/projects/paper2021/IOM/formal_project/02_derive_qflx_direct/data/init_ocn.jld2"
 enable_archive = true
-monthly_record = ["{ESSENTIAL}", "QFLXT"]
+monthly_record = ["{ESSENTIAL}", "QFLXT", "QFLXS"]
 rpointer_file = "rpointer.iom"
 timetype = "DateTimeNoLeap"
-daily_record = ["{ESSENTIAL}","QFLXT"]
+daily_record = []
+#"{ESSENTIAL}", "QFLXT", "QFLXS"]
 
 [MODEL_CORE]
 MLD_scheme = "static"
 "ϵ" = 5.0e-6
 Ekman_layers = 5
-Ks_H=0.0
-Ks_V=0.0
-#advection_scheme = "ekman_AGA2020"
-advection_scheme = "static"
+advection_scheme = "ekman_AGA2020"
+#ekman_AGA2020"
 z_w = [-0.0, -10.0, -20.0, -30.0, -40.0, -50.0, -60.0, -70.0, -80.0, -90.0, -100.0, -110.0, -120.0, -130.0, -140.0, -150.0, -160.0, -170.19681640625, -180.7612890625, -191.82125, -203.49931640625, -215.9234375, -229.233125, -243.58453125, -259.15580078125, -276.15259765625, -294.81470703125, -315.42373046875, -338.312265625, -363.8747265625, -392.58046875, -424.9888671875, -461.7665625, -503.706875]
-weak_restoring = "on"
+weak_restoring = "off"
 cdata_align_time = "0001-01-01 00:00:00"
 Qflx = "on"
 topo_file = "/billevans/projects/paper2021/IOM/formal_project/02_derive_qflx_direct/data/Nz_bot.nc"

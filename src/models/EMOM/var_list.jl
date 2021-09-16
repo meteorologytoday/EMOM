@@ -6,7 +6,7 @@ function getCompleteVariableList(
     d = nothing
 
     if vartype == :dynamic
-        d = Dict(
+        d = OrderedDict(
 
             "TEMP"               => ( mb.fi.sv[:TEMP], :T, :mask ),
             "SALT"               => ( mb.fi.sv[:SALT], :T, :mask ),
@@ -31,6 +31,9 @@ function getCompleteVariableList(
             "VDIFFS"       => ( mb.fi.sv[:VDIFFS], :T, :mask),
             
             "Q_FRZMLTPOT"        => ( mb.fi.Q_FRZMLTPOT,  :sT, :mask ),
+            "Q_FRZMLTPOT_NEG"    => ( mb.fi.Q_FRZMLTPOT_NEG, :sT, :mask ),
+            "Q_FRZHEAT"          => ( mb.fi.Q_FRZHEAT,    :sT, :mask ),
+            "Q_LOST"             => ( mb.fi.Q_LOST,       :sT, :mask ),
             "CHKTEMP"            => ( mb.tmpfi.sv[:CHKTEMP],  :sT, :mask ),
             "CHKSALT"            => ( mb.tmpfi.sv[:CHKSALT],  :sT, :mask ),
 
@@ -133,6 +136,7 @@ function getDynamicVariableList(
                 "VDIFFS",
                 
                 "Q_FRZMLTPOT",
+                "Q_LOST",
                 "CHKTEMP",
                 "CHKSALT",
 
