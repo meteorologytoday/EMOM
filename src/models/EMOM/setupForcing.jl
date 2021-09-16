@@ -91,7 +91,7 @@ function setupForcing!(
 #            My_north = ( - f_sT .* fi.TAUX_east + ϵ2invβ_sT .* curlτ_sT ) .* co.mtx[:invD_sT] / ρ_sw
 
             Mx_east  = (   f_sT .* fi.TAUY_north  ) .* invD_sT / ρ_sw 
-            My_north = ( - f_sT .* fi.TAUX_east + ϵ2invβ_sT .* curlτ_sT ) .* co.mtx[:invD_sT] / ρ_sw
+            My_north = ( - f_sT .* fi.TAUX_east + 0.06 * ϵ2invβ_sT .* curlτ_sT ) .* co.mtx[:invD_sT] / ρ_sw
 
 
         else

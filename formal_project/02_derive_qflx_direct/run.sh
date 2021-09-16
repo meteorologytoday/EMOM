@@ -6,4 +6,4 @@ mpiexec -n $1 julia --project     \
     main.jl                       \
         --config-file data/config.toml \
         --hist-dir    $wdir/hist  \
-        --year-rng    3 3
+        --year-rng    2 19

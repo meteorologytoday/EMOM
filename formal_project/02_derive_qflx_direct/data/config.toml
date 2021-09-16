@@ -16,7 +16,7 @@ daily_record = []
 
 [MODEL_CORE]
 MLD_scheme = "static"
-"ϵ" = 5.0e-6
+"ϵ" = 8.1e-6
 Ekman_layers = 5
 advection_scheme = "ekman_AGA2020"
 #ekman_AGA2020"

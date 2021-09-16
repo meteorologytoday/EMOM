@@ -10,7 +10,7 @@ function reinitModel!(
     SFWF    = cvtsT(data["SFWF"])
     TAUX    = cvtsT(data["TAUX"])
     TAUY    = cvtsT(data["TAUY"])
-    HMXL    = cvtsT(data["HBLT"])
+    HMXL    = cvtsT(data["HMXL"])
 
     if forcing
         @. OMDATA.x2o["SWFLX"]      = - SHF_QSW

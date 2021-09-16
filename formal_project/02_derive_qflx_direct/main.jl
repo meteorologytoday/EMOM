@@ -82,9 +82,9 @@ if is_master
     first_run = true
 
 
-    Dataset("mixedlayer.nc", "r") do ds
-        global h_mean = nomissing(ds["HBLT"][:, :, 1], NaN)
-    end
+#    Dataset("mixedlayer.nc", "r") do ds
+#        global h_mean = nomissing(ds["HBLT"][:, :, 1], NaN)
+#    end
 
     dli = DataLoader.DataLoaderInfo(
         hist_dir = parsed["hist-dir"],
@@ -113,11 +113,11 @@ if is_master
         [10, 20, 31],
     ] 
     =#
-    pred_steps = 1
+    pred_steps = 5
     pred_cnt = 0
 
     t_start = DateTimeNoLeap(year_rng[1], 1, 1, 0, 0, 0) - pred_steps*Δt
-    t_end   = DateTimeNoLeap(year_rng[1], 2, 1, 0, 0, 0)
+    t_end   = DateTimeNoLeap(year_rng[2], 1, 1, 0, 0, 0)
 
 
 end
