@@ -18,7 +18,6 @@ mutable struct Field
     
     _WKRSTX_   :: AbstractArray{Float64, 2}
     _VDIFFX_   :: AbstractArray{Float64, 2}
-    _QFLXX_    :: AbstractArray{Float64, 2}
 
 
     HMXL     :: AbstractArray{Float64, 3}
@@ -36,7 +35,6 @@ mutable struct Field
     Q_FRZHEAT       :: AbstractArray{Float64, 3}
     Q_FRZMLTPOT_NEG :: AbstractArray{Float64, 3}
     Q_FRZMLTPOT     :: AbstractArray{Float64, 3}
-    Q_LOST          :: AbstractArray{Float64, 3}
 
 
     # sugar view
@@ -78,7 +76,6 @@ mutable struct Field
         _WKRSTX_ = zeros(Float64, T_pts, 2)
  
         _VDIFFX_ = zeros(Float64, T_pts, 2)
-        _QFLXX_  = zeros(Float64, T_pts, 2)
 
         HMXL = zeros(Float64, 1, Nx, Ny)
         SWFLX = zeros(Float64, 1, Nx, Ny)
@@ -93,7 +90,6 @@ mutable struct Field
         Q_FRZHEAT       = zeros(Float64, 1, Nx, Ny)
         Q_FRZMLTPOT_NEG = zeros(Float64, 1, Nx, Ny)
         Q_FRZMLTPOT     = zeros(Float64, 1, Nx, Ny)
-        Q_LOST          = zeros(Float64, 1, Nx, Ny)
  
          
         fi = new(
@@ -115,7 +111,6 @@ mutable struct Field
             _ADVX_,
             _WKRSTX_,
             _VDIFFX_,
-            _QFLXX_,
 
             HMXL,
 
@@ -132,7 +127,6 @@ mutable struct Field
             Q_FRZHEAT,
             Q_FRZMLTPOT_NEG,
             Q_FRZMLTPOT,
-            Q_LOST,
 
             nothing,
         )
@@ -153,21 +147,19 @@ function getSugarView(
     Nx, Ny, Nz = ev.Nx, ev.Ny, ev.Nz
 
     sv = Dict(
-        :TEMP   => reshape(view(fi._X_, :, 1), Nz, Nx, Ny),
-        :SALT   => reshape(view(fi._X_, :, 2), Nz, Nx, Ny),
-        :_TEMP  => view(fi._X_, :, 1),
-        :_SALT  => view(fi._X_, :, 2), 
-        :UVEL   => reshape(fi._u, Nz, Nx, Ny),
-        :VVEL   => reshape(fi._v, Nz, Nx, Ny+1),
-        :WVEL   => reshape(fi._w, Nz+1, Nx, Ny),
-        :ADVT   => reshape(view(fi._ADVX_, :, 1), Nz, Nx, Ny),
-        :ADVS   => reshape(view(fi._ADVX_, :, 2), Nz, Nx, Ny),
+        :TEMP => reshape(view(fi._X_, :, 1), Nz, Nx, Ny),
+        :SALT => reshape(view(fi._X_, :, 2), Nz, Nx, Ny),
+        :_TEMP => view(fi._X_, :, 1),
+        :_SALT => view(fi._X_, :, 2), 
+        :UVEL => reshape(fi._u, Nz, Nx, Ny),
+        :VVEL => reshape(fi._v, Nz, Nx, Ny+1),
+        :WVEL => reshape(fi._w, Nz+1, Nx, Ny),
+        :ADVT => reshape(view(fi._ADVX_, :, 1), Nz, Nx, Ny),
+        :ADVS => reshape(view(fi._ADVX_, :, 2), Nz, Nx, Ny),
         :VDIFFT => reshape(view(fi._VDIFFX_, :, 1), Nz, Nx, Ny),
         :VDIFFS => reshape(view(fi._VDIFFX_, :, 2), Nz, Nx, Ny),
         :WKRSTT => reshape(view(fi._WKRSTX_, :, 1), Nz, Nx, Ny),
         :WKRSTS => reshape(view(fi._WKRSTX_, :, 2), Nz, Nx, Ny),
-        :QFLXT  => reshape(view(fi._QFLXX_, :, 1), Nz, Nx, Ny),
-        :QFLXS  => reshape(view(fi._QFLXX_, :, 2), Nz, Nx, Ny),
     )
         
     sv[:SST] = view(sv[:TEMP], 1:1, :, :)

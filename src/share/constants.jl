@@ -16,6 +16,3 @@ const Hf_sw = 3.337e5     # J / kg  latent heat of fusion  copied from models/cs
 const ρcp_sw  = ρ_sw * c_p_sw
 
 const missing_value = 1e20
-
-# just a thought. 
-const FLOAT_TYPE = Float64

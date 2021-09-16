@@ -15,9 +15,19 @@ function updateDatastream!(
             mb.fi.HMXL .= datastream["HMXL"]
         end
 
-        mb.fi._QFLXX_[:, 1] .= reshape(datastream["QFLX_TEMP"], :)
-        mb.fi._QFLXX_[:, 2] .= reshape(datastream["QFLX_SALT"], :)
-
+        # I added this check for it seems to cause
+        # cice model to generate conservation error, or CFL instability
+        # during QFLX finding run (strong weak-restoring cases).
+        #=
+        if haskey(datastream, "TEMP")
+            _TEMP = datastream["TEMP"]
+            for i=1:length(_TEMP)
+                if _TEMP[i] < T_sw_frz
+                    _TEMP[i] = T_sw_frz
+                end
+            end
+        end 
+        =#
     end
 
 end

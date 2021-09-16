@@ -35,7 +35,6 @@ module EMOM
     using SparseArrays
     using NCDatasets
     using JLD2
-    using DataStructures
 
     using ..ModelClockSystem
     using ..ConfigCheck
