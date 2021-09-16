@@ -227,9 +227,18 @@ function getConfigDescriptor()
                 "ϵ",
                 :optional,
                 [Float64,],
-                1.0 / 86400.0;
+                0.7 / 86400.0;
                 desc = "Rayleigh friction of momentum. Will be overwritten if `init_file` is used",
             ),
+
+            ConfigEntry(
+                "γ",
+                :optional,
+                [Float64,],
+                0.07;
+                desc = "Rayleigh friction of momentum. Will be overwritten if `init_file` is used",
+            ),
+
 
             ConfigEntry(
                 "Ekman_layers",
