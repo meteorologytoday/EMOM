@@ -15,8 +15,8 @@ function updateDatastream!(
             mb.fi.HMXL .= datastream["HMXL"]
         end
 
-        mb.fi._QFLXX_[:, 1] .= reshape(datastream["QFLX_TEMP"], :)
-        mb.fi._QFLXX_[:, 2] .= reshape(datastream["QFLX_SALT"], :)
+        mb.fi._QFLXX_[:, 1] .= reshape(datastream["QFLXT"], :)
+        mb.fi._QFLXX_[:, 2] .= reshape(datastream["QFLXS"], :)
 
     end
 
