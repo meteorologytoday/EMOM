@@ -98,12 +98,12 @@ function parse_commandline()
             arg_type = String
             default = ""
 
-        "--forcing-file-QFLX_TEMP"
+        "--forcing-file-QFLXT"
             help = "The forcing file"
             arg_type = String
             default = ""
 
-        "--forcing-file-QFLX_SALT"
+        "--forcing-file-QFLXS"
             help = "The forcing file"
             arg_type = String
             default = ""
@@ -160,7 +160,7 @@ elseif parsed["ocn-model"] == "MLM"
 elseif parsed["ocn-model"] in ["EOM", "EMOM"]
     convective_adjustment = "on"
     Ks_V = 1e-4
-    advection_scheme = "ekman_AGA2020_allowU"
+    advection_scheme = "ekman_AGA2020"
 else
     throw(ErrorException("Error: Unknown ocean model `$(parsed["ocn-model"])`."))
 end
@@ -174,7 +174,7 @@ elseif isnan(parsed["finding-QFLX-timescale"])
     println("QFLX finding mode off. Timescale = 1000 years and 1 year for TEMP and Salt.")
     Qflx = "on"
     τwk_SALT = 86400.0 * 365
-    τwk_TEMP = 86400.0 * 365 * 1000
+    τwk_TEMP = 86400.0 * 365 * 100
 else
     throw(ErrorException("Unknown scenario: got `finding-QFLX-timescale` = $(parsed["finding-QFLX-timescale"])"))
 end
@@ -215,7 +215,7 @@ end
 
 var_file_map = Dict()
 
-for var in ["HMXL", "TEMP", "SALT", "QFLX_TEMP", "QFLX_SALT"]
+for var in ["HMXL", "TEMP", "SALT", "QFLXT", "QFLXS"]
     file = parsed["forcing-file-$(var)"]
     if file != ""
         var_file_map[var] = file
@@ -238,7 +238,7 @@ config = Dict{Any, Any}(
         "init_file"              => parsed["init-file"],
         "rpointer_file"          => "rpointer.iom",
         "daily_record"           => [],
-        "monthly_record"         => ["{ESSENTIAL}", "QFLX_TEMP", "QFLX_SALT"],
+        "monthly_record"         => ["{ESSENTIAL}", "QFLXT", "QFLXS"],
         "enable_archive"         => true,
     ),
 
