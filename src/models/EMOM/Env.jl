@@ -45,8 +45,8 @@ mutable struct Env
         end
 
         if config["Qflx"] == "on"
-            push!(cdata_varnames, "QFLX_TEMP")
-            push!(cdata_varnames, "QFLX_SALT")
+            push!(cdata_varnames, "QFLXT")
+            push!(cdata_varnames, "QFLXS")
         end
         
         if config["weak_restoring"] == "on" || config["Qflx_finding"] == "on"
