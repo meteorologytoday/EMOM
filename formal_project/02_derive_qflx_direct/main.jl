@@ -117,7 +117,7 @@ if is_master
     pred_cnt = 0
 
     t_start = DateTimeNoLeap(year_rng[1], 1, 1, 0, 0, 0) - pred_steps*Δt
-    t_end   = DateTimeNoLeap(year_rng[1], 2, 1, 0, 0, 0)
+    t_end   = DateTimeNoLeap(year_rng[2], 1, 1, 0, 0, 0)
 
 
 end
