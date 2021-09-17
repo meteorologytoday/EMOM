@@ -35,7 +35,6 @@ config = OrderedDict{Any, Any}(
         "cdata_end_time"               => "0002-01-01 00:00:00",
         "cdata_align_time"             => "0001-01-01 00:00:00",
 
-        "ϵ"                            => 5e-6,
         "z_w"                          => nothing,
 
         "substeps"                     => 8,

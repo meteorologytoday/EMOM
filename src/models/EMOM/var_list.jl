@@ -6,7 +6,7 @@ function getCompleteVariableList(
     d = nothing
 
     if vartype == :dynamic
-        d = Dict(
+        d = OrderedDict(
 
             "TEMP"               => ( mb.fi.sv[:TEMP], :T, :mask ),
             "SALT"               => ( mb.fi.sv[:SALT], :T, :mask ),
@@ -31,6 +31,9 @@ function getCompleteVariableList(
             "VDIFFS"       => ( mb.fi.sv[:VDIFFS], :T, :mask),
             
             "Q_FRZMLTPOT"        => ( mb.fi.Q_FRZMLTPOT,  :sT, :mask ),
+            "Q_FRZMLTPOT_NEG"    => ( mb.fi.Q_FRZMLTPOT_NEG, :sT, :mask ),
+            "Q_FRZHEAT"          => ( mb.fi.Q_FRZHEAT,    :sT, :mask ),
+            "Q_LOST"             => ( mb.fi.Q_LOST,       :sT, :mask ),
             "CHKTEMP"            => ( mb.tmpfi.sv[:CHKTEMP],  :sT, :mask ),
             "CHKSALT"            => ( mb.tmpfi.sv[:CHKSALT],  :sT, :mask ),
 
@@ -39,8 +42,8 @@ function getCompleteVariableList(
 
             "WKRST_TARGET_TEMP"         => nothing,
             "WKRST_TARGET_SALT"         => nothing,
-            "QFLX_TEMP"          => nothing,
-            "QFLX_SALT"          => nothing,
+            "QFLXT"          => nothing,
+            "QFLXS"          => nothing,
  
         )
         
@@ -51,12 +54,10 @@ function getCompleteVariableList(
                 d["WKRST_TARGET_SALT"] = ( mb.tmpfi.datastream["SALT"], :T , :mask)
             end
 
-            if mb.ev.config["Qflx"] == "on"
-                d["QFLX_TEMP"] = ( mb.tmpfi.datastream["QFLX_TEMP"], :T, :mask )
-                d["QFLX_SALT"] = ( mb.tmpfi.datastream["QFLX_SALT"], :T, :mask )
-            end
-
         end
+        
+        d["QFLXT"] = ( mb.fi.sv[:QFLXT], :T, :mask )
+        d["QFLXS"] = ( mb.fi.sv[:QFLXS], :T, :mask )
 
     elseif vartype == :static
 
@@ -135,6 +136,7 @@ function getDynamicVariableList(
                 "VDIFFS",
                 
                 "Q_FRZMLTPOT",
+                "Q_LOST",
                 "CHKTEMP",
                 "CHKSALT",
 

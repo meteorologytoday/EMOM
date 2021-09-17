@@ -120,7 +120,14 @@ module ENGINE_EMOM
 
                 init_file = misc_config["init_file"]
 
-                if init_file != ""
+
+                if init_file == "BLANK_PROFILE"
+
+                    writeLog("`init_file` == '$(init_file)'. Initialize an empty ocean.")
+                    master_ev = EMOM.Env(core_config, verbose=is_master)
+                    master_mb = EMOM.ModelBlock(master_ev; init_core=false)
+
+                elseif init_file != ""
 
                     println("Initial ocean with profile: ", init_file)
                     println("Initial ocean with domain file: ", core_config["domain_file"])
@@ -128,9 +135,7 @@ module ENGINE_EMOM
                 
                 else
 
-                    writeLog("Debugging status. Initialize an empty ocean.")
-                    master_ev = EMOM.Env(core_config, verbose=is_master)
-                    master_mb = EMOM.ModelBlock(master_ev; init_core=false)
+                    throw(ErrorException("`init_file` cannot be empty string"))
 
                 end
             end
@@ -224,6 +229,9 @@ module ENGINE_EMOM
                 "WKRSTS",
                 "HMXL",
                 "Q_FRZMLTPOT",
+                "Q_FRZMLTPOT_NEG",
+                "Q_FRZHEAT",
+                "Q_LOST",
             ),
 
             # These states are synced from 
@@ -364,6 +372,13 @@ module ENGINE_EMOM
             # run of the first day is not called in CESM
             if misc_config["enable_archive"]
 
+                function begOfNextMonth(t::AbstractCFDateTime)
+                    y = Dates.year(t)
+                    m = Dates.month(t)
+                    return typeof(t)(y, m, 1) + Month(1)
+                end
+
+
                 if "daily_record" in activated_record
                     recorder_day = MD.recorders["daily_record"]
                     addAlarm!(
@@ -374,7 +389,7 @@ module ENGINE_EMOM
                         callback = function (clk, alm)
                             createRecordFile!(MD, "h1.day", recorder_day)
                         end,
-                        recurring = Month(1),
+                        recurring = begOfNextMonth,
                     )
 
 
@@ -415,7 +430,7 @@ module ENGINE_EMOM
                         callback = function (clk, alm)
                             createRecordFile!(MD, "h0.mon", recorder_mon)
                         end,
-                        recurring = Month(1),
+                        recurring = begOfNextMonth,
                     )
                     
                     addAlarm!(
@@ -432,12 +447,12 @@ module ENGINE_EMOM
                     addAlarm!(
                         clock,
                         "[Monthly] Average and output monthly data.",
-                        clock.time + Month(1), # Start from next month
+                        begOfNextMonth(clock.time), # Start from next month
                         3;  # Higher priority so it outputs data before creating next new monthly file
                         callback = function (clk, alm)
                             avgAndOutput!(recorder_mon)
                         end,
-                        recurring = Month(1),
+                        recurring = begOfNextMonth,
                     )
      
                 end
@@ -486,7 +501,6 @@ module ENGINE_EMOM
 
             EMOM.reset!(MD.mb.co.wksp)
             EMOM.updateDatastream!(MD.mb, MD.clock)
-            EMOM.updateBuoyancy!(MD.mb)
             EMOM.checkBudget!(MD.mb, Δt_float; stage=:BEFORE_STEPPING)
 
             Δz_min = minimum(view(MD.mb.ev.gd.Δz_T, :, 1, 1))
@@ -524,7 +538,7 @@ module ENGINE_EMOM
         end
 
         if ! is_master
-            EMOM.updateBuoyancy!(MD.mb)
+            
             EMOM.stepColumn!(MD.mb, Δt_float)
             EMOM.checkBudget!(MD.mb, Δt_float; stage=:AFTER_STEPPING)
 
@@ -561,7 +575,6 @@ module ENGINE_EMOM
         writeLog("Finalizing the model.") 
       
     end
-
 
     function createRecordFile!(
         MD     :: EMOM_DATA, 
@@ -640,5 +653,16 @@ module ENGINE_EMOM
         
     end
 
-    
+
+    function syncM2S!(
+        MD,
+    )
+        syncField!(
+            MD.sync_data[:thermo_state],
+            MD.jdi,
+            :M2S,
+            :BLOCK,
+        ) 
+
+    end    
 end
