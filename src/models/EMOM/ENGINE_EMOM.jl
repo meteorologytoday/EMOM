@@ -232,6 +232,8 @@ module ENGINE_EMOM
                 "Q_FRZMLTPOT_NEG",
                 "Q_FRZHEAT",
                 "Q_LOST",
+                "QFLXT",
+                "QFLXS",
             ),
 
             # These states are synced from 
