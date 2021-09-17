@@ -11,7 +11,7 @@ println("Loading data...")
 for scheme in schemes
     global d, ϵ, γ
 
-    filename = "eps_gamma_logpost2D_$(scheme).nc"
+    filename = "eps_gam_logpost2D_$(scheme).nc"
     println("Load file $(filename)")
     ds = Dataset(filename, "r")
 
