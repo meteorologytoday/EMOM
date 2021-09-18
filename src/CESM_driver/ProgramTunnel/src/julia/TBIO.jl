@@ -126,8 +126,8 @@ module TBIO
 
 
     function calChecksum(
-        arrs :: AbstractArray{T},
-    ) where T <: AbstractArray{Float64}
+        arrs :: AbstractArray,
+    )
 
         k = 0
         s = UInt64(0)
