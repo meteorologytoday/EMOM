@@ -8,10 +8,10 @@ module TBIO
     function readTB!(
         filename   :: AbstractString,
         txt_nchars :: Integer,
-        arrs       :: AbstractArray{T};
+        arrs       :: AbstractArray;
         endianess  :: Symbol = :LITTLE,   # Small: 0x04030201,  Big: 0x01020304
         trim       :: Bool   = true,
-    ) where T <: AbstractArray{Float64}
+    )
 
         if endianess != :LITTLE && endianess != :BIG
             throw(ErrorException("Unknown symbol: " * string(endianess)))
