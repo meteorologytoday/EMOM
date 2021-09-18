@@ -277,6 +277,14 @@ pleaseRun(`chmod +x $(parsed["casename"]).destroy_tunnel`)
 pleaseRun(`chmod +x $(parsed["casename"]).recover_run_file`)
 
 
+open(joinpath(cesm_env["CASEROOT"],"user_nl_cam", "w") do io
+    write(io, """
+nhtfrq=0
+empty_htapes=.true.
+fincl1='SOLIN','FSUTOA','FLUT','FLUTC','CLDHGH','CLDLOW','CLDMED','CLDTOT','FLDS','FLNS','FSDS','FSDSC','FSNS','FSNSC','FLNT','FSNT','ICEFRAC','LHFLX','LWCF','PHIS','PRECC','PRECL','PRECSC','PRECSL','PS','PSL','QFLX','QREFHT','SHFLX','SNOWHICE','SNOWHLND','SWCF','TAUX','TAUY','TMQ','TREFHT','TS','U10','CLOUD','OMEGA','Q','T','U','V','VT','VU','VQ','Z3','SST'
+""")
+end
+
 pleaseRun(`git clone --branch "dev/cesm-coupling" https://github.com/meteorologytoday/IOM.git`)
 
 cd(joinpath("SourceMods", "src.docn"))
