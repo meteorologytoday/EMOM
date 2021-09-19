@@ -189,6 +189,10 @@ coupler_funcs = (
             #fi._QFLXX_ .= 0.0
         end
 
+
+        # The master ModelBlock keeps sync with slaves and overwrites
+        # the QFLXT and QFLXS computed above. So it is necessary to
+        # use global variables to record and push them back.
         fi.sv[:QFLXT] .= QFLXT
         fi.sv[:QFLXS] .= QFLXS
 
