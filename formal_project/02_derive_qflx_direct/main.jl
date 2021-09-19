@@ -3,25 +3,15 @@ include("IOM/src/share/PolelikeCoordinate.jl")
 include("IOM/src/models/EMOM/ENGINE_EMOM.jl")
 include("IOM/src/driver/driver_working.jl")
 include("IOM/src/share/CyclicData.jl")
-include("DataLoader.jl")
-include("func_reinitModel.jl")
 
 using MPI
 using CFTime, Dates
 using ArgParse
 using TOML
-using DataStructures
-using NCDatasets
+
 using .PolelikeCoordinate
 using .LogSystem
 using .CyclicData
-using .DataLoader
-
-include("func_checkData.jl")
-include("func_loadData.jl")
-include("func_reinitModel.jl")
-
-
 function parse_commandline()
 
     s = ArgParseSettings()
@@ -33,16 +23,28 @@ function parse_commandline()
             arg_type = String
             required = true
 
-        "--hist-dir"
-            help = "Annual forcing file. It should contain: TAUX, TAUY, SWFLX, NSWFLX, VSFLX"
+        "--atm-forcing-dir"
+            help = "Data containing atm forcing file. It should contain: TAUX, TAUY, SWFLX, NSWFLX, VSFLX"
             arg_type = String
             required = true
 
-        "--year-rng"
-            help = "The year range that the user wants to run. The begin date will be set to 12/31 of the year before the first year."
-            nargs = 2
-            required = true
+        "--nudging-timescale-day"
+            help = "Nudging timescale used to replace weak restoring timescale when finding Q-flux in days. Default is 5 days."
+            arg_type = Float64
+            default = 5.0
+
+        "--stop-n"
+            help = "Core of the model."
             arg_type = Int64
+
+        "--time-unit"
+            help = "Unit of `stop-n`."
+            arg_type = String
+
+        "--verify-mode"
+            help = "If specified then Qflx is applied and nudging timescale is changed to 1000 years."
+            action = :store_true
+
 
     end
 
@@ -59,151 +61,98 @@ is_master = rank == 0
 config = nothing
 if is_master
 
-    year_rng = parsed["year-rng"]
-
-
     config = TOML.parsefile(parsed["config-file"])
-    config["DRIVER"]["sync_thermo_state_before_stepping"] = true
 
-    # We will strictly use a day
-    Δt_float = 86400.0
-    Δt = Dates.Second(Δt_float)
+
+
+    time_unit = Dict(
+        "year" => Dates.Year,
+        "month" => Dates.Month,
+        "day"   => Dates.Day,
+    )[parsed["time-unit"]]
+
+    t_simulation = time_unit(parsed["stop-n"])
+
+    Δt = Dates.Second(86400)
     read_restart = false
 
     cfgmc = config["MODEL_CORE"]
     cfgmm = config["MODEL_MISC"]
 
+
     cfgmc["Qflx"] = "off"
-    cfgmc["weak_restoring"] = "off"
-    cfgmc["transform_vector_field"] = false
-    
-    Nz = length(cfgmc["z_w"])-1
+    cfgmc["weak_restoring"] = "on"
+    cfgmc["τwk_TEMP"] = parsed["nudging-timescale-day"] * 86400.0
+    cfgmc["τwk_SALT"] = parsed["nudging-timescale-day"] * 86400.0
 
-    first_run = true
-
-
-    Dataset("mixedlayer.nc", "r") do ds
-        global h_mean = nomissing(ds["HBLT"][:, :, 1], NaN)
+    if parsed["verify-mode"]
+        cfgmc["Qflx"] = "on"
+        cfgmc["weak_restoring"] = "on"
+        cfgmc["τwk_TEMP"] = 86400.0 * 365 * 1000.0
+        cfgmc["τwk_SALT"] = 86400.0 * 365 * 1000.0
     end
 
-    dli = DataLoader.DataLoaderInfo(
-        hist_dir = parsed["hist-dir"],
-        casename = "paper2021_POP2_CTL",
-        state_varnames = ["TEMP", "SALT", "HMXL", "HBLT"],
-        forcing_varnames = ["SFWF", "TAUX", "TAUY", "SHF", "SHF_QSW",],
-        year_rng = year_rng,
-        layers = 1:Nz,
-    )
 
+    cfgmc["transform_vector_field"] = false
 
-    # These mean by the end of indicated dates
-    #=
-    compute_qflx_dates = [
-        [10, 20, 31],
-        [10, 20, 28],
-        [10, 20, 31],
-        [10, 20, 30],
-        [10, 20, 31],
-        [10, 20, 30],
-        [10, 20, 31],
-        [10, 20, 31],
-        [10, 20, 30],
-        [10, 20, 31],
-        [10, 20, 30],
-        [10, 20, 31],
-    ] 
-    =#
-    pred_steps = 5
-    pred_cnt = 0
-
-    t_start = DateTimeNoLeap(year_rng[1], 1, 1, 0, 0, 0) - pred_steps*Δt
-    t_end   = DateTimeNoLeap(year_rng[2], 1, 1, 0, 0, 0)
-
+    t_start = DateTimeNoLeap(1, 1, 1, 0, 0, 0)
+    t_end = t_start + t_simulation
 
 end
 
-
-global data = nothing
 coupler_funcs = (
 
     master_before_model_init = function()
+
+        cdata_var_file_map = Dict()
+
+        for varname in ["TAUX", "TAUY", "SWFLX", "NSWFLX", "VSFLX"]
+            cdata_var_file_map[varname] = "$(parsed["atm-forcing-dir"])/$(varname).nc"
+        end
+
+
+        global cdatam = CyclicDataManager(;
+            timetype     = getproperty(CFTime, Symbol(cfgmm["timetype"])),
+            var_file_map = cdata_var_file_map,
+            beg_time     = DateTimeNoLeap( 1, 1, 1),
+            end_time     = DateTimeNoLeap(51, 1, 1),
+            align_time   = DateTimeNoLeap( 1, 1, 1),
+        )
+
+        global datastream = makeDataContainer(cdatam)
 
         return read_restart, t_start
     end,
 
     master_after_model_init! = function(OMMODULE, OMDATA)
             # setup forcing
-        println("# Model beg time: $(string(t_start))")
-        println("# Model end time: $(string(t_end))")
 
     end,
 
     master_before_model_run! = function(OMMODULE, OMDATA)
 
-        global first_run, data
+        global datastream
 
-        if first_run
+        t_end_reached = OMDATA.clock.time >= t_end
 
-            first_run = false
+        if ! t_end_reached
 
-            # only put the TEMP and SALT of
-            # the day before start date into the model           
-            
-            data_init = DataLoader.loadInitDataAndForcing(dli, OMDATA.clock.time)
+            interpData!(cdatam, OMDATA.clock.time, datastream)
+            OMDATA.x2o["SWFLX"]       .= datastream["SWFLX"]
+            OMDATA.x2o["NSWFLX"]      .= datastream["NSWFLX"]
+            OMDATA.x2o["VSFLX"]       .= datastream["VSFLX"]
+            OMDATA.x2o["TAUX_east"]   .= datastream["TAUX"]
+            OMDATA.x2o["TAUY_north"]  .= datastream["TAUY"]
 
-            reinitModel!(
-                OMDATA,
-                data_init;
-                forcing=true, 
-                thermal=true,
-            ) 
-            
-            global pred_reinit = false
-            global pred_cnt = 0
-        
-        end
-
-        write_restart = OMDATA.clock.time == t_end
-        end_phase = OMDATA.clock.time > t_end
-
-        if ! end_phase
-            return_values = ( :RUN,  Δt, write_restart )
+            return_values = ( :RUN,  Δt, t_end_reached )
         else
-            return_values = ( :END, 0.0, write_restart  )
+            return_values = ( :END, 0.0, t_end_reached  )
         end
 
         return return_values
     end,
 
     master_after_model_run! = function(OMMODULE, OMDATA)
-
-        global pred_reinit, pred_cnt, data
-            
-        fi = OMDATA.mb.fi
-
-        data_next = DataLoader.loadInitDataAndForcing(dli, OMDATA.clock.time + Δt)
-
-        #_, m, d = DataLoader.getYMD(OMDATA.clock.time)
-
-        pred_cnt += 1
-        #if any(d .== compute_qflx_dates[m])
-        if pred_cnt == pred_steps 
-
-            writeLog("# [Warning] Compare to OGCM, compute QFLX and reinitialize")
-
-            # compute QFLX
-            _Δt = Δt_float * pred_steps
-            @. fi.sv[:QFLXT] = (data_next["TEMP"] - fi.sv[:TEMP]) / _Δt
-            @. fi.sv[:QFLXS] = (data_next["SALT"] - fi.sv[:SALT]) / _Δt
-
-            reinitModel!(OMDATA, data_next; forcing=true, thermal=true) 
-            
-            pred_cnt = 0
-        else
-            reinitModel!(OMDATA, data_next; forcing=true, thermal=false) 
-            #fi._QFLXX_ .= 0.0
-        end
-
     end,
 
     master_finalize! = function(OMMODULE, OMDATA)

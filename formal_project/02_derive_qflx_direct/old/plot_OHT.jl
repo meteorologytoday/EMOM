@@ -1,4 +1,4 @@
-include("IOM/tools/MapTransform/MapTransform.jl")
+include("MapTransform/MapTransform.jl")
 
 using JSON
 using .MapTransform
@@ -55,7 +55,7 @@ Dataset(parsed["input-file"], "r") do ds
     global mask_sT = reshape(nomissing(ds["mask_sT"][:], 0), Nx, Ny)
 
     global ADVT   = nomissing(ds["ADVT"][:], 0.0)
-    global WKRSTT = nomissing(ds["WKRSTT"][:], 0.0)
+    global QFLXT = nomissing(ds["QFLXT"][:], 0.0)
 
 end
 
@@ -94,11 +94,11 @@ for t=1:Nt
     OHT_ADV_v = - MapTransform.∫∂a(r, HFC_ADV)
 
     
-    _WKRSTT = view(WKRSTT, :, :, :, t)
-    HFC_WKRST = sum(_WKRSTT .* dz_cT, dims=3)[:, :, 1]  * ρcp # HFC = Heat Flux Convergence
+    _QFLXT = view(QFLXT, :, :, :, t)
+    HFC_QFLX = sum(_QFLXT .* dz_cT, dims=3)[:, :, 1]  * ρcp # HFC = Heat Flux Convergence
     
-    HFC_WKRST_t =   MapTransform.transform(r, HFC_WKRST)
-    OHT_WKRST_v = - MapTransform.∫∂a(r, HFC_WKRST)
+    HFC_QFLX_t =   MapTransform.transform(r, HFC_QFLX)
+    OHT_QFLX_v = - MapTransform.∫∂a(r, HFC_QFLX)
 
 
 #    ax[1].scatter(lat_t, HFC_ADV_t)
@@ -106,12 +106,12 @@ for t=1:Nt
     HFC_ADV_t[isnan.(HFC_ADV_t)] .= 0
 
     ax[1].plot(lat_t, HFC_ADV_t,   "r--", label="ADV")
-    ax[1].plot(lat_t, HFC_WKRST_t, "b--", label="WKRST")
-    ax[1].plot(lat_t, HFC_ADV_t + HFC_WKRST_t, "k-", label="SUM")
+    ax[1].plot(lat_t, HFC_QFLX_t, "b--", label="QFLX")
+    ax[1].plot(lat_t, HFC_ADV_t + HFC_QFLX_t, "k-", label="SUM")
 
     ax[2].plot(lat_v, OHT_ADV_v / 1e15, "r--")
-    ax[2].plot(lat_v, OHT_WKRST_v / 1e15, "b--")
-    ax[2].plot(lat_v, (OHT_ADV_v + OHT_WKRST_v) / 1e15, "k-")
+    ax[2].plot(lat_v, OHT_QFLX_v / 1e15, "b--")
+    ax[2].plot(lat_v, (OHT_ADV_v + OHT_QFLX_v) / 1e15, "k-")
 
 end
 ax[1].legend()
