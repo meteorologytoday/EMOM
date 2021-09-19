@@ -20,8 +20,8 @@ config = OrderedDict{Any, Any}(
         "timetype"               => "DateTimeNoLeap",
         "init_file"              => joinpath(data_dir, "init_ocn.jld2"),
         "rpointer_file"          => "rpointer.iom",
-        "daily_record"           => [],
         "monthly_record"         => ["{ESSENTIAL}", "QFLXT", "QFLXS"],
+        "daily_record"         => ["{ESSENTIAL}", "QFLXT", "QFLXS"],
         "enable_archive"         => true,
     ),
 

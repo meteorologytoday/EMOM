@@ -94,13 +94,16 @@ if is_master
     pred_cnt = 0
 
     t_start = DateTimeNoLeap(year_rng[1], 1, 1, 0, 0, 0) - pred_steps*Δt
-    t_end   = DateTimeNoLeap(year_rng[2], 1, 1, 0, 0, 0)
+#    t_end   = DateTimeNoLeap(year_rng[2], 1, 1, 0, 0, 0)
+    t_end   = DateTimeNoLeap(year_rng[1], 2, 1, 0, 0, 0)
 
 
 end
 
 
 global data = nothing
+global QFLXT = nothing
+global QFLXS = nothing
 coupler_funcs = (
 
     master_before_model_init = function()
@@ -135,6 +138,11 @@ coupler_funcs = (
                 thermal=true,
             ) 
             
+            global QFLXT = copy(data_init["TEMP"])
+            global QFLXS = copy(QFLXT)
+            QFLXT .= 0.0
+            QFLXS .= 0.0
+
             global pred_reinit = false
             global pred_cnt = 0
         
@@ -154,7 +162,7 @@ coupler_funcs = (
 
     master_after_model_run! = function(OMMODULE, OMDATA)
 
-        global pred_reinit, pred_cnt, data
+        global pred_reinit, pred_cnt, data, QFLXT, QFLXS
             
         fi = OMDATA.mb.fi
 
@@ -170,8 +178,8 @@ coupler_funcs = (
 
             # compute QFLX
             _Δt = Δt_float * pred_steps
-            @. fi.sv[:QFLXT] = (data_next["TEMP"] - fi.sv[:TEMP]) / _Δt
-            @. fi.sv[:QFLXS] = (data_next["SALT"] - fi.sv[:SALT]) / _Δt
+            @. QFLXT = (data_next["TEMP"] - fi.sv[:TEMP]) / _Δt
+            @. QFLXS = (data_next["SALT"] - fi.sv[:SALT]) / _Δt
 
             reinitModel!(OMDATA, data_next; forcing=true, thermal=true) 
             
@@ -180,6 +188,10 @@ coupler_funcs = (
             reinitModel!(OMDATA, data_next; forcing=true, thermal=false) 
             #fi._QFLXX_ .= 0.0
         end
+
+        fi.sv[:QFLXT] .= QFLXT
+        fi.sv[:QFLXS] .= QFLXS
+
 
     end,
 

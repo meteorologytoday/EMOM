@@ -11,7 +11,7 @@ enable_archive = true
 monthly_record = ["{ESSENTIAL}", "QFLXT", "QFLXS"]
 rpointer_file = "rpointer.iom"
 timetype = "DateTimeNoLeap"
-daily_record = []
+daily_record = ["QFLXT", "QFLXS"]
 
 [MODEL_CORE]
 MLD_scheme = "static"
