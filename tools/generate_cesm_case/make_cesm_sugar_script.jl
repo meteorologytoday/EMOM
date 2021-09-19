@@ -277,7 +277,7 @@ pleaseRun(`chmod +x $(parsed["casename"]).destroy_tunnel`)
 pleaseRun(`chmod +x $(parsed["casename"]).recover_run_file`)
 
 
-open(joinpath(cesm_env["CASEROOT"],"user_nl_cam", "w") do io
+open(joinpath(cesm_env["CASEROOT"],"user_nl_cam"), "w") do io
     write(io, """
 nhtfrq=0
 empty_htapes=.true.

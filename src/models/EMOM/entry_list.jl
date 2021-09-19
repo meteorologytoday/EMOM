@@ -227,7 +227,7 @@ function getConfigDescriptor()
                 "ϵ",
                 :optional,
                 [Float64,],
-                0.7 / 86400.0;
+                1.4e-5;
                 desc = "Rayleigh friction of momentum. Will be overwritten if `init_file` is used",
             ),
 
