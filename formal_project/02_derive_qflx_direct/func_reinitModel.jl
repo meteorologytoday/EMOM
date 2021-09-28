@@ -3,6 +3,7 @@ function reinitModel!(
     data   :: Dict;
     forcing :: Bool,
     thermal :: Bool,
+    SOM_HMXL :: Union{Nothing, Float64} = nothing,
 )
     cvtsT = (a,) -> reshape(a, 1, size(a)...)
     SHF     = cvtsT(data["SHF"])
@@ -19,7 +20,11 @@ function reinitModel!(
         @. OMDATA.x2o["TAUX_east"]  = TAUX / 10.0
         @. OMDATA.x2o["TAUY_north"] = TAUY / 10.0
 
-        @. OMDATA.mb.fi.HMXL = HMXL / 100.0
+        if SOM_HMXL == nothing
+            @. OMDATA.mb.fi.HMXL = HMXL / 100.0
+        else
+            OMDATA.mb.fi.HMXL .= SOM_HMXL  # Ugly code: we pass in meters
+        end
     end
 
     if thermal

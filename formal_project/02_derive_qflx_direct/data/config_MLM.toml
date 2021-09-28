@@ -1,0 +1,38 @@
+[DRIVER]
+archive_root = "/glade/scratch/tienyiao/archive/QFLX_direct_MLM"
+casename = "QFLX_direct_MLM"
+caserun = "/glade/scratch/tienyiao/QFLX_direct_MLM/run"
+caseroot = "/glade/work/tienyiao/projects/paper2021/24_compute_Qflx_direct"
+compute_QFLX_direct_method = true
+
+[MODEL_MISC]
+init_file = "/glade/work/tienyiao/projects/paper2021/24_compute_Qflx_direct/data/init_ocn.jld2"
+enable_archive = true
+monthly_record = ["{ESSENTIAL}", "QFLXT", "QFLXS"]
+rpointer_file = "rpointer.iom"
+timetype = "DateTimeNoLeap"
+daily_record = []
+
+[MODEL_CORE]
+MLD_scheme = "static"
+"ϵ" = 8.101851851851852e-6
+Ekman_layers = 5
+advection_scheme = "static"
+z_w = [-0.0, -10.0, -20.0, -30.0, -40.0, -50.0, -60.0, -70.0, -80.0, -90.0, -100.0, -110.0, -120.0, -130.0, -140.0, -150.0, -160.0, -170.19681640625, -180.7612890625, -191.82125, -203.49931640625, -215.9234375, -229.233125, -243.58453125, -259.15580078125, -276.15259765625, -294.81470703125, -315.42373046875, -338.312265625, -363.8747265625, -392.58046875, -424.9888671875, -461.7665625, -503.706875]
+weak_restoring = "off"
+cdata_align_time = "0001-01-01 00:00:00"
+Qflx = "on"
+topo_file = "/glade/work/tienyiao/projects/paper2021/24_compute_Qflx_direct/data/Nz_bot.nc"
+cdata_end_time = "0002-01-01 00:00:00"
+domain_file = "/glade/work/tienyiao/projects/paper2021/24_compute_Qflx_direct/CESM_domains/domain.ocn.gx1v6.090206.nc"
+convective_adjustment = "on"
+Returnflow_layers = 28
+transform_vector_field = true
+"γ" = 0.06
+cdata_beg_time = "0001-01-01 00:00:00"
+"τwk_SALT" = 3.1536e10
+"τwk_TEMP" = 3.1536e10
+cdata_file = "/glade/work/tienyiao/projects/paper2021/24_compute_Qflx_direct/data/forcing.g37.nc"
+"τ_frz" = 3600.0
+substeps = 8
+Qflx_finding = "off"

@@ -5,6 +5,7 @@ include("IOM/src/driver/driver_working.jl")
 include("IOM/src/share/CyclicData.jl")
 include("DataLoader.jl")
 include("func_reinitModel.jl")
+include("func_data2SOM.jl")
 
 using MPI
 using CFTime, Dates
@@ -39,6 +40,11 @@ function parse_commandline()
             required = true
             arg_type = Int64
 
+        "--SOM"
+            help = "If set then HMXL will be set to the deepest z_w_bot. Remember to double check Nz_bot file."
+            arg_type = Bool
+            default = false
+
     end
 
     return parse_args(s)
@@ -52,6 +58,7 @@ rank = MPI.Comm_rank(comm)
 is_master = rank == 0
 
 config = nothing
+SOM_HMXL = nothing
 if is_master
 
     year_rng = parsed["year-rng"]
@@ -77,9 +84,14 @@ if is_master
     first_run = true
 
 
-#    Dataset("mixedlayer.nc", "r") do ds
-#        global h_mean = nomissing(ds["HBLT"][:, :, 1], NaN)
-#    end
+    if parsed["SOM"]
+        global SOM_HMXL = minimum(cfgmc["z_w"])
+        cfgmc["Ks_V"] = 0.0
+
+        println("`SOM` also set convective_adjustment = off and Ks_V = 0.0")
+        println("HMXL will always be set to $(SOM_HMXL)")
+
+    end
 
     dli = DataLoader.DataLoaderInfo(
         hist_dir = parsed["hist-dir"],
@@ -94,8 +106,7 @@ if is_master
     pred_cnt = 0
 
     t_start = DateTimeNoLeap(year_rng[1], 1, 1, 0, 0, 0) - pred_steps*Δt
-#    t_end   = DateTimeNoLeap(year_rng[2], 1, 1, 0, 0, 0)
-    t_end   = DateTimeNoLeap(year_rng[1], 2, 1, 0, 0, 0)
+    t_end   = DateTimeNoLeap(year_rng[2], 1, 1, 0, 0, 0)
 
 
 end
@@ -104,6 +115,8 @@ end
 global data = nothing
 global QFLXT = nothing
 global QFLXS = nothing
+global Nz_bot = nothing
+
 coupler_funcs = (
 
     master_before_model_init = function()
@@ -115,12 +128,17 @@ coupler_funcs = (
             # setup forcing
         println("# Model beg time: $(string(t_start))")
         println("# Model end time: $(string(t_end))")
+        
+        if parsed["SOM"]
+            println("SOM specific: Load Nz_bot for later usage.")
+            global Nz_bot = OMDATA.mb.ev.topo.Nz_bot_sT
+        end
 
     end,
 
     master_before_model_run! = function(OMMODULE, OMDATA)
 
-        global first_run, data
+        global first_run, data, SOM_HMXL
 
         if first_run
 
@@ -130,18 +148,25 @@ coupler_funcs = (
             # the day before start date into the model           
             
             data_init = DataLoader.loadInitDataAndForcing(dli, OMDATA.clock.time)
+            if parsed["SOM"]
+                println("SOM would propagate SST and SSS to the whole column")
+                data2SOM!(data_init["TEMP"], Nz_bot)
+                data2SOM!(data_init["SALT"], Nz_bot)
+            end
 
             reinitModel!(
                 OMDATA,
                 data_init;
-                forcing=true, 
-                thermal=true,
+                forcing = true, 
+                thermal = true,
+                SOM_HMXL = SOM_HMXL, 
             ) 
             
             global QFLXT = copy(data_init["TEMP"])
             global QFLXS = copy(QFLXT)
             QFLXT .= 0.0
             QFLXS .= 0.0
+
 
             global pred_reinit = false
             global pred_cnt = 0
@@ -162,11 +187,17 @@ coupler_funcs = (
 
     master_after_model_run! = function(OMMODULE, OMDATA)
 
-        global pred_reinit, pred_cnt, data, QFLXT, QFLXS
+        global pred_reinit, pred_cnt, data
             
         fi = OMDATA.mb.fi
 
         data_next = DataLoader.loadInitDataAndForcing(dli, OMDATA.clock.time + Δt)
+        if parsed["SOM"]
+            println("SOM would propagate SST and SSS to the whole column")
+            data2SOM!(data_next["TEMP"], Nz_bot)
+            data2SOM!(data_next["SALT"], Nz_bot)
+        end
+
 
         #_, m, d = DataLoader.getYMD(OMDATA.clock.time)
 
@@ -178,24 +209,22 @@ coupler_funcs = (
 
             # compute QFLX
             _Δt = Δt_float * pred_steps
+#            @. fi.sv[:QFLXT] = (data_next["TEMP"] - fi.sv[:TEMP]) / _Δt
+#            @. fi.sv[:QFLXS] = (data_next["SALT"] - fi.sv[:SALT]) / _Δt
             @. QFLXT = (data_next["TEMP"] - fi.sv[:TEMP]) / _Δt
             @. QFLXS = (data_next["SALT"] - fi.sv[:SALT]) / _Δt
 
-            reinitModel!(OMDATA, data_next; forcing=true, thermal=true) 
+
+            reinitModel!(OMDATA, data_next; forcing=true, thermal=true, SOM_HMXL=SOM_HMXL) 
             
             pred_cnt = 0
         else
-            reinitModel!(OMDATA, data_next; forcing=true, thermal=false) 
+            reinitModel!(OMDATA, data_next; forcing=true, thermal=false, SOM_HMXL=SOM_HMXL)
             #fi._QFLXX_ .= 0.0
         end
 
-
-        # The master ModelBlock keeps sync with slaves and overwrites
-        # the QFLXT and QFLXS computed above. So it is necessary to
-        # use global variables to record and push them back.
         fi.sv[:QFLXT] .= QFLXT
         fi.sv[:QFLXS] .= QFLXS
-
 
     end,
 

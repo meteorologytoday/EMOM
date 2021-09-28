@@ -1,3 +1,4 @@
+using DataStructures
 using NCDatasets
 using Formatting
 using ArgParse, JSON
@@ -36,9 +37,9 @@ JSON.print(parsed, 4)
 
 
 Dataset(parsed["ref-file"], "r") do ds
-    global ref_var  = permutedims(nomissing(ds[parsed["ref-var"]][:, :, 1:Nz, 1],  NaN), [3, 1, 2])
+    global ref_var  = permutedims(nomissing(ds[parsed["ref-var"]][:, :, :, 1],  NaN), [3, 1, 2])
     
-    global Nz, Nx, Ny = size(VAR)
+    global Nz, Nx, Ny = size(ref_var)
 
     if parsed["Nz-max"] != -1
 
