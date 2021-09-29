@@ -244,6 +244,13 @@ module ENGINE_EMOM
                 "SALT",
             ),
 
+            :qflx_direct   => (
+                "TEMP",
+                "SALT",
+                "HMXL",
+            ),
+
+
 
             # These states are syned from
             # slave to master and master to slabe
@@ -660,7 +667,7 @@ module ENGINE_EMOM
         MD,
     )
         syncField!(
-            MD.sync_data[:thermo_state],
+            MD.sync_data[:qflx_direct],
             MD.jdi,
             :M2S,
             :BLOCK,

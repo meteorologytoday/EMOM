@@ -1,3 +1,4 @@
+using Statistics: mean
 function stepColumn!(
     mb :: ModelBlock,
     Δt :: Float64,
@@ -9,6 +10,9 @@ function stepColumn!(
     ev    = mb.ev
     cfg   = ev.config
     wksp  = co.wksp
+
+
+#    println("avg of HMXL: ", mean(fi.HMXL[isfinite.(fi.HMXL)]))
 
     _INTMT_ = view(tmpfi._INTMX_, :, 1)
     _INTMS_ = view(tmpfi._INTMX_, :, 2)
