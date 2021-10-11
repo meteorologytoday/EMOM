@@ -1,4 +1,4 @@
-include("MapTransform/MapTransform.jl")
+include(joinpath(@__DIR__, "MapTransform", "MapTransform.jl"))
 
 using JSON
 using .MapTransform
