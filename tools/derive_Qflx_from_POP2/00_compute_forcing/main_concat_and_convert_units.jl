@@ -53,7 +53,7 @@ layers = 33
 in_dir = "/glade/u/home/tienyiao/scratch-tienyiao/archive/$(casename)/ocn/hist"
 
 coord = "z_t,z_w,z_w_top,z_w_bot,TAREA"
-varnames = "TEMP,SALT,TAUX,TAUY,TMXL,XMXL,SHF,SHF_QSW,SFWF,HBLT"
+varnames = "HMXL,TEMP,SALT,TAUX,TAUY,SHF,SHF_QSW,SFWF"
 year_rng      = format( "{:04d}-{:04d}",  beg_year, end_year )
 year_rng_eval = format( "{:04d}..{:04d}",  beg_year, end_year )
 
@@ -85,8 +85,23 @@ for varname in split(varnames, ",")
     output_files[varname] = output_file
 
     println("Concatnating var: $varname to $(output_file)")
-    pleaseRun(`bash -c "ncrcat -O -F -v $(varname) -d z_t,1,$(layers) -d z_w_top,1,$(layers) -d z_w_bot,1,$(layers) -O $(in_dir)/$(casename).pop.h.{$(year_rng_eval)}-{01..12}.nc $(output_file)"`)
 
+    if varname != "HMXL"
+        pleaseRun(`bash -c "ncrcat -O -F -v $(varname) -d z_t,1,$(layers) -d z_w_top,1,$(layers) -d z_w_bot,1,$(layers) $(in_dir)/$(casename).pop.h.{$(year_rng_eval)}-{01..12}.nc $(output_file)"`)
+    else
+
+        # HMXL was output in daily. So we have to average it to monthly
+
+        mkpath("tmp_HMXL")
+        for y=beg_year:end_year, m=1:12
+            timestr = format("{:04d}-{:02d}", y, m)
+            pleaseRun(`ncra -O -F -v HMXL $(in_dir)/$(casename).pop.h.nday1.$(timestr)-01.nc tmp_HMXL/HMXL_$(timestr).nc`)
+        end
+        pleaseRun(`bash -c "ncrcat -O -F -v HMXL tmp_HMXL/HMXL_{$(year_rng_eval)}-{01..12}.nc $(output_file)"`)
+
+        
+
+    end
 
 end
 
@@ -97,7 +112,7 @@ for varname in ["VSFLX", "HMXL", "SWFLX", "NSWFLX"]
 end
 
 pleaseRun(`ncap2 -O -v -s 'VSFLX=SFWF;'      $(output_files["SFWF"]) $(output_files["VSFLX"])`)
-pleaseRun(`ncap2 -O -v -s 'HMXL=HBLT/100.0;' $(output_files["HBLT"]) $(output_files["HMXL"])`)
+pleaseRun(`ncap2 -O -v -s 'HMXL=HMXL/100.0;' $(output_files["HMXL"]) $(output_files["HMXL"])`)
 pleaseRun(`ncap2 -O -v -s 'TAUX=TAUX/10.0;'  $(output_files["TAUX"]) $(output_files["TAUX"])`)
 pleaseRun(`ncap2 -O -v -s 'TAUY=TAUY/10.0;'  $(output_files["TAUY"]) $(output_files["TAUY"])`)
 pleaseRun(`ncap2 -O -v -s 'SWFLX=-SHF_QSW;'  $(output_files["SHF_QSW"]) $(output_files["SWFLX"])`)

@@ -60,13 +60,6 @@ function parse_commandline()
             nargs = 3
             required = true
 
-
-        "--init-file"
-            help = "The init ocean file."
-            arg_type = String
-            required = true
-
-
         "--ocn-model"
             help = "The name of ocean model. Can be: `SOM`, `MLM`, `EOM` and `EMOM`"
             arg_type = String
@@ -77,44 +70,15 @@ function parse_commandline()
             arg_type = String
             default = "config.toml"
 
-        "--output-path"
-            help = "The output path. Default is the same as RUNDIR in env_run.xml"
-            arg_type = String
-            default = ""
-
         "--finding-QFLX-timescale"
             help = "If this is set to a real number, finding QFLX mode is on. And timescale is in days."
             arg_type = Float64
             default = NaN
 
-
-
-
         "--project-root"
             help = "Project root directory."
             arg_type = String
             default = ""
-
-        "--domain-file"
-            help = "Horizontal domain file."
-            arg_type = String
-            required = true
-
-        "--domain-file"
-            help = "Horizontal domain file."
-            arg_type = String
-            required = true
-
-
-        "--zdomain-file"
-            help = "Vertical domain file containing z_w_top, z_w_bot in meters with z=0 is the surface."
-            arg_type = String
-            required = true
-
-        "--ref-clim-dir"
-            help = "The directory containing reference climate data."
-            arg_type = String
-            required = true
 
         "--ocn-model"
             help = "The name of ocean model. Can be: `SOM`, `MLM`, `EOM` and `EMOM`"
@@ -156,16 +120,10 @@ Qflx = "on"
 
 if parsed["ocn-model"] == "SOM"
     println("You are configuring SOM where topography is set to the mixed-layer thickness. Remember that Nz_bot should be consistent.")
-    convective_adjustment = "off"
-    Ks_V = 0.0
     advection_scheme = "static"
 elseif parsed["ocn-model"] == "MLM"
-    convective_adjustment = "on"
-    Ks_V = 1e-4
     advection_scheme = "static"
 elseif parsed["ocn-model"] == "EMOM"
-    convective_adjustment = "on"
-    Ks_V = 1e-4
     advection_scheme = "ekman_CO2012"
 end
 
@@ -194,7 +152,7 @@ config = Dict{Any, Any}(
         "cdata_var_file_map"           => cdata_var_file_map,
 
         "cdata_beg_time"               => "0001-01-01 00:00:00",
-        "cdata_end_time"               => "0051-01-01 00:00:00",
+        "cdata_end_time"               => "0002-01-01 00:00:00",
         "cdata_align_time"             => "0001-01-01 00:00:00",
 
         "z_w"                          => nothing,
@@ -202,7 +160,7 @@ config = Dict{Any, Any}(
         "substeps"                     => 8,
         "MLD_scheme"                   => "datastream",
         "Qflx"                         => "$(Qflx)",
-        "convective_adjustment"        => "$(convective_adjustment)",
+        "convective_adjustment"        => "on",
         "advection_scheme"             => "$(advection_scheme)",
 
         "weak_restoring"               => "on",

@@ -135,7 +135,7 @@ println("Making mean profile")
 mkpath("tmp")
 for m = 1:12
     m_str = format( "{:02d}", m)
-    pleaseRun(`bash -c "ncra -v WKRSTT,WKRSTS,dz_cT,area_sT -O $(parsed["hist-dir"])/*.h0.*.{$(yr_rng_eval)}-$(m_str).nc tmp/monthly_mean_$(m_str).nc"`)
+    pleaseRun(`bash -c "ncra -v WKRSTT,WKRSTS,dz_cT,lat_sT,mask_sT,area_sT -O $(parsed["hist-dir"])/*.h0.*.{$(yr_rng_eval)}-$(m_str).nc tmp/monthly_mean_$(m_str).nc"`)
 end
 
 println("Output file : $(output_file)")

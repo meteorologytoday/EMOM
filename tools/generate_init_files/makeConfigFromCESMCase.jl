@@ -150,16 +150,10 @@ parsed = parse_commandline()
 JSON.print(parsed,4)
 
 if parsed["ocn-model"] == "SOM"
-    convective_adjustment = "off"
-    Ks_V = 0.0
     advection_scheme = "static"
 elseif parsed["ocn-model"] == "MLM"
-    convective_adjustment = "on"
-    Ks_V = 1e-4
     advection_scheme = "static"
 elseif parsed["ocn-model"] in ["EOM", "EMOM"]
-    convective_adjustment = "on"
-    Ks_V = 1e-4
     advection_scheme = "ekman_CO2012"
 else
     throw(ErrorException("Error: Unknown ocean model `$(parsed["ocn-model"])`."))
@@ -173,7 +167,7 @@ if parsed["finding-QFLX-timescale"] > 0.0
 elseif isnan(parsed["finding-QFLX-timescale"])
     println("QFLX finding mode off. Timescale = 1000 years and 1 year for TEMP and Salt.")
     Qflx = "on"
-    τwk_SALT = 86400.0 * 365
+    τwk_SALT = 86400.0 * 365 * 100
     τwk_TEMP = 86400.0 * 365 * 100
 else
     throw(ErrorException("Unknown scenario: got `finding-QFLX-timescale` = $(parsed["finding-QFLX-timescale"])"))
@@ -258,7 +252,7 @@ config = Dict{Any, Any}(
         "MLD_scheme"                   => "datastream",
         "Qflx"                         => Qflx,
         "Qflx_finding"                 => "off",
-        "convective_adjustment"        => convective_adjustment,
+        "convective_adjustment"        => "on",
         "advection_scheme"             => advection_scheme,
 
         "weak_restoring"               => "on",
@@ -294,7 +288,3 @@ println("Output file: $(output_config)")
 open(output_config, "w") do io
     TOML.print(io, config; sorted=true)
 end
-
-
-
-
