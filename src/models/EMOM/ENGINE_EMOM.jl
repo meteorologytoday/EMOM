@@ -127,6 +127,9 @@ module ENGINE_EMOM
                     master_ev = EMOM.Env(core_config, verbose=is_master)
                     master_mb = EMOM.ModelBlock(master_ev; init_core=false)
 
+                    master_mb.fi.sv[:TEMP] .= rand(size(master_mb.fi.sv[:TEMP])...)
+                    master_mb.fi.sv[:SALT] .= rand(size(master_mb.fi.sv[:TEMP])...)
+
                 elseif init_file != ""
 
                     println("Initial ocean with profile: ", init_file)
@@ -234,6 +237,8 @@ module ENGINE_EMOM
                 "Q_LOST",
                 "QFLXT",
                 "QFLXS",
+                "Ks_H_U",
+                "Ks_H_V",
             ),
 
             # These states are synced from 

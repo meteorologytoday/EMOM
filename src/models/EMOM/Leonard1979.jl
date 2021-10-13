@@ -21,7 +21,7 @@ function calDiffAdv_QUICKEST!(
         
         X_T                 = X,
         u_bnd               = u_U,
-        K                   = Kh_U,
+        K_bnd               = Kh_U,
         Δt                  = Δt,
         Δx_bnd              = amo.gd.Δx_U,
 
@@ -42,7 +42,7 @@ function calDiffAdv_QUICKEST!(
         
         X_T                 = X,
         u_bnd               = v_V,
-        K                   = Kh_V,
+        K_bnd               = Kh_V,
         Δt                  = Δt,
         Δx_bnd              = amo.gd.Δy_V,
 
@@ -63,7 +63,7 @@ function calDiffAdv_QUICKEST!(
         
         X_T                 = X,
         u_bnd               = w_W,
-        K                   = Kv,
+        K_bnd               = Kv,
         Δt                  = Δt,
         Δx_bnd              = amo.gd.Δz_W,
 

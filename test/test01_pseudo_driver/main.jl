@@ -4,7 +4,7 @@ include("IOM/src/share/LogSystem.jl")
 include("IOM/src/share/PolelikeCoordinate.jl")
 
 include("IOM/src/models/EMOM/ENGINE_EMOM.jl")
-include("IOM/src/driver/driver.jl")
+include("IOM/src/driver/driver_working.jl")
 
 using MPI
 using CFTime
@@ -46,7 +46,7 @@ time_unit = Dict(
 )[parsed["time-unit"]]
 
 t_simulation = time_unit(parsed["stop-n"])
-
+t_end = t_start + t_simulation
 MPI.Init()
 comm = MPI.COMM_WORLD
 rank = MPI.Comm_rank(comm)
@@ -56,7 +56,7 @@ include("config.jl")
 
 if rank == 0
     gf = PolelikeCoordinate.CurvilinearSphericalGridFile(
-        config[:MODEL_CORE][:domain_file],
+        config["MODEL_CORE"]["domain_file"],
         R  = 6371229.0,
         Ω  = 2π / (86400 / (1 + 365/365)),
     )
@@ -65,15 +65,19 @@ end
 
 
 coupler_funcs = (
-    after_model_init! = function(OMMODULE, OMDATA)
-        writeLog("[Coupler] After model init")
+    master_before_model_init = function()
+        return parsed["read-restart"], t_start
     end,
 
-    before_model_run! = function(OMMODULE, OMDATA)
+    master_after_model_init! = function(OMMODULE, OMDATA)
+        writeLog("[Coupler] After model init")
+
+    end,
+    master_before_model_run! = function(OMMODULE, OMDATA)
         writeLog("[Coupler] Before model run")
         writeLog("[Coupler] This is where flux exchange happens.")
 
-        global comm, rank
+        global comm, rank, t_end
         
         is_master = rank == 0
         
@@ -89,8 +93,6 @@ coupler_funcs = (
             end
         end
 
-        return_values = MPI.bcast(return_values, 0, comm)
-
         # Deal with coupling
         if is_master
 
@@ -99,23 +101,22 @@ coupler_funcs = (
             lat = gf.yc
             lon = gf.xc
 
-            OMDATA.x2o["SWFLX"][1, :, :] .= - (cos.(deg2rad.(lat).+0.1) .+ 1) / 2 .* (sin.(deg2rad.(lon)) .+ 1)/2 * 100.0
-            OMDATA.x2o["TAUX_east"][1, :, :]   .= 0.2 * (cos.(deg2rad.(lat).+0.1) .+ 1) / 2
-            OMDATA.x2o["TAUY_north"][1, :, :]  .= 0.1 * (sin.(deg2rad.(lon)) .+ 1) / 2
+#            OMDATA.x2o["SWFLX"][1, :, :] .= - (cos.(deg2rad.(lat).+0.1) .+ 1) / 2 .* (sin.(deg2rad.(lon)) .+ 1)/2 * 100.0
+#            OMDATA.x2o["TAUX_east"][1, :, :]   .= 0.2 * (cos.(deg2rad.(lat).+0.1) .+ 1) / 2
+#            OMDATA.x2o["TAUY_north"][1, :, :]  .= 0.1 * (sin.(deg2rad.(lon)) .+ 1) / 2
 #cos.(deg2rad.(lat))
             
         end
-
 
         return return_values
 
     end,
 
-    after_model_run! = function(OMMODULE, OMDATA)
+    master_after_model_run! = function(OMMODULE, OMDATA)
         writeLog("[Coupler] After model run")
     end,
 
-    final = function(OMMODULE, OMDATA)
+    master_finalize! = function(OMMODULE, OMDATA)
         writeLog("[Coupler] Finalize")
 
     end 
@@ -126,8 +127,5 @@ coupler_funcs = (
 runModel(
     ENGINE_EMOM, 
     coupler_funcs,
-    t_start,
-    t_simulation,
-    parsed["read-restart"],
     config, 
 )

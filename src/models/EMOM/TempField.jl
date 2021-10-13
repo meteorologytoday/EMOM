@@ -47,8 +47,8 @@ mutable struct TempField
         _TMP_SUBSTEP_BUDGET_ = zeros(Float64, sT_pts, 2)
 
         check_usage = Dict(
-            :Ks_H_U => zeros(U_pts),
-            :Ks_H_V => zeros(V_pts),
+            :Ks_H_U => zeros(Nz, Nx, Ny),
+            :Ks_H_V => zeros(Nz, Nx, Ny+1),
         )
         
         tmpfi = new(

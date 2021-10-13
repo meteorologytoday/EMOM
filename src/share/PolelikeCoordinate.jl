@@ -357,11 +357,11 @@ module PolelikeCoordinate
                 λ_UV[:, :, sub_yrng_ext],
                 ϕ_T[:, :, sub_yrng],
                 ϕ_U[:, :, sub_yrng],
-                ϕ_V[:, :, sub_yrng],
+                ϕ_V[:, :, sub_yrng_ext],
                 ϕ_UV[:, :, sub_yrng_ext],
                 z_T[:, :, sub_yrng],
                 z_U[:, :, sub_yrng],
-                z_V[:, :, sub_yrng],
+                z_V[:, :, sub_yrng_ext],
                 z_W[:, :, sub_yrng],
                 z_UV[:, :, sub_yrng_ext],
 

@@ -45,6 +45,9 @@ function getCompleteVariableList(
             "QFLXT"          => nothing,
             "QFLXS"          => nothing,
  
+            "Ks_H_U"    => ( mb.tmpfi.check_usage[:Ks_H_U], :U, nothing),
+            "Ks_H_V"    => ( mb.tmpfi.check_usage[:Ks_H_V], :V, nothing),
+
         )
         
         if mb.tmpfi.datastream != nothing 
@@ -72,8 +75,6 @@ function getCompleteVariableList(
             "dz_cT"     => ( mb.ev.gd.Δz_T[:, 1:1, 1:1], :cT, nothing),
             "lon_sT"    => ( rad2deg.(mb.ev.gd_slab.λ_T), :sT, nothing),
             "lat_sT"    => ( rad2deg.(mb.ev.gd_slab.ϕ_T), :sT, nothing),
-            "Ks_H_U"    => ( mb.tmpfi.check_usage[:Ks_H_U], U, nothing),
-            "Ks_H_V"    => ( mb.tmpfi.check_usage[:Ks_H_V], V, nothing),
         )
 
     else
