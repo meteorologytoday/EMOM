@@ -52,9 +52,13 @@ module PolelikeCoordinate
         λ_UV :: AbstractArray{Float64, 3}
         
         ϕ_T :: AbstractArray{Float64, 3}
+        ϕ_U :: AbstractArray{Float64, 3}
+        ϕ_V :: AbstractArray{Float64, 3}
         ϕ_UV :: AbstractArray{Float64, 3}
         
         z_T :: AbstractArray{Float64, 3}
+        z_U :: AbstractArray{Float64, 3}
+        z_V :: AbstractArray{Float64, 3}
         z_W :: AbstractArray{Float64, 3}
         z_UV :: AbstractArray{Float64, 3}
 
@@ -267,12 +271,20 @@ module PolelikeCoordinate
             ϕ_UV = zeros(Float64, Nx, Ny+1)
             ϕ_UV[:, 1:Ny] = vs_ϕ[1, :, :]
             ϕ_UV[:, end] = vs_ϕ[4, :, end]
+
+            ϕ_U = (ϕ_UV[:, 1:Ny] + ϕ_UV[:, 2:Ny+1]) / 2.0
+            ϕ_V = (ϕ_UV + circshift(ϕ_UV, (-1, 0))) / 2.0
+
+            ϕ_U  = cvt23(ϕ_U,  Nz) 
+            ϕ_V  = cvt23(ϕ_V,  Nz) 
             ϕ_UV = cvt23(ϕ_UV, Nz) 
 
             z_t = ( z_w[1:end-1] + z_w[2:end] ) / 2.0
             z_T = cvt13(z_t, Nx, Ny)
             z_W = cvt13(z_w, Nx, Ny)
             z_UV = cvt13(z_t, Nx, Ny+1)
+            z_U = z_T
+            z_V = z_UV
 
             #println("Nz, Nx, Ny = ", (Nz, Nx, Ny))
 
@@ -344,8 +356,12 @@ module PolelikeCoordinate
                 λ_T[:, :, sub_yrng],
                 λ_UV[:, :, sub_yrng_ext],
                 ϕ_T[:, :, sub_yrng],
+                ϕ_U[:, :, sub_yrng],
+                ϕ_V[:, :, sub_yrng],
                 ϕ_UV[:, :, sub_yrng_ext],
                 z_T[:, :, sub_yrng],
+                z_U[:, :, sub_yrng],
+                z_V[:, :, sub_yrng],
                 z_W[:, :, sub_yrng],
                 z_UV[:, :, sub_yrng_ext],
 

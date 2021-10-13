@@ -27,6 +27,7 @@ mutable struct ModelBlock
             nothing,
         )
         
+        co = (init_core) ? Core(ev, tmpfi) : nothing
         dt = DataTable(
             Nz = ev.Nz,
             Nx = ev.Nx,
@@ -35,10 +36,9 @@ mutable struct ModelBlock
             mask_T=ev.topo.mask_T,
         )
 
-
-        co = (init_core) ? Core(ev, tmpfi) : nothing
-        mb.dt = dt
         mb.co = co
+        mb.dt = dt
+
 
         for (k, varinfo) in getDynamicVariableList(mb; varsets=["ALL",])
             writeLog("Register variable: {:s}", string(k))

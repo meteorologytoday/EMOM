@@ -83,6 +83,17 @@ mutable struct Core
         sfcflx_factor_W = 0.0 * gd.z_W
         sfcflx_factor_W[1, :, :] .= 1.0
 
+        #Ks_H matrix
+        Ks_H_V = zeros(Float64, amo.bmo.V_dim...)
+        Ks_H_U = zeros(Float64, amo.bmo.V_dim...)
+
+        # This design is to prevent the equator develop wind-Ekman-SST feedback
+        # that creates spurious rainband in Central Pacific
+        Ks_H_func = (ϕ, z) -> 500.0 + (20000.0 - 500.0) * exp( - 0.5 * (ϕ/deg2rad(10.0))^2 ) * exp(z/100.0)
+        Ks_H_U = Ks_H_func.(gd.ϕ_U, gd.z_U)
+        Ks_H_V = Ks_H_func.(gd.ϕ_V, gd.z_V)
+        Ks_H_T = Ks_H_func.(gd.ϕ_T, gd.z_T)
+
 
 
         # f and ϵ matrices
@@ -101,7 +112,13 @@ mutable struct Core
             :β_sT            => β_sT,
             :ϵ_sT            => ϵ_sT,
             :D_sT            => D_sT,
+            :Ks_H_T          => Ks_H_T,
+            :Ks_H_U          => Ks_H_U,
+            :Ks_H_V          => Ks_H_V,
         ) 
+
+        tmpfi.check_usage[:Ks_H_U] = Ks_H_U
+        tmpfi.check_usage[:Ks_H_V] = Ks_H_V
 
         vd = VerticalDiffusion(
             amo;

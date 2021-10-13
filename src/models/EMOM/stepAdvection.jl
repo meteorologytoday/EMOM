@@ -27,7 +27,8 @@ function stepAdvection!(
             fi._w,
 
             co.amo,
-            cfg["Ks_H"],
+            co.mtx[:Ks_H_U],
+            co.mtx[:Ks_H_V],
             0.0,
             Δt,
             

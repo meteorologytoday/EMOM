@@ -17,6 +17,8 @@ mutable struct TempField
     sv       :: Union{Dict, Nothing}
     
     datastream   :: Union{Dict, Nothing}
+    
+    check_usage :: Dict
 
     function TempField(
         ev :: Env,
@@ -43,6 +45,11 @@ mutable struct TempField
         _TMP_CHKX  = view(_TMP_CHKX_, :)
     
         _TMP_SUBSTEP_BUDGET_ = zeros(Float64, sT_pts, 2)
+
+        check_usage = Dict(
+            :Ks_H_U => zeros(U_pts),
+            :Ks_H_V => zeros(V_pts),
+        )
         
         tmpfi = new(
 
@@ -62,6 +69,8 @@ mutable struct TempField
             nothing,
             nothing,
             nothing,
+
+            check_usage,
         )
 
         tmpfi.sv = getSugarView(ev, tmpfi)

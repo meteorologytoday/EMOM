@@ -8,7 +8,8 @@ function calDiffAdv_QUICKEST!(
     v_V     :: AbstractArray{Float64},
     w_W     :: AbstractArray{Float64},
     amo     :: AdvancedMatrixOperators,
-    Kh      :: Float64,
+    Kh_U    :: AbstractArray{Float64},
+    Kh_V    :: AbstractArray{Float64},
     Kv      :: Float64,
     Δt      :: Float64,
     wksp    :: Workspace,
@@ -20,7 +21,7 @@ function calDiffAdv_QUICKEST!(
         
         X_T                 = X,
         u_bnd               = u_U,
-        K                   = Kh,
+        K                   = Kh_U,
         Δt                  = Δt,
         Δx_bnd              = amo.gd.Δx_U,
 
@@ -41,7 +42,7 @@ function calDiffAdv_QUICKEST!(
         
         X_T                 = X,
         u_bnd               = v_V,
-        K                   = Kh,
+        K                   = Kh_V,
         Δt                  = Δt,
         Δx_bnd              = amo.gd.Δy_V,
 
@@ -87,7 +88,7 @@ function calFluxDensity_abstract!(;
 
     X_T                       :: AbstractArray{Float64},
     u_bnd                     :: AbstractArray{Float64},
-    K                         :: Float64,
+    K_bnd                     :: Union{Float64, Array{Float64}},
     Δt                        :: Float64,
     Δx_bnd                    :: AbstractArray{Float64},
 
@@ -159,8 +160,8 @@ function calFluxDensity_abstract!(;
     @. uΔt_bnd = u_bnd * Δt
 
     mul!(X_star_bnd, bnd_interp_T, _X_T)
-    @. X_star_bnd += - uΔt_bnd / 2.0 * GRAD_bnd + ( K * Δt / 2.0 - (_Δx_bnd^2.0)/6.0 + (uΔt_bnd^2.0) / 6.0 ) * CURV_r_bnd
+    @. X_star_bnd += - uΔt_bnd / 2.0 * GRAD_bnd + ( K_bnd * Δt / 2.0 - (_Δx_bnd^2.0)/6.0 + (uΔt_bnd^2.0) / 6.0 ) * CURV_r_bnd
 
-    @. tmp_bnd = u_bnd .* X_star_bnd - K * ( GRAD_bnd - uΔt_bnd / 2.0 .* CURV_r_bnd )
+    @. tmp_bnd = u_bnd .* X_star_bnd - K_bnd * ( GRAD_bnd - uΔt_bnd / 2.0 .* CURV_r_bnd )
     mul!(_Xflx_bnd, bnd_mask_bnd, tmp_bnd)
 end

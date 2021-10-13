@@ -62,7 +62,7 @@ function getCompleteVariableList(
     elseif vartype == :static
 
         d = Dict(
-            # COORDINATEi
+            # COORDINATE
             "deepmask_T"=> ( mb.ev.topo.deepmask_T, :T, nothing),
             "topoz_sT"  => ( mb.ev.topo.topoz_sT, :sT, nothing),
             "Nz_bot_sT" => ( mb.ev.topo.Nz_bot_sT, :sT, nothing),
@@ -72,6 +72,8 @@ function getCompleteVariableList(
             "dz_cT"     => ( mb.ev.gd.Δz_T[:, 1:1, 1:1], :cT, nothing),
             "lon_sT"    => ( rad2deg.(mb.ev.gd_slab.λ_T), :sT, nothing),
             "lat_sT"    => ( rad2deg.(mb.ev.gd_slab.ϕ_T), :sT, nothing),
+            "Ks_H_U"    => ( mb.tmpfi.check_usage[:Ks_H_U], U, nothing),
+            "Ks_H_V"    => ( mb.tmpfi.check_usage[:Ks_H_V], V, nothing),
         )
 
     else
