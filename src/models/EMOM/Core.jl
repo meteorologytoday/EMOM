@@ -181,7 +181,16 @@ mutable struct Core
         end
 
         if cfg["weak_restoring"] == "on"
-            mtx[:T_invτwk_TEMP_T] = - amo.T_mask_T * spdiagm(0 => ones(Float64, amo.bmo.T_pts)) / cfg["τwk_TEMP"]
+
+            # 2021/11/18 Tune weak restoring timescale in deep ocean to mimic AMOC heat uptake
+            idx = (gd.z_T .< -130.0) .& (deg2rad(30) .<= gd.ϕ_T .<= deg2rad(55)) .& (deg2rad(285) .<= gd.λ_T .<= deg2rad(355))
+
+            println("There are $(sum(idx)) points are gonna have strong restoring to mimic heat uptake.")
+
+            tmpfi.WKRST_τTEMP .= cfg["τwk_TEMP"]
+            tmpfi.WKRST_τTEMP[idx] .= 86400.0 * 365
+            
+            mtx[:T_invτwk_TEMP_T] = - amo.T_mask_T * spdiagm(0 => (tmpfi.WKRST_τTEMP[:]).^(-1.0))
             mtx[:T_invτwk_SALT_T] = - amo.T_mask_T * spdiagm(0 => ones(Float64, amo.bmo.T_pts)) / cfg["τwk_SALT"]
         end
 

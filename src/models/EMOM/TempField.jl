@@ -12,6 +12,9 @@ mutable struct TempField
     _TMP_CHKX    :: AbstractArray{Float64, 1}
 
     _TMP_SUBSTEP_BUDGET_   :: AbstractArray{Float64, 2} # Used to store substep tracer budget
+    
+    # AMOC restoring check
+    WKRST_τTEMP        :: AbstractArray{Float64, 3} # weak restoring timescale
 
     op_vdiff :: Union{AbstractArray, Nothing}
     sv       :: Union{Dict, Nothing}
@@ -45,6 +48,8 @@ mutable struct TempField
         _TMP_CHKX  = view(_TMP_CHKX_, :)
     
         _TMP_SUBSTEP_BUDGET_ = zeros(Float64, sT_pts, 2)
+            
+        WKRST_τTEMP = zeros(Float64, Nz, Nx, Ny)
 
         check_usage = Dict(
             :Ks_H_U => zeros(Nz, Nx, Ny),
@@ -65,6 +70,8 @@ mutable struct TempField
             _TMP_CHKX,
 
             _TMP_SUBSTEP_BUDGET_,
+
+            WKRST_τTEMP,
 
             nothing,
             nothing,

@@ -47,6 +47,8 @@ function getCompleteVariableList(
  
             "Ks_H_U"    => ( mb.tmpfi.check_usage[:Ks_H_U], :U, nothing),
             "Ks_H_V"    => ( mb.tmpfi.check_usage[:Ks_H_V], :V, nothing),
+            
+
 
         )
         
@@ -61,6 +63,7 @@ function getCompleteVariableList(
         
         d["QFLXT"] = ( mb.fi.sv[:QFLXT], :T, :mask )
         d["QFLXS"] = ( mb.fi.sv[:QFLXS], :T, :mask )
+        d["WKRST_TAUTEMP"] = ( mb.tmpfi.WKRST_τTEMP, :T, :mask)
 
     elseif vartype == :static
 
@@ -75,6 +78,7 @@ function getCompleteVariableList(
             "dz_cT"     => ( mb.ev.gd.Δz_T[:, 1:1, 1:1], :cT, nothing),
             "lon_sT"    => ( rad2deg.(mb.ev.gd_slab.λ_T), :sT, nothing),
             "lat_sT"    => ( rad2deg.(mb.ev.gd_slab.ϕ_T), :sT, nothing),
+
         )
 
     else
@@ -139,10 +143,12 @@ function getDynamicVariableList(
                 "VDIFFS",
                 
                 "Q_FRZMLTPOT",
+                "Q_FRZHEAT",
                 "Q_LOST",
                 "CHKTEMP",
                 "CHKSALT",
 
+                "WKRST_TAUTEMP",
             ])
 
         else
