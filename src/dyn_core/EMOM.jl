@@ -1,21 +1,21 @@
 if !(:ModelClockSystem in names(Main))
-    include(normpath(joinpath(dirname(@__FILE__), "..", "..", "share", "ModelClockSystem.jl")))
+    include(normpath(joinpath(dirname(@__FILE__), "..", "share", "ModelClockSystem.jl")))
 end
 
 if !(:ConfigCheck in names(Main))
-    include(normpath(joinpath(dirname(@__FILE__), "..", "..", "share", "ConfigCheck.jl")))
+    include(normpath(joinpath(dirname(@__FILE__), "..", "share", "ConfigCheck.jl")))
 end
 
 if !(:CyclicData in names(Main))
-    include(normpath(joinpath(dirname(@__FILE__), "..", "..", "share", "CyclicData.jl")))
+    include(normpath(joinpath(dirname(@__FILE__), "..", "share", "CyclicData.jl")))
 end
 
 if !(:LogSystem in names(Main))
-    include(normpath(joinpath(dirname(@__FILE__), "..", "..", "share", "LogSystem.jl")))
+    include(normpath(joinpath(dirname(@__FILE__), "..", "share", "LogSystem.jl")))
 end
 
 if ! ( :DataManager in names(Main) )
-    include(joinpath(@__DIR__, "..", "..", "share", "DataManager.jl"))
+    include(joinpath(@__DIR__, "..", "share", "DataManager.jl"))
 end
 
 
@@ -47,14 +47,14 @@ module EMOM
         return :(include(normpath(joinpath(@__DIR__, $path))))
     end
  
-    @hinclude("../../share/constants.jl")
-    @hinclude("../../share/ocean_state_function.jl")
+    @hinclude("../share/constants.jl")
+    @hinclude("../share/ocean_state_function.jl")
 
     # classes
-    @hinclude("../../share/GridFile.jl")
-    @hinclude("../../share/PolelikeCoordinate.jl")
-    @hinclude("../../share/BasicMatrixOperators.jl")
-    @hinclude("../../share/AdvancedMatrixOperators.jl")
+    @hinclude("../share/GridFile.jl")
+    @hinclude("../share/PolelikeCoordinate.jl")
+    @hinclude("../share/BasicMatrixOperators.jl")
+    @hinclude("../share/AdvancedMatrixOperators.jl")
 
 
 
