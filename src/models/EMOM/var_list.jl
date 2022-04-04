@@ -137,8 +137,10 @@ function getDynamicVariableList(
      
                 "VDIFFT",
                 "VDIFFS",
-                
+
                 "Q_FRZMLTPOT",
+                "Q_FRZMLTPOT_NEG",
+                "Q_FRZHEAT",
                 "Q_LOST",
                 "CHKTEMP",
                 "CHKSALT",
