@@ -4,19 +4,19 @@ if ! ( :EMOM in names(Main) )
 end
 
 if ! ( :DataManager in names(Main) )
-    include(joinpath(@__DIR__, "..", "..", "share", "DataManager.jl"))
+    include(joinpath(@__DIR__, "..", "share", "DataManager.jl"))
 end
 
 if ! ( :DataManager in names(Main) )
-    include(joinpath(@__DIR__, "..", "..", "share", "ModelClockSystem.jl"))
+    include(joinpath(@__DIR__, "..", "share", "ModelClockSystem.jl"))
 end
 
 if ! ( :DataManager in names(Main) )
-    include(joinpath(@__DIR__, "..", "..", "share", "LogSystem.jl"))
+    include(joinpath(@__DIR__, "..", "share", "LogSystem.jl"))
 end
 
 if ! ( :Parallelization in names(Main) )
-    include(joinpath(@__DIR__, "..", "..", "share", "Parallelization.jl"))
+    include(joinpath(@__DIR__, "..", "share", "Parallelization.jl"))
 end
 
 module ENGINE_EMOM
@@ -33,7 +33,7 @@ module ENGINE_EMOM
     using ..ModelClockSystem
     using ..LogSystem
 
-    include(joinpath(@__DIR__, "..", "..", "share", "AppendLine.jl"))
+    include(joinpath(@__DIR__, "..", "share", "AppendLine.jl"))
 
     name = "EMOM"
 
