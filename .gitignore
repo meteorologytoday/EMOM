@@ -33,3 +33,6 @@ Manifest.toml
 *.swo
 *.txt
 Sandbox/*
+
+
+!data/CESM_domains/*.nc

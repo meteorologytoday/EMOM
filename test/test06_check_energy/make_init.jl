@@ -1,4 +1,4 @@
-include(normpath(joinpath(@__DIR__, "IOM", "src", "models", "EMOM", "EMOM.jl")))
+include(normpath(joinpath(@__DIR__, "EMOM", "src", "dyn_core", "EMOM.jl")))
 using NCDatasets
 using MPI
 using Formatting
