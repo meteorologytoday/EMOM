@@ -85,7 +85,7 @@ module ENGINE_EMOM
 
         if is_master
 
-            cfg_desc = EMOM.getConfigDescriptor()
+            cfg_desc = EMOM.getEMOMConfigDescriptors()
 
             misc_config = EMOM.validateConfigEntries(config["MODEL_MISC"], cfg_desc["MODEL_MISC"])
             core_config = EMOM.validateConfigEntries(config["MODEL_CORE"], cfg_desc["MODEL_CORE"])

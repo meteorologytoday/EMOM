@@ -2,8 +2,8 @@ if !(:ModelClockSystem in names(Main))
     include(normpath(joinpath(dirname(@__FILE__), "..", "share", "ModelClockSystem.jl")))
 end
 
-if !(:ConfigCheck in names(Main))
-    include(normpath(joinpath(dirname(@__FILE__), "..", "share", "ConfigCheck.jl")))
+if !(:Config in names(Main))
+    include(normpath(joinpath(dirname(@__FILE__), "..", "share", "Config.jl")))
 end
 
 if !(:CyclicData in names(Main))
@@ -38,7 +38,7 @@ module EMOM
     using DataStructures
 
     using ..ModelClockSystem
-    using ..ConfigCheck
+    using ..Config
     using ..CyclicData
     using ..LogSystem
     using ..DataManager
@@ -58,7 +58,7 @@ module EMOM
 
 
 
-    @hinclude("entry_list.jl")
+    @hinclude("../configs/EMOM_configs.jl")
 
     @hinclude("VerticalDiffusion.jl")
 

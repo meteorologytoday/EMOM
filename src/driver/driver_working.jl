@@ -16,14 +16,16 @@ if !(:ModelClockSystem in names(Main))
 end
 using .ModelClockSystem
 
-if !(:ConfigCheck in names(Main))
-    include(normpath(joinpath(dirname(@__FILE__), "..", "share", "ConfigCheck.jl")))
+if !(:Config in names(Main))
+    include(normpath(joinpath(dirname(@__FILE__), "..", "share", "Config.jl")))
 end
-using .ConfigCheck
+using .Config
 
 if !(:appendLine in names(Main))
     include(normpath(joinpath(dirname(@__FILE__), "..", "share", "AppendLine.jl")))
 end
+    
+include(normpath(joinpath(dirname(@__FILE__), "..", "configs", "driver_configs.jl")))
 
 function runModel(
     OMMODULE      :: Any,
@@ -50,7 +52,7 @@ function runModel(
         end
 
         writeLog("Validate driver config.")
-        config["DRIVER"] = validateConfigEntries(config["DRIVER"], getDriverConfigDescriptor())
+        config["DRIVER"] = validateConfigEntries(config["DRIVER"], getDriverConfigDescriptors()["DRIVER"])
     end
 
     writeLog("Broadcast config to slaves.")
@@ -241,50 +243,6 @@ function runModel(
  
     writeLog("Program Ends.")
 
-end
-
-function getDriverConfigDescriptor()
-
-    return [
-            ConfigEntry(
-                "casename",
-                :required,
-                [String,],
-            ),
-
-            ConfigEntry(
-                "caseroot",
-                :required,
-                [String,],
-            ),
-
-            ConfigEntry(
-                "caserun",
-                :required,
-                [String,],
-            ),
-
-            ConfigEntry(
-                "archive_root",
-                :required,
-                [String,],
-            ),
-
-            ConfigEntry(
-                "archive_list",
-                :optional,
-                [String,],
-                "archive_list.txt",
-            ),
-
-            ConfigEntry(
-                "compute_QFLX_direct_method",
-                :optional,
-                [Bool,],
-                false,
-            ),
-
-   ]
 end
 
 function archive(

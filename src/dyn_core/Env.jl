@@ -21,7 +21,7 @@ mutable struct Env
     )
        
         writeLog("Validating config: MODEL_CORE") 
-        config = validateConfigEntries(config, getConfigDescriptor()["MODEL_CORE"]; verbose = verbose) 
+        config = validateConfigEntries(config, getEMOMConfigDescriptors()["MODEL_CORE"]; verbose = verbose) 
            
         # mask =>   lnd = 0, ocn = 1
         gf = PolelikeCoordinate.CurvilinearSphericalGridFile(
