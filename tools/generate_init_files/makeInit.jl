@@ -21,25 +21,25 @@ function parse_commandline()
         "--init-profile-TEMP"
             help = "Initial ocean profile. It must contains: TEMP, SALT, HMXL."
             arg_type = String
-            required = true
+            default = "BLANK"
 
 
 
         "--init-profile-SALT"
             help = "Initial ocean profile. It must contains: TEMP, SALT, HMXL."
             arg_type = String
-            required = true
+            default = "BLANK"
 
 
         "--init-profile-HMXL"
             help = "Initial ocean profile. It must contains: TEMP, SALT, HMXL."
             arg_type = String
-            required = true
+            default = "BLANK"
 
         "--config-file"
             help = "config TOML file"
             arg_type = String
-            required = true
+            default = "BLANK"
 
     end
 

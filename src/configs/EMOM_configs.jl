@@ -1,17 +1,15 @@
 
-function getConfigDescriptor()
+function getEMOMConfigDescriptors()
 
     return Dict(
-
-
         "MODEL_MISC" => [
 
 
             ConfigEntry(
                 "init_file",
                 :optional,
-                [nothing, String],
-                nothing
+                [String],
+                "",
             ),
 
             ConfigEntry(
@@ -26,6 +24,7 @@ function getConfigDescriptor()
                 "enable_archive",
                 :required,
                 [Bool,],
+                true,
             ),
 
 
@@ -58,21 +57,28 @@ function getConfigDescriptor()
                 "domain_file",
                 :required,
                 [String,],
+                "",
             ),
 
             ConfigEntry(
                 "topo_file",
                 :optional,
-                [String, Nothing],
-                nothing,
+                [String,],
+                "",
             ),
 
 
             ConfigEntry(
                 "cdata_var_file_map",
                 :optional,
-                [Dict, Nothing],
-                nothing,
+                [Dict,],
+                Dict(
+                    "TEMP" => "TEMP.nc",
+                    "SALT" => "SALT.nc",
+                    "HMXL" => "HMXL.nc",
+                    "QFLXT" => "QFLXT.nc",
+                    "QFLXS" => "QFLXS.nc",
+                ),
             ),
 
 
@@ -80,18 +86,21 @@ function getConfigDescriptor()
                 "cdata_beg_time",
                 :optional,
                 [Any,],
+                "0000-01-01 00:00:00",
             ),
 
             ConfigEntry(
                 "cdata_end_time",
                 :optional,
                 [Any,],
+                "0001-01-01 00:00:00",
             ),
 
             ConfigEntry(
                 "cdata_align_time",
                 :optional,
                 [Any,],
+                "0000-01-01 00:00:00",
             ),
 
 
@@ -106,12 +115,14 @@ function getConfigDescriptor()
                 "advection_scheme",
                 :required,
                 ["static", "ekman_KSC2018", "ekman_CO2012", "ekman_AGA2020", "ekman_AGA2020_allowU"],
+                "static",
             ),
 
             ConfigEntry(
                 "MLD_scheme",
                 :required,
                 ["prognostic", "datastream", "static"],
+                "static",
             ),
 
             ConfigEntry(
@@ -146,7 +157,7 @@ function getConfigDescriptor()
                 "z_w",
                 :optional,
                 [AbstractArray{Float64, 1}],
-                nothing;
+                [0.0, -10.0, -20.0, -30.0, -40.0, -50.0];
                 desc = "Will be overwritten if `init_file` is used.",
             ),
 

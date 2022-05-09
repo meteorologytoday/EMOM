@@ -1,5 +1,5 @@
 
-module ConfigCheck
+module Config
 
     using Formatting
 

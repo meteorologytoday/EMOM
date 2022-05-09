@@ -1,35 +1,51 @@
-function getDriverConfigDescriptor()
+function getDriverConfigDescriptors()
 
-    return [
+    return Dict(
+        "DRIVER" => [
             ConfigEntry(
-                :casename,
+                "casename",
                 :required,
                 [String,],
+                "BLANK",
             ),
 
             ConfigEntry(
-                :caseroot,
+                "caseroot",
                 :required,
                 [String,],
+                "BLANK"
             ),
 
             ConfigEntry(
-                :caserun,
+                "caserun",
                 :required,
                 [String,],
+                "BLANK"
             ),
 
             ConfigEntry(
-                :archive_root,
+                "archive_root",
                 :required,
                 [String,],
+                "BLANK"
             ),
 
             ConfigEntry(
-                :archive_list,
+                "archive_list",
                 :optional,
                 [String,],
                 "archive_list.txt",
             ),
-   ]
+
+            ConfigEntry(
+                "compute_QFLX_direct_method",
+                :optional,
+                [Bool,],
+                false,
+            ),
+
+        ]
+    )
 end
+
+
