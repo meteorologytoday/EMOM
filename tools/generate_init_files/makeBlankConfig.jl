@@ -6,6 +6,8 @@ using DataStructures
 using ArgParse, JSON
 using DataStructures
 
+
+include(joinpath("..", "..", "src", "configs", "domain_configs.jl"))
 include(joinpath("..", "..", "src", "configs", "driver_configs.jl"))
 include(joinpath("..", "..", "src", "configs", "EMOM_configs.jl"))
 
@@ -14,10 +16,11 @@ include(joinpath("..", "..", "src", "configs", "EMOM_configs.jl"))
 This program makes a blank config.
 """
 
+domain_cfgd = getDomainConfigDescriptors()
 driver_cfgd = getDriverConfigDescriptors()
 EMOM_cfgd = getEMOMConfigDescriptors()
 
-cfgd = merge(driver_cfgd, EMOM_cfgd)
+cfgd = merge(domain_cfgd, driver_cfgd, EMOM_cfgd)
 
 cfgs = OrderedDict()
 

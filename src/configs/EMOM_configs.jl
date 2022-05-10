@@ -54,33 +54,39 @@ function getEMOMConfigDescriptors()
             ),
 
             ConfigEntry(
-                "domain_file",
-                :required,
-                [String,],
-                "",
-            ),
-
-            ConfigEntry(
-                "topo_file",
+                "cdata_var_file_TEMP",
                 :optional,
                 [String,],
                 "",
             ),
 
-
             ConfigEntry(
-                "cdata_var_file_map",
+                "cdata_var_file_SALT",
                 :optional,
-                [Dict,],
-                Dict(
-                    "TEMP" => "TEMP.nc",
-                    "SALT" => "SALT.nc",
-                    "HMXL" => "HMXL.nc",
-                    "QFLXT" => "QFLXT.nc",
-                    "QFLXS" => "QFLXS.nc",
-                ),
+                [String,],
+                "",
             ),
 
+            ConfigEntry(
+                "cdata_var_file_HMXL",
+                :optional,
+                [String,],
+                "",
+            ),
+
+            ConfigEntry(
+                "cdata_var_file_QFLXS",
+                :optional,
+                [String,],
+                "",
+            ),
+ 
+            ConfigEntry(
+                "cdata_var_file_QFLXT",
+                :optional,
+                [String,],
+                "",
+            ),
 
             ConfigEntry(
                 "cdata_beg_time",
@@ -151,14 +157,6 @@ function getEMOMConfigDescriptors()
                 :optional,
                 ["on", "off"],
                 "off",
-            ),
-
-            ConfigEntry(
-                "z_w",
-                :optional,
-                [AbstractArray{Float64, 1}],
-                [0.0, -10.0, -20.0, -30.0, -40.0, -50.0];
-                desc = "Will be overwritten if `init_file` is used.",
             ),
 
             ConfigEntry(

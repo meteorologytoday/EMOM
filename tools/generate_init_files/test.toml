@@ -1,0 +1,51 @@
+[DOMAIN]
+domain_file = ""
+topo_file = "topoX.nc"
+z_w = [0.0, -10.0, -20.0, -30.0, -40.0, -50.0]
+
+[DRIVER]
+archive_list = "archive_list.txt"
+archive_root = "BLANK"
+casename = "BLANK"
+caseroot = "BLANK"
+caserun = "BLANK"
+compute_QFLX_direct_method = false
+
+[MODEL_CORE]
+Ekman_layers = 5
+Ks_H = 1000.0
+Ks_V = 0.0001
+Ks_V_cva = 1.0
+MLD_scheme = "static"
+Qflx = "off"
+Qflx_finding = "off"
+Returnflow_layers = 5
+advection_scheme = "static"
+cdata_align_time = "0000-01-01 00:00:00"
+cdata_beg_time = "0000-01-01 00:00:00"
+cdata_end_time = "0001-01-01 00:00:00"
+cdata_var_file_HMXL = ""
+cdata_var_file_QFLXS = ""
+cdata_var_file_QFLXT = ""
+cdata_var_file_SALT = ""
+cdata_var_file_TEMP = ""
+convective_adjustment = "off"
+rad_R = 0.58
+"rad_ζ1" = 0.15
+"rad_ζ2" = 23.0
+substeps = 8
+timetype = "DateTimeNoLeap"
+transform_vector_field = true
+weak_restoring = "off"
+"γ" = 0.06
+"τfrz" = 3600.0
+"τwk_SALT" = +inf
+"τwk_TEMP" = +inf
+"ϵ" = 1.4e-5
+
+[MODEL_MISC]
+daily_record = []
+enable_archive = true
+init_file = ""
+monthly_record = []
+rpointer_file = "rpointer.iom"

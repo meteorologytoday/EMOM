@@ -57,6 +57,9 @@ ev = EMOM.Env(config["MODEL_CORE"])
 mb = EMOM.ModelBlock(ev; init_core=false)
 
 
+#mb.fi.sv[:TEMP][valid_idx] .= TEMP[valid_idx]
+#mb.fi.sv[:SALT][valid_idx] .= SALT[valid_idx]
+
 mb.fi.sv[:TEMP][valid_idx] .= 10.0
 mb.fi.sv[:SALT][valid_idx] .= 30.0
 
