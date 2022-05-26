@@ -73,7 +73,7 @@ update_config = OrderedDict{Any, Any}(
         "τwk_SALT"                     => 86400.0 * 365 * 1000,
 
 
-        "τ_frz"                        => 3600.0,
+        "τfrz"                         => 3600.0,
         "Ekman_layers"                 => 5,
         "Returnflow_layers"            => 28,
     
