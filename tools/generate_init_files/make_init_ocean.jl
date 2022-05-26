@@ -136,7 +136,7 @@ println("NaNs are consistent.")
 
 println("Create a model to save initial condition.")
 
-ev = EMOM.Env(config["MODEL_CORE"], config["DOMAIN"])
+ev = EMOM.Env(config)
 mb = EMOM.ModelBlock(ev; init_core=false)
 
 

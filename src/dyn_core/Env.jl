@@ -1,7 +1,6 @@
 mutable struct Env
 
-    cfg_core :: Dict
-    cfg_domain :: Dict
+    cfgs :: Dict
     
     sub_yrng :: Union{UnitRange, Colon, Nothing}
     Nx :: Integer
@@ -17,19 +16,20 @@ mutable struct Env
     topo      :: Topography
 
     function Env(
-        cfg_core,
-        cfg_domain;
+        cfgs;
         sub_yrng :: Union{UnitRange, Colon} = Colon(),
         verbose :: Bool = false,
     )
        
-        writeLog("Validating cfg_core: MODEL_CORE") 
-        cfg_core = validateConfigEntries(cfg_core, getEMOMConfigDescriptors()["MODEL_CORE"]; verbose = verbose) 
-        cfg_domain = validateConfigEntries(cfg_domain, getDomainConfigDescriptors()["DOMAIN"]; verbose = verbose) 
-           
+        writeLog("Validating config...")
+        cfgs = Dict(
+            "MODEL_CORE" => validateConfigEntries(cfgs["MODEL_CORE"], getEMOMConfigDescriptors()["MODEL_CORE"]; verbose = verbose), 
+            "DOMAIN" => validateConfigEntries(cfgs["DOMAIN"], getDomainConfigDescriptors()["DOMAIN"]; verbose = verbose), 
+        )
+
         # mask =>   lnd = 0, ocn = 1
         gf = PolelikeCoordinate.CurvilinearSphericalGridFile(
-            cfg_domain["domain_file"];
+            cfgs["DOMAIN"]["domain_file"];
             R  = Re,
             Ω  = Ω,
         )
@@ -39,7 +39,7 @@ mutable struct Env
         end
 
         # Load z_w
-        ds = Dataset(cfg_domain["z_w_file"], "r")
+        ds = Dataset(cfgs["DOMAIN"]["z_w_file"], "r")
         z_w = nomissing(ds["z_w"][:], NaN)
         close(ds)
 
@@ -49,16 +49,16 @@ mutable struct Env
 
         cdata_varnames = []
 
-        if cfg_core["MLD_scheme"] == "datastream"
+        if cfgs["MODEL_CORE"]["MLD_scheme"] == "datastream"
             push!(cdata_varnames, "HMXL")
         end
 
-        if cfg_core["Qflx"] == "on"
+        if cfgs["MODEL_CORE"]["Qflx"] == "on"
             push!(cdata_varnames, "QFLXT")
             push!(cdata_varnames, "QFLXS")
         end
         
-        if cfg_core["weak_restoring"] == "on" || cfg_core["Qflx_finding"] == "on"
+        if cfgs["MODEL_CORE"]["weak_restoring"] == "on" || cfgs["MODEL_CORE"]["Qflx_finding"] == "on"
             push!(cdata_varnames, "TEMP")
             push!(cdata_varnames, "SALT")
         end
@@ -68,14 +68,14 @@ mutable struct Env
         gd_slab = PolelikeCoordinate.genGrid(gf, [0, -1.0]; sub_yrng=sub_yrng) 
 
 
-        if cfg_core["Returnflow_layers"] + cfg_core["Ekman_layers"] > gd.Nz
+        if cfgs["MODEL_CORE"]["Returnflow_layers"] + cfgs["MODEL_CORE"]["Ekman_layers"] > gd.Nz
             throw(ErrorException("Sum of `Returnflow_layers` and `Ekman_layers` exceeds Nz = $(gd.Nz)"))
         end
         #
         topo = nothing
 
-        if cfg_domain["topo_file"] != ""
-            Dataset(cfg_domain["topo_file"], "r") do ds
+        if cfgs["DOMAIN"]["topo_file"] != ""
+            Dataset(cfgs["DOMAIN"]["topo_file"], "r") do ds
                 Nz_bot = ds["Nz_bot"][:, sub_yrng]
             end
         else
@@ -84,7 +84,7 @@ mutable struct Env
         end
         topo = Topography(
             Nz_bot, gf.Nx, length(sub_yrng), z_w;
-            deep_depth = - z_w[cfg_core["Returnflow_layers"] + cfg_core["Ekman_layers"] + 1]
+            deep_depth = - z_w[cfgs["MODEL_CORE"]["Returnflow_layers"] + cfgs["MODEL_CORE"]["Ekman_layers"] + 1]
         )
 
         if any(view(topo.mask_T, 1, :, :) .!= gf.mask[:, sub_yrng])
@@ -93,8 +93,7 @@ mutable struct Env
  
         return new(
             
-            cfg_core,
-            cfg_domain,
+            cfgs,
  
             sub_yrng,        
             Nx,

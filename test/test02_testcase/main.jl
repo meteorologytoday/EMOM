@@ -15,6 +15,7 @@ using .PolelikeCoordinate
 using .LogSystem
 using .CyclicData
 using .DataLoader
+using JSON
 
 function parse_commandline()
 
@@ -57,8 +58,6 @@ if is_master
     cfgmc["weak_restoring"] = "off"
     cfgmc["transform_vector_field"] = false
     
-    Nz = length(cfgmc["z_w"])-1
-
     first_run = true
 
 
@@ -136,6 +135,8 @@ coupler_funcs = (
         writeLog("[Coupler] Finalize")
     end, 
 )
+
+JSON.print(config, 4)
 
 runModel(
     ENGINE_EMOM, 

@@ -86,9 +86,11 @@ module ENGINE_EMOM
         if is_master
 
             cfg_desc = EMOM.getEMOMConfigDescriptors()
+            cfg_domain_desc = EMOM.getDomainConfigDescriptors()
 
             misc_config = EMOM.validateConfigEntries(config["MODEL_MISC"], cfg_desc["MODEL_MISC"])
             core_config = EMOM.validateConfigEntries(config["MODEL_CORE"], cfg_desc["MODEL_CORE"])
+            domain_config = EMOM.validateConfigEntries(config["DOMAIN"], cfg_domain_desc["DOMAIN"])
 
             # If `read_restart` is true then read restart file: config["rpointer_file"]
             # If not then initialize ocean with default profile if `initial_file`
@@ -124,7 +126,7 @@ module ENGINE_EMOM
                 if init_file == "BLANK_PROFILE"
 
                     writeLog("`init_file` == '$(init_file)'. Initialize an empty ocean.")
-                    master_ev = EMOM.Env(core_config, verbose=is_master)
+                    master_ev = EMOM.Env(cfgs, verbose=is_master)
                     master_mb = EMOM.ModelBlock(master_ev; init_core=false)
 
                     master_mb.fi.sv[:TEMP] .= rand(size(master_mb.fi.sv[:TEMP])...)
@@ -133,7 +135,6 @@ module ENGINE_EMOM
                 elseif init_file != ""
 
                     println("Initial ocean with profile: ", init_file)
-                    println("Initial ocean with domain file: ", core_config["domain_file"])
                     master_mb = EMOM.loadSnapshot(init_file; overwrite_config=core_config)
                 
                 else
@@ -155,20 +156,20 @@ module ENGINE_EMOM
         end
 
         jdi = nothing
-        master_ev_config = nothing
+        master_ev_cfgs = nothing
         if is_master
             jdi = JobDistributionInfo(nworkers = comm_size - 1, Ny = master_ev.Ny; overlap=3)
-            master_ev_config = master_ev.config
+            master_ev_cfgs = master_ev.cfgs
         end
         jdi = MPI.bcast(jdi, 0, comm)
-        master_ev_config = MPI.bcast(master_ev_config, 0, comm)
+        master_ev_cfgs = MPI.bcast(master_ev_cfgs, 0, comm)
      
         # Second, create ModelBlocks based on ysplit_info
         if is_master
             my_ev = master_ev
             my_mb = master_mb
         else
-            my_ev          = EMOM.Env(master_ev_config; sub_yrng = getYsplitInfoByRank(jdi, rank).pull_fr_rng)
+            my_ev          = EMOM.Env(master_ev_cfgs; sub_yrng = getYsplitInfoByRank(jdi, rank).pull_fr_rng)
             my_mb          = EMOM.ModelBlock(my_ev; init_core = true)
         end
 

@@ -42,6 +42,7 @@ module EMOM
     using ..CyclicData
     using ..LogSystem
     using ..DataManager
+    using JSON
 
     macro hinclude(path)
         return :(include(normpath(joinpath(@__DIR__, $path))))
