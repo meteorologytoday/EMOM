@@ -7,7 +7,6 @@ function stepAdvection!(
     fi = mb.fi
     tmpfi = mb.tmpfi
     co = mb.co
-    cfg = ev.config
     for x = 1:2
 
         _intmx  = view(tmpfi._INTMX_, :, x)

@@ -5,7 +5,7 @@ function setupForcing!(
     ev = mb.ev
     fi = mb.fi
     co = mb.co
-    cfg = ev.config
+    cfg = ev.cfgs["MODEL_CORE"]
     wksp = co.wksp
     gd = ev.gd
     gd_slab = ev.gd_slab

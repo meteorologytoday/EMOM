@@ -502,7 +502,7 @@ module ENGINE_EMOM
         
         Δt_float = Float64(Δt.value)
         
-        substeps = MD.mb.ev.config["substeps"]
+        substeps = MD.mb.ev.cfgs["MODEL_CORE"]["substeps"]
         Δt_substep = Δt_float / substeps
 
         syncField!(

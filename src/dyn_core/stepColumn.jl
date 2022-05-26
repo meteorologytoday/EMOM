@@ -8,7 +8,7 @@ function stepColumn!(
     tmpfi = mb.tmpfi
     co    = mb.co
     ev    = mb.ev
-    cfg   = ev.config
+    cfg   = ev.cfgs["MODEL_CORE"]
     wksp  = co.wksp
 
 

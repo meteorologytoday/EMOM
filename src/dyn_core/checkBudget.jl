@@ -9,7 +9,7 @@ function checkBudget!(
     ev    = mb.ev
     tmpfi = mb.tmpfi
     co    = mb.co
-    cfg   = mb.ev.config
+    cfg   = mb.ev.cfgs["MODEL_CORE"]
     Nx = ev.Nx
     Ny = ev.Ny
     Nz = ev.Nz
