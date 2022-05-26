@@ -28,28 +28,32 @@ function loadSnapshot(
 
 
 
-    cfg = snapshot["ev_config"]
+    cfg_core = snapshot["ev_cfg_core"]
+    cfg_domain = snapshot["ev_cfg_domain"]
+ 
+    writeLog("### Loaded config domain (cannot overwrite) ###")
+    JSON.print(cfg_domain, 4)
         
-    writeLog("### Loaded config ###")
-    println(cfg)
-    
+    writeLog("### Loaded config core (overwritable) ###")
+    JSON.print(cfg_core, 4)
+   
     if overwrite_config != nothing
-        writeLog("### Overwriting config ###")
+        writeLog("### Overwriting core config ###")
         for (k, v) in overwrite_config
-            if haskey(cfg, k)
-                if cfg[k] != v
-                    writeLog("{:s} is overwritten: {:s} => {:s}", k,  string(cfg[k]), string(v))
+            if haskey(cfg_core, k)
+                if cfg_core[k] != v
+                    writeLog("{:s} is overwritten: {:s} => {:s}", k,  string(cfg_core[k]), string(v))
                 end
             else
                 writeLog("{:s} is added: {:s}", k,  string(v))
             end
 
-            cfg[k] = v
+            cfg_core[k] = v
         end
     end
 
 
-    ev = Env(cfg; verbose=true)
+    ev = Env(cfg_core, cfg_domain; verbose=true)
     mb = ModelBlock(ev; init_core = false) 
  
    
@@ -86,7 +90,7 @@ function takeSnapshot(
     missing_value :: Float64=1e20,
 )
 
-    JLD2.save(filename, "fi", mb.fi, "ev_config", mb.ev.config, "timestamp", timestamp)
+    JLD2.save(filename, "fi", mb.fi, "ev_cfg_core", mb.ev.cfg_core, "ev_cfg_domain", mb.ev.cfg_domain, "timestamp", timestamp)
 
 end
 

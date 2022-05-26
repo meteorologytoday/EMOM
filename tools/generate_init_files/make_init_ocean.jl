@@ -57,7 +57,7 @@ config = TOML.parsefile(parsed["config"])
 init_file  = config["MODEL_MISC"]["init_file"]
 domain_file = config["DOMAIN"]["domain_file"]
 topo_file  = config["DOMAIN"]["topo_file"]
-Nz = length(config["DOMAIN"]["z_w"]) - 1 # Layers used. Thickness ≈ 503m
+z_w_file = config["DOMAIN"]["z_w_file"]
 
 Dataset(domain_file, "r") do ds
     global Nx = ds.dim["ni"]
@@ -65,6 +65,11 @@ Dataset(domain_file, "r") do ds
     global mask = ds["mask"][:]
 end
 
+Dataset(z_w_file, "r") do ds
+    global Nz = length(ds["z_w_top"])
+end
+
+println("Dimension (Nz, Nx, Ny) = ($Nz, $Nx, $Ny)")
 # The last dimension 1 here means the time dimension
 # This is for practical purposes because user typically
 # pick an output from POP2 and use them as the initial profile file
@@ -131,15 +136,13 @@ println("NaNs are consistent.")
 
 println("Create a model to save initial condition.")
 
-ev = EMOM.Env(config["MODEL_CORE"])
+ev = EMOM.Env(config["MODEL_CORE"], config["DOMAIN"])
 mb = EMOM.ModelBlock(ev; init_core=false)
 
 
 mb.fi.sv[:TEMP][valid_idx] .= TEMP[valid_idx]
 mb.fi.sv[:SALT][valid_idx] .= SALT[valid_idx]
 
-println(size(mb.fi.HMXL))
-println(size(HMXL))
 mb.fi.HMXL[:] = HMXL
 
 println(format("Output file: {}.", init_file))

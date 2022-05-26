@@ -59,6 +59,7 @@ module EMOM
 
 
     @hinclude("../configs/EMOM_configs.jl")
+    @hinclude("../configs/domain_configs.jl")
 
     @hinclude("VerticalDiffusion.jl")
 

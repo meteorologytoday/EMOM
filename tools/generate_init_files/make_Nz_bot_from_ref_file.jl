@@ -4,21 +4,12 @@ using NCDatasets
 using Formatting
 using ArgParse, JSON
 
-println("""
-This program generates an netCDF file that contains `Nz_bot` of the topography.
-User should provide a `--ref-file` with `--ref-var` to inform the mask of the 3D domain.
-If `--SOM` is set, then `--HMXL-file` is used to generate the Nz_bot, meaning the bottom 
-of the ocean is as deep as the mixed-layer depth.
-""")
-
-
 s = ArgParseSettings()
 @add_arg_table s begin
 
     "--ref-file"
-        help = "The 3D temperature or salinity file. Mask should be missing data. If not provided, then `--Nz-max` is used and all"
+        help = "The 3D temperature or salinity file. Mask should be missing data."
         arg_type = String
-        default = ""
         required = true
 
     "--ref-var"
@@ -31,7 +22,7 @@ s = ArgParseSettings()
         arg_type = String
         required = true
 
-    "--zdomain-file"
+    "--z_w-file"
         help = "Z domain file contains z_w."
         arg_type = String
         required = true
@@ -47,7 +38,7 @@ s = ArgParseSettings()
         default = ""
 
     "--Nz-max"
-        help = "The maximum value of Nz."
+        help = "Referenced variable name in `ref-file`."
         arg_type = Int64
         default = -1
 
@@ -73,8 +64,7 @@ if parsed["SOM"]
         end
     end
 end
-
-Dataset(parsed["zdomain-file"], "r") do ds
+Dataset(parsed["z_w-file"], "r") do ds
     global z_w_top = nomissing(ds["z_w_top"][:],  NaN)
     global z_w_bot = nomissing(ds["z_w_bot"][:],  NaN)
 

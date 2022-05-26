@@ -52,7 +52,7 @@ function getCompleteVariableList(
         
         if mb.tmpfi.datastream != nothing 
 
-            if mb.ev.config["weak_restoring"] == "on"
+            if mb.ev.cfg_core["weak_restoring"] == "on"
                 d["WKRST_TARGET_TEMP"] = ( mb.tmpfi.datastream["TEMP"], :T , :mask)
                 d["WKRST_TARGET_SALT"] = ( mb.tmpfi.datastream["SALT"], :T , :mask)
             end
@@ -71,7 +71,7 @@ function getCompleteVariableList(
             "Nz_bot_sT" => ( mb.ev.topo.Nz_bot_sT, :sT, nothing),
             "area_sT"   => ( mb.ev.gd_slab.Δx_T .* mb.ev.gd_slab.Δy_T, :sT, nothing),
             "mask_sT"   => ( mb.ev.topo.sfcmask_sT, :sT, nothing),
-            "z_cW"      => ( reshape(mb.ev.config["z_w"], :, 1, 1), :cW, nothing),
+            "z_cW"      => ( reshape(mb.ev.z_w, :, 1, 1), :cW, nothing),
             "dz_cT"     => ( mb.ev.gd.Δz_T[:, 1:1, 1:1], :cT, nothing),
             "lon_sT"    => ( rad2deg.(mb.ev.gd_slab.λ_T), :sT, nothing),
             "lat_sT"    => ( rad2deg.(mb.ev.gd_slab.ϕ_T), :sT, nothing),

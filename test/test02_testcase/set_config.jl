@@ -50,7 +50,7 @@ update_config = OrderedDict{Any, Any}(
     "DOMAIN" => Dict(
         "domain_file"                  => joinpath(domain_dir, "domain.ocn.gx3v7.120323.nc"),
         "topo_file"                    => joinpath(data_dir, "Nz_bot.nc"),
-        "z_w"                          => collect(range(0.0, -100.0, length=11)),
+        "z_w_file"                     => joinpath(data_dir, "z_w.nc"),
     ),
 
     "MODEL_CORE" => Dict(
@@ -74,8 +74,8 @@ update_config = OrderedDict{Any, Any}(
 
 
         "τfrz"                         => 3600.0,
-        "Ekman_layers"                 => 5,
-        "Returnflow_layers"            => 28,
+        "Ekman_layers"                 => 3,
+        "Returnflow_layers"            => 7,
     
         "transform_vector_field"       => true,
     ),

@@ -20,10 +20,10 @@ function getDomainConfigDescriptors()
             ),
 
             ConfigEntry(
-                "z_w",
-                :optional,
-                [AbstractArray{Float64, 1}],
-                [0.0, -10.0, -20.0, -30.0, -40.0, -50.0];
+                "z_w_file",
+                :required,
+                [String,],
+                "",
                 desc = "Will be overwritten if `init_file` is used.",
             ),
 
