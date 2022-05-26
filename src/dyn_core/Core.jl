@@ -2,9 +2,6 @@ mutable struct Core
     
     wksp      :: Workspace
 
-#    mask_sT   :: AbstractArray{Float64, 3}
-#    mask_T    :: AbstractArray{Float64, 3}
- 
     amo_slab  :: Union{AdvancedMatrixOperators, Nothing}
     amo       :: Union{AdvancedMatrixOperators, Nothing}
 
@@ -13,20 +10,19 @@ mutable struct Core
     vd        :: VerticalDiffusion
 
     cdatam     :: Union{CyclicDataManager, Nothing}
-
-
-
+    
     function Core(
         ev :: Env,
         tmpfi :: TempField,
     )
 
-        cfg = ev.config
+        cfg_core = ev.cfgs["MODEL_CORE"]
+        cfg_domain = ev.cfgs["DOMAIN"]
 
         wksp = Workspace(Nx=ev.Nx, Ny=ev.Ny, Nz=ev.Nz)
 
         gf = PolelikeCoordinate.CurvilinearSphericalGridFile(
-            cfg["domain_file"];
+            cfg_domain["domain_file"];
             R  = Re,
             Ω  = Ω,
         )
@@ -65,7 +61,7 @@ mutable struct Core
         W_broadcast_sT = build!(amo_slab.bmo.T_I_T, mapping_T)
 
         # Build Radiation Matrix
-        swflx_factor_W =  cfg["rad_R"]  * exp.(gd.z_W / cfg["rad_ζ1"]) + (1.0 - cfg["rad_R"]) * exp.(gd.z_W / cfg["rad_ζ2"])
+        swflx_factor_W =  cfg_core["rad_R"]  * exp.(gd.z_W / cfg_core["rad_ζ1"]) + (1.0 - cfg_core["rad_R"]) * exp.(gd.z_W / cfg_core["rad_ζ2"])
 
 
         Nz_bot = view(ev.topo.Nz_bot_sT, 1, :, :)
@@ -104,7 +100,7 @@ mutable struct Core
         # f and ϵ matrices
         f_sT = 2 * gd.Ω * sin.(gd_slab.ϕ_T)
         β_sT = (2 * gd.Ω / gd.R) * cos.(gd_slab.ϕ_T)
-        ϵ_sT = f_sT * 0 .+ cfg["ϵ"]
+        ϵ_sT = f_sT * 0 .+ cfg_core["ϵ"]
         D_sT = f_sT.^2 + ϵ_sT.^2
         invD_sT = D_sT.^(-1.0)
 
@@ -127,8 +123,8 @@ mutable struct Core
 
         vd = VerticalDiffusion(
             amo;
-            K_iso=cfg["Ks_V"],
-            K_cva=(cfg["convective_adjustment"] == "on") ? cfg["Ks_V_cva"] : cfg["Ks_V"],
+            K_iso=cfg_core["Ks_V"],
+            K_cva=(cfg_core["convective_adjustment"] == "on") ? cfg_core["Ks_V_cva"] : cfg_core["Ks_V"],
         )
 
         # surface mask but is in 3D T grid. This one is different from the topo.sfcmask_sT. 
@@ -141,7 +137,7 @@ mutable struct Core
             cdatam = nothing
         else
 
-            if cfg["cdata_var_file_map"] == nothing
+            if cfg_core["cdata_var_file_map"] == nothing
                 throw(ErrorException("Some config require cyclic data forcing file: $(ev.cdata_varnames)"))
             else
                 function parseDateTime(timetype, str)
@@ -160,19 +156,19 @@ mutable struct Core
                     )
                 end
                
-                timetype   = getproperty(CFTime, Symbol(cfg["timetype"]))
+                timetype   = getproperty(CFTime, Symbol(cfg_core["timetype"]))
 
                 var_file_map = Dict()
                 for varname in ev.cdata_varnames
-                    var_file_map[varname] = cfg["cdata_var_file_map"][varname]
+                    var_file_map[varname] = cfg_core["cdata_var_file_map"][varname]
                 end
 
                 cdatam = CyclicDataManager(;
                     timetype     = timetype,
                     var_file_map = var_file_map,
-                    beg_time     = parseDateTime(timetype, cfg["cdata_beg_time"]),
-                    end_time     = parseDateTime(timetype, cfg["cdata_end_time"]),
-                    align_time   = parseDateTime(timetype, cfg["cdata_align_time"]),
+                    beg_time     = parseDateTime(timetype, cfg_core["cdata_beg_time"]),
+                    end_time     = parseDateTime(timetype, cfg_core["cdata_end_time"]),
+                    align_time   = parseDateTime(timetype, cfg_core["cdata_align_time"]),
                     sub_yrng     = ev.sub_yrng,
                 )
 
@@ -180,9 +176,9 @@ mutable struct Core
             end
         end
 
-        if cfg["weak_restoring"] == "on"
-            mtx[:T_invτwk_TEMP_T] = - amo.T_mask_T * spdiagm(0 => ones(Float64, amo.bmo.T_pts)) / cfg["τwk_TEMP"]
-            mtx[:T_invτwk_SALT_T] = - amo.T_mask_T * spdiagm(0 => ones(Float64, amo.bmo.T_pts)) / cfg["τwk_SALT"]
+        if cfg_core["weak_restoring"] == "on"
+            mtx[:T_invτwk_TEMP_T] = - amo.T_mask_T * spdiagm(0 => ones(Float64, amo.bmo.T_pts)) / cfg_core["τwk_TEMP"]
+            mtx[:T_invτwk_SALT_T] = - amo.T_mask_T * spdiagm(0 => ones(Float64, amo.bmo.T_pts)) / cfg_core["τwk_SALT"]
         end
 
 

@@ -4,7 +4,7 @@ wdir=$( realpath -s $(pwd) )
 config_file=$wdir/data/config.toml
 Nz_bot_file=$wdir/data/Nz_bot.nc
 z_w_file=$wdir/data/z_w.nc
-ncpu=2
+ncpu=5
 
 
 domain=gx3v7
