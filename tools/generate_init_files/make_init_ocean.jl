@@ -1,4 +1,4 @@
-include(normpath(joinpath(@__DIR__, "..", "..", "src", "models", "EMOM", "EMOM.jl")))
+include(normpath(joinpath(@__DIR__, "..", "..", "src", "dyn_core", "EMOM.jl")))
 using DataStructures
 using NCDatasets
 using MPI
@@ -6,8 +6,7 @@ using Formatting
 using ArgParse, JSON
 
 println("""
-This program generates initial file (technically a restart file) for 
-IOM to start.
+This program generates initial file (technically a restart file) for EMOM to start.
 """)
 
 
@@ -17,29 +16,27 @@ function parse_commandline()
 
     @add_arg_table s begin
 
+        "--config"
+            help = "config TOML file"
+            arg_type = String
+            default = ""
+
 
         "--init-profile-TEMP"
-            help = "Initial ocean profile. It must contains: TEMP, SALT, HMXL."
+            help = "Initial ocean profile. It must contains: TEMP. If not specified, temperature is set to 20 degC."
             arg_type = String
-            default = "BLANK"
-
-
+            default = ""
 
         "--init-profile-SALT"
-            help = "Initial ocean profile. It must contains: TEMP, SALT, HMXL."
+            help = "Initial ocean profile. It must contains: SALT. If not specified, salinity is set to 35 PSU."
             arg_type = String
-            default = "BLANK"
+            default = ""
 
 
         "--init-profile-HMXL"
-            help = "Initial ocean profile. It must contains: TEMP, SALT, HMXL."
+            help = "Initial ocean profile. It must contains: HMXL. If not specified, mixed layer depth is set to 50m."
             arg_type = String
-            default = "BLANK"
-
-        "--config-file"
-            help = "config TOML file"
-            arg_type = String
-            default = "BLANK"
+            default = ""
 
     end
 
@@ -55,14 +52,12 @@ MPI.Init()
 println("Processing data...")
 
 using TOML
-config = TOML.parsefile(parsed["config-file"])
-
-domain_file = config["MODEL_CORE"]["domain_file"]
+config = TOML.parsefile(parsed["config"])
 
 init_file  = config["MODEL_MISC"]["init_file"]
-topo_file  = config["MODEL_CORE"]["topo_file"]
-
-Nz = length(config["MODEL_CORE"]["z_w"]) - 1 # Layers used. Thickness ≈ 503m
+domain_file = config["DOMAIN"]["domain_file"]
+topo_file  = config["DOMAIN"]["topo_file"]
+Nz = length(config["DOMAIN"]["z_w"]) - 1 # Layers used. Thickness ≈ 503m
 
 Dataset(domain_file, "r") do ds
     global Nx = ds.dim["ni"]
@@ -70,24 +65,48 @@ Dataset(domain_file, "r") do ds
     global mask = ds["mask"][:]
 end
 
-Dataset(parsed["init-profile-TEMP"], "r") do ds
-    global TEMP = permutedims(nomissing(ds["TEMP"][:, :, 1:Nz, 1],  NaN), [3, 1, 2])
+# The last dimension 1 here means the time dimension
+# This is for practical purposes because user typically
+# pick an output from POP2 and use them as the initial profile file
+# The shape of the initial profile is also assumed to be (Nx, Ny, Nz)
+
+if parsed["init-profile-TEMP"] != ""
+    Dataset(parsed["init-profile-TEMP"], "r") do ds
+        global TEMP = permutedims(nomissing(ds["TEMP"][:, :, 1:Nz, 1],  NaN), [3, 1, 2])
+    end
+else
+    TEMP = zeros(Float64, Nz, Nx, Ny)
+    TEMP .= 20.0
 end
 
-Dataset(parsed["init-profile-SALT"], "r") do ds
-    global SALT = permutedims(nomissing(ds["SALT"][:, :, 1:Nz, 1],  NaN), [3, 1, 2])
+if parsed["init-profile-SALT"] != ""
+    Dataset(parsed["init-profile-SALT"], "r") do ds
+        global SALT = permutedims(nomissing(ds["SAKT"][:, :, 1:Nz, 1],  NaN), [3, 1, 2])
+    end
+else
+    SALT = zeros(Float64, Nz, Nx, Ny)
+    SALT .= 35.0
 end
 
+if parsed["init-profile-HMXL"] != ""
+    Dataset(parsed["init-profile-HMXL"], "r") do ds
+        global HMXL  = nomissing(ds["HMXL"][:, :, 1],  0.0)
+    end
+else
+    HMXL = zeros(Float64, Nx, Ny)
+    HMXL .= 50.0
+end
 
-Dataset(parsed["init-profile-HMXL"], "r") do ds
-    global HMXL  = nomissing(ds["HMXL"][:, :, 1],  0.0)
+if topo_file == ""
+    Nz_bot = zeros(Int64, Nx, Ny)
+    Nz_bot .= Nz
+else
+    Dataset(topo_file, "r") do ds
+        global Nz_bot = ds["Nz_bot"][:]
+    end
 end
 
 valid_idx = isfinite.(TEMP)
-
-Dataset(topo_file, "r") do ds
-    global Nz_bot = ds["Nz_bot"][:]
-end
 
 println("Check if all the valid grid will be assigned a non-NaN value.")
 for i=1:Nx, j=1:Ny
@@ -124,6 +143,5 @@ println(size(HMXL))
 mb.fi.HMXL[:] = HMXL
 
 println(format("Output file: {}.", init_file))
-
 EMOM.takeSnapshot(DateTimeNoLeap(1,1,1), mb, init_file)
 

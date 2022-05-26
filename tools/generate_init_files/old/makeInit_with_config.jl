@@ -17,29 +17,30 @@ function parse_commandline()
 
     @add_arg_table s begin
 
+        "--config-file"
+            help = "config TOML file"
+            arg_type = String
+            required = true
+
 
         "--init-profile-TEMP"
-            help = "Initial ocean profile. It must contains: TEMP, SALT, HMXL."
+            help = "Initial ocean profile. It must contains: TEMP."
             arg_type = String
-            default = "BLANK"
+            default = ""
 
 
 
         "--init-profile-SALT"
-            help = "Initial ocean profile. It must contains: TEMP, SALT, HMXL."
+            help = "Initial ocean profile. It must contains: SALT."
             arg_type = String
-            default = "BLANK"
+            default = ""
 
 
         "--init-profile-HMXL"
-            help = "Initial ocean profile. It must contains: TEMP, SALT, HMXL."
+            help = "Initial ocean profile. It must contains: HMXL."
             arg_type = String
-            default = "BLANK"
+            default = ""
 
-        "--config-file"
-            help = "config TOML file"
-            arg_type = String
-            default = "BLANK"
 
     end
 
@@ -118,12 +119,8 @@ mb = EMOM.ModelBlock(ev; init_core=false)
 
 mb.fi.sv[:TEMP][valid_idx] .= TEMP[valid_idx]
 mb.fi.sv[:SALT][valid_idx] .= SALT[valid_idx]
-
-println(size(mb.fi.HMXL))
-println(size(HMXL))
 mb.fi.HMXL[:] = HMXL
 
 println(format("Output file: {}.", init_file))
-
 EMOM.takeSnapshot(DateTimeNoLeap(1,1,1), mb, init_file)
 
