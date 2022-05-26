@@ -29,6 +29,7 @@ config = OrderedDict{Any, Any}(
     "MODEL_CORE" => Dict(
 
         "domain_file"                  => joinpath(domain_dir, "domain.ocn.gx3v7.120323.nc"),
+        "zdomain_file"                 => joinpath(data_dir, "zdomain.nc"),
         "topo_file"                    => joinpath(data_dir, "Nz_bot.nc"),
         "cdata_file"                   => joinpath(data_dir, "forcing.g37.nc"),
 

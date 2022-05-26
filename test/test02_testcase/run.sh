@@ -9,11 +9,16 @@ mkdir data
 
 echo "Making config."
 julia $wdir/EMOM/tools/generate_init_files/make_blank_config.jl > $config_file
-julia set_config.jl --config $wdir/data/config.toml
 
-echo "Making an empty ocean with constant temperature and salinity."
-julia $wdir/EMOM/tools/generate_init_files/make_init_ocean.jl \
-    --config $config_file
+julia $wdir/EMOM/tools/generate_init_files/make_zdomain.jl \
+    --output-file "data/zdomain.nc" \
+    --z-w 0 -10 -20 -30 -40 -50 -60 -70 -80 -90 -100 -120  -140  -160  -200
+
+#julia set_config.jl --config $wdir/data/config.toml
+
+#echo "Making an empty ocean with constant temperature and salinity."
+#julia $wdir/EMOM/tools/generate_init_files/make_init_ocean.jl \
+#    --config $config_file
 
 if [ ] ; then
 mpiexec -n $1 julia --project     \
