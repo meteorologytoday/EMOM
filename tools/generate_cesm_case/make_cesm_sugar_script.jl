@@ -119,6 +119,10 @@ s = ArgParseSettings()
         help = "If set then will try to build the case."
         action = :store_true
 
+    "--git-branch"
+        help = "The version you are checkout. "
+        arg_type = String
+        default = "main"
 
 end
 
@@ -285,11 +289,11 @@ fincl1='SOLIN','FSUTOA','FLUT','FLUTC','CLDHGH','CLDLOW','CLDMED','CLDTOT','FLDS
 """)
 end
 
-pleaseRun(`git clone --branch "dev/cesm-coupling" https://github.com/meteorologytoday/IOM.git`)
+pleaseRun(`git clone --branch "$(parsed["git-branch"])" https://github.com/meteorologytoday/EMOM.git`)
 
 cd(joinpath("SourceMods", "src.docn"))
-pleaseRun(`ln -s ../../IOM/src/CESM_driver/cesm1_tb_docn_comp_mod.F90 ./docn_comp_mod.F90`)
-pleaseRun(`ln -s ../../IOM/src/CESM_driver/ProgramTunnel .`)
+pleaseRun(`ln -s ../../EMOM/src/CESM_driver/cesm1_tb_docn_comp_mod.F90 ./docn_comp_mod.F90`)
+pleaseRun(`ln -s ../../EMOM/src/CESM_driver/ProgramTunnel .`)
 
 cd(joinpath("..", ".."))
 
