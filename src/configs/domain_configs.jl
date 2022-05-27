@@ -13,7 +13,7 @@ function getDomainConfigDescriptors()
             ),
 
             ConfigEntry(
-                "topo_file",
+                "Nz_bot_file",
                 :optional,
                 [String,],
                 "",

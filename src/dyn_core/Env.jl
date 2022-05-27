@@ -74,8 +74,8 @@ mutable struct Env
         #
         topo = nothing
 
-        if cfgs["DOMAIN"]["topo_file"] != ""
-            Dataset(cfgs["DOMAIN"]["topo_file"], "r") do ds
+        if cfgs["DOMAIN"]["Nz_bot_file"] != ""
+            Dataset(cfgs["DOMAIN"]["Nz_bot_file"], "r") do ds
                 Nz_bot = ds["Nz_bot"][:, sub_yrng]
             end
         else

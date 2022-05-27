@@ -65,7 +65,7 @@ else
 end
 
 domain_file = config["DOMAIN"]["domain_file"]
-topo_file  = config["DOMAIN"]["topo_file"]
+Nz_bot_file  = config["DOMAIN"]["Nz_bot_file"]
 z_w_file = config["DOMAIN"]["z_w_file"]
 
 Dataset(domain_file, "r") do ds
@@ -111,11 +111,11 @@ else
     HMXL .= 50.0
 end
 
-if topo_file == ""
+if Nz_bot_file == ""
     Nz_bot = zeros(Int64, Nx, Ny)
     Nz_bot .= Nz
 else
-    Dataset(topo_file, "r") do ds
+    Dataset(Nz_bot_file, "r") do ds
         global Nz_bot = ds["Nz_bot"][:]
     end
 end

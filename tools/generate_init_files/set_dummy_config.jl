@@ -77,9 +77,9 @@ update_config = OrderedDict{Any, Any}(
         "cdata_end_time"               => "0002-01-01 00:00:00",
         "cdata_align_time"             => "0001-01-01 00:00:00",
 
-        "substeps"                     => 8,
+        "substeps"                     =>  8,
         "MLD_scheme"                   => "static",
-        "Qflx"                         => "on",
+        "Qflx"                         => "off",
         "Qflx_finding"                 => "off",
         "convective_adjustment"        => "on",
         "advection_scheme"             => "ekman_AGA2020",
