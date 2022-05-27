@@ -32,10 +32,10 @@ s = ArgParseSettings()
         arg_type = String
         default = ""
 
-    "--HMXL-unit"
-        help = "Unit of HMXL. By default I will try to convert it to meters."
-        arg_type = String
-        default = ""
+    "--HMXL-convert-factor"
+        help = "Conversion used to multiply HMXL variable and end in meters."
+        arg_type = Float64
+        default = 1.0
 
     "--Nz-max"
         help = "Referenced variable name in `ref-file`."
@@ -48,9 +48,9 @@ s = ArgParseSettings()
         required = true
 
     "--SOM"
-        help = "If set then `HMXL-file` and `HMXL-unit` have to be given."
-        action = :store_true
-
+        help = "If set then `HMXL-file` and `HMXL-convert-factor` have to be given."
+        arg_type = Bool
+        default = false
 end
 
 parsed = DataStructures.OrderedDict(parse_args(ARGS, s))
@@ -58,7 +58,7 @@ parsed = DataStructures.OrderedDict(parse_args(ARGS, s))
 JSON.print(parsed, 4)
 
 if parsed["SOM"]
-    for optname in ["HMXL-file", "HMXL-unit"]
+    for optname in ["HMXL-file", "HMXL-convert-factor"]
         if parsed[optname] == ""
             throw(ErrorException("Error: `$(optname)` must be set because `SOM` is set."))
         end
@@ -99,15 +99,7 @@ Nz_bot = zeros(Int64, Nx, Ny)
 if parsed["SOM"]
 
     Dataset(parsed["HMXL-file"], "r") do ds
-        global HMXL = reshape(nomissing(ds["HMXL"][:], NaN), Nx, Ny)
-        if parsed["HMXL-unit"] == "m"
-            println("It is already in meters.")
-        elseif parsed["HMXL-unit"] == "cm"
-            println("It is cm! Convert it...")
-            HMXL ./= 100.0
-        else
-            println("Unknown unit: $(parsed["HMXL-unit"])")
-        end
+        global HMXL = reshape(nomissing(ds["HMXL"][:], NaN), Nx, Ny) * parsed["HMXL-convert-factor"]
     end
 
     for i=1:Nx, j=1:Ny

@@ -73,12 +73,12 @@ function parse_commandline()
             required = true
 
 
-        "--zdomain-file"
+        "--z_w-file"
             help = "Vertical domain file containing z_w_top, z_w_bot in meters with z=0 is the surface."
             arg_type = String
             required = true
 
-        "--topo-file"
+        "--Nz_bot-file"
             help = "File containing Nz_bot."
             arg_type = String
             required = true
@@ -236,17 +236,19 @@ config = Dict{Any, Any}(
         "enable_archive"         => true,
     ),
 
+    "DOMAIN" => Dict(
+        "domain_file"                  => parsed["domain-file"],
+        "Nz_bot_file"                  => parsed["Nz_bot-file"],
+        "z_w_file"                     => parsed["z_w-file"],
+    ),
+
     "MODEL_CORE" => Dict(
 
-        "domain_file"                  => parsed["domain-file"],
-        "topo_file"                    => parsed["topo-file"],
         "cdata_var_file_map"           => var_file_map,
 
         "cdata_beg_time"               => parsed["forcing-time"][1],
         "cdata_end_time"               => parsed["forcing-time"][2],
         "cdata_align_time"             => parsed["forcing-time"][3],
-
-        "z_w"                          => nothing,
 
         "substeps"                     => 8,
         "MLD_scheme"                   => "datastream",
@@ -266,19 +268,6 @@ config = Dict{Any, Any}(
     ),
 
 )
-
-Dataset(parsed["zdomain-file"], "r") do ds
-
-    z_w_top = nomissing(ds["z_w_top"][:], NaN)
-    z_w_bot = nomissing(ds["z_w_bot"][:], NaN)
-
-    z_w      = zeros(Float64, length(z_w_top)+1)
-    z_w[1:end-1]   = z_w_top
-    z_w[end] = z_w_bot[end]
-
-    global config["MODEL_CORE"]["z_w"]  = z_w
-end
-
 
 using TOML
 

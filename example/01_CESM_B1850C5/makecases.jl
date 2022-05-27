@@ -17,10 +17,12 @@ cesm_root    = "/glade/u/home/tienyiao/ucar_models/cesm1_2_2_1_lw-nudging" # Pat
 ncpu         = 16
 cases_dir    = joinpath(@__DIR__, "cases") # This directory contains cases using members of hierarchy
 inputdata_dir= joinpath(@__DIR__, "inputdata") # This directory contains inputdata needed by the ocean model such as domain files, Q-flux files, Nz_bot.nc and such
-domain_file = "domain.ocn.gx1v6.090206.nc"
+domain_file = joinpath(EMOM_root, "data", "CESM_domains", "domain.ocn.gx1v6.090206.nc")
 z_w_file = joinpath(inputdata_dir, "z_w.nc")
-z_w_ref_file = "/glade/scratch/tienyiao/archive/CAM5_POP2/ocn/hist/CAM5_POP2.pop.h.0001-02.nc"
-z_w_ref_file_convert_factor = - 0.01
+POP2_hist_file = "/glade/scratch/tienyiao/archive/CAM5_POP2/ocn/hist/CAM5_POP2.pop.h.0001-02.nc"
+POP2_hist_file_z_convert_factor    = - 0.01
+POP2_hist_file_hmxl_convert_factor =   0.01
+POP2_hist_ref_var = "TEMP"
 
 forcing_files = Dict(
     "SOM" => "",
@@ -39,9 +41,15 @@ for ocn_model in ocn_models
     casename = "$(casename_prefix)_$(ocn_model)"
     caseroot = joinpath(cases_dir, casename)
 
-    topo_file = joinpath(inputdata_dir, "Nz_bot_$(ocn_model).nc")
+    Nz_bot_file = joinpath(inputdata_dir, "Nz_bot_$(ocn_model).nc")
     init_file = "$(casename).init.snapshot.jld2"
+
     forcing_file = forcing_files[ocn_model]
+    if ! isfile(forcing_file)
+        println("Forcing file $forcing_file does not exist. Re-assign forcing file as empty.")
+        forcing_file = ""
+    end
+
 
     # Create init ocean restart files
     mkpath(inputdata_dir)
@@ -55,8 +63,8 @@ for ocn_model in ocn_models
         # Generate z_w.nc with a referenced POP2 history file
         pleaseRun(`julia $(EMOM_root)/tools/generate_init_files/make_z_w.jl
                          --output-file $z_w_file 
-                         --reference-file $z_w_ref_file
-                         --reference-file-convert-factor $z_w_ref_file_convert_factor
+                         --reference-file $POP2_hist_file
+                         --reference-file-convert-factor $POP2_hist_file_z_convert_factor
         `)
 
         # The follwing is to generate z_w.nc with explicit numbers
@@ -67,6 +75,29 @@ for ocn_model in ocn_models
 
         =#
     end
+
+    if !isfile(Nz_bot_file)
+#=
+julia $wdir/EMOM/tools/generate_init_files/make_Nz_bot_from_topo.jl \
+    --output-file $Nz_bot_file \
+    --domain-file $domain_file \
+    --z_w-file $z_w_file \
+    --topo-file "$topo_file"
+=#
+        # Generate z_w.nc with a referenced POP2 history file
+        pleaseRun(`julia $(EMOM_root)/tools/generate_init_files/make_Nz_bot_from_ref_file.jl
+                         --ref-file $POP2_hist_file
+                         --ref-var $POP2_hist_ref_var
+                         --domain-file $domain_file 
+                         --z_w-file $z_w_file
+                         --HMXL-file $POP2_hist_file 
+                         --HMXL-convert-factor $POP2_hist_file_hmxl_convert_factor
+                         --SOM $(ocn_model == "SOM")
+                         --output-file $Nz_bot_file
+        `)
+
+    end
+
 
     println("Making cesm generation script...")
 
@@ -93,18 +124,19 @@ for ocn_model in ocn_models
     #if [ ! "$?" = "0" ] ; then
     #    echo "Something went wrong when making cesm case. Skip this case."
 #        continue
-    pleaseRun(`julia $EMOM_root/tools/generate_init_files/makeConfigFromCESMCase.jl \
-            --caseroot     $caseroot                    \
-            --ocn-model    $ocn_model                   \
-            --domain-file  $inputdata_dir/$domain_file  \
-            --zdomain-file $inputdata_dir/$z_w_file \
-            --topo-file    $inputdata_dir/$topo_file    \
-            --init-file    $inputdata_dir/$init_file    \
-            --forcing-file-HMXL $inputdata_dir/$forcing_file \
-            --forcing-file-TEMP $inputdata_dir/$forcing_file \
-            --forcing-file-SALT $inputdata_dir/$forcing_file \
-            --forcing-file-QFLXT $inputdata_dir/$forcing_file \
-            --forcing-file-QFLXS $inputdata_dir/$forcing_file \
+
+    pleaseRun(`julia $EMOM_root/tools/generate_init_files/make_config_from_CESM_case.jl 
+            --caseroot     $caseroot                    
+            --ocn-model    $ocn_model                  
+            --domain-file  $domain_file  
+            --z_w-file $z_w_file 
+            --Nz_bot-file    $Nz_bot_file    
+            --init-file    $init_file    
+            --forcing-file-HMXL $forcing_file 
+            --forcing-file-TEMP $forcing_file 
+            --forcing-file-SALT $forcing_file 
+            --forcing-file-QFLXT $forcing_file
+            --forcing-file-QFLXS $forcing_file 
             --forcing-time "0001-01-01 00:00:00" "0002-01-01 00:00:00" "0001-01-01 00:00:00"
     `)
 

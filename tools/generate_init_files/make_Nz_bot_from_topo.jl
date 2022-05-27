@@ -46,7 +46,8 @@ s = ArgParseSettings()
 
     "--SOM"
         help = "If set then `HMXL-file` and `HMXL-unit` have to be given."
-        action = :store_true
+        arg_type = Bool
+        default = false
 
 end
 
