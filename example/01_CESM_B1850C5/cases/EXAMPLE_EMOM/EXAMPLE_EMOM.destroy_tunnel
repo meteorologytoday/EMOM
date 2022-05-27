@@ -1,2 +1,0 @@
-#!/bin/bash
-rm -rf /glade/scratch/tienyiao/EXAMPLE_EMOM/run/x_tmp/*
