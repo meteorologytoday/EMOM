@@ -1,0 +1,9 @@
+&cam_inparm
+ dtime = 1800
+ 
+ 
+ co2vmr=284.7e-6
+ start_ymd = 00010101 
+ 
+ 
+/

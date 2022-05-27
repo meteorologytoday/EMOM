@@ -28,10 +28,10 @@ s = ArgParseSettings()
         arg_type = String
         default = ""
 
-    "--reference-file-unit"
-        help = "The unit of reference file. POP2 uses centimeters so user have to be careful."
-        arg_type = String
-        default = "cm"
+    "--reference-file-convert-factor"
+        help = "The conversion factor of reference file. The z_w_top and z_w_bot of the read file will be multipled by this factor and the end result is meters. POP2 uses positive number in centimeters so in this case user should specify -0.01."
+        arg_type = Float64
+        default = 1.0
 
 
 
@@ -43,7 +43,7 @@ JSON.print(parsed, 4)
 
 if parsed["reference-file"] != ""
     Dataset(parsed["reference-file"], "r") do ds
-        z_w_top = ds["z_w_top"][:]
+        z_w_top = ds["z_w_top"][:] 
         z_w_bot = ds["z_w_bot"][:]
 
         # check
@@ -51,21 +51,11 @@ if parsed["reference-file"] != ""
             throw(ErrorException("z_w_top[2:end] is not identical to z_w_bot[1:end-1]. Please check."))
         end
 
-        if any(z_w_top .>= 0.0)
-            throw(ErrorException("z_w_top should be strictly non-positive"))
-        end
-    
         parsed["z_w"] = zeros(Float64, length(z_w_top)+1)
         parsed["z_w"][1:end-1] = z_w_top
         parsed["z_w"][end] = z_w_bot[end]
 
-        if parsed["reference-file-unit"] == "m"
-            # do nothing
-        elseif parsed["reference-file-unit"] == "cm"
-            parsed["z_w"] ./= 100.0
-        else
-            throw(ErrorException("Unknown `reference-file-unit` : $(parsed["reference-file-unit"])"))
-        end
+        parsed["z_w"] .*= parsed["reference-file-convert-factor"]
     end
 end
 

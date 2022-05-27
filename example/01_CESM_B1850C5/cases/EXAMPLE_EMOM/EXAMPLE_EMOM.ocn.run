@@ -1,0 +1,28 @@
+#!/bin/bash
+
+ml av
+ml load openmpi/4.0.3
+ml load julia/1.6.0
+julia --project -e 'ENV["JULIA_MPI_BINARY"]="system"; using Pkg; Pkg.build("MPI"; verbose=true)'
+
+LID=$( date +%y%m%d-%H%M%S )
+
+caseroot="/glade/work/tienyiao/projects/CAM5_coupling/21_EMOM/EMOM/example/01_CESM_B1850C5/cases/EXAMPLE_EMOM"
+caserun="/glade/scratch/tienyiao/EXAMPLE_EMOM/run"
+archive_log_dir="/glade/scratch/tienyiao/archive/EXAMPLE_EMOM/ocn/logs"
+logfile="iom.log.${LID}"
+
+mpiexec -n 16 julia --project ${caseroot}/IOM/src/CESM_driver/main.jl --config-file=${caseroot}/config.toml &> ${caserun}/${logfile}
+
+
+ret_code=$?
+echo "Return code: $ret_code"
+
+if [ $ret_code -eq 0 ]; then 
+    echo "Program ends succefully. Move log file to arcihve."
+    mv "${caserun}/${logfile}" "${archive_log_dir}/"
+else
+    echo "Program ends abnomally. Please check."
+fi
+
+

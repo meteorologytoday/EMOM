@@ -1,0 +1,24 @@
+&clm_inparm
+ albice = 0.80,0.55
+ co2_type = 'diagnostic'
+ create_crop_landunit = .false.
+ dtime = 1800
+ fatmlndfrc = '/glade/p/cesmdata/cseg/inputdata/share/domains/domain.lnd.fv0.9x1.25_gx1v6.090309.nc'
+ finidat = '/glade/p/cesmdata/cseg/inputdata/ccsm4_init/b40.1850.track1.1deg.006/0863-01-01/b40.1850.track1.1deg.006.clm2.r.0863-01-01-00000.nc'
+ fpftcon = '/glade/p/cesmdata/cseg/inputdata/lnd/clm2/pftdata/pft-physiology.clm40.c130424.nc'
+ fsnowaging = '/glade/p/cesmdata/cseg/inputdata/lnd/clm2/snicardata/snicar_drdt_bst_fit_60_c070416.nc'
+ fsnowoptics = '/glade/p/cesmdata/cseg/inputdata/lnd/clm2/snicardata/snicar_optics_5bnd_c090915.nc'
+ fsurdat = '/glade/p/cesmdata/cseg/inputdata/lnd/clm2/surfdata/surfdata_0.9x1.25_simyr1850_c110921.nc'
+ maxpatch_glcmec = 0
+ nsegspc = 20
+ urban_hac = 'ON_WASTEHEAT'
+ urban_traffic = .false.
+/
+&ndepdyn_nml
+/
+#!--------------------------------------------------------------------------------------------------------------------------
+#! lnd_in:: Comment:
+#! This namelist was created using the following command-line:
+#!     /glade/u/home/tienyiao/ucar_models/cesm1_2_2_1_lw-nudging/models/lnd/clm/bld/CLM build-namelist -infile /glade/work/tienyiao/projects/CAM5_coupling/21_EMOM/EMOM/example/01_CESM_B1850C5/cases/EXAMPLE_EMOM/Buildconf/clmconf/cesm_namelist -csmdata /glade/p/cesmdata/cseg/inputdata -inputdata /glade/work/tienyiao/projects/CAM5_coupling/21_EMOM/EMOM/example/01_CESM_B1850C5/cases/EXAMPLE_EMOM/Buildconf/clm.input_data_list -ignore_ic_year -namelist &clm_inparm start_ymd = 00010101  / -use_case 1850_control -res 0.9x1.25 -clm_start_type default -l_ncpl 48 -lnd_frac /glade/p/cesmdata/cseg/inputdata/share/domains/domain.lnd.fv0.9x1.25_gx1v6.090309.nc -glc_nec 0 -co2_ppmv 284.7 -co2_type diagnostic -config /glade/work/tienyiao/projects/CAM5_coupling/21_EMOM/EMOM/example/01_CESM_B1850C5/cases/EXAMPLE_EMOM/Buildconf/clmconf/config_cache.xml
+#! For help on options use: /glade/u/home/tienyiao/ucar_models/cesm1_2_2_1_lw-nudging/models/lnd/clm/bld/CLM build-namelist -help
+#!--------------------------------------------------------------------------------------------------------------------------

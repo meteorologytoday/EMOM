@@ -6,9 +6,9 @@
     DOCN_SOM_FILENAME = "pop_frc.gx1v6.100513.nc"
     OCN_TIGHT_COUPLING = "FALSE"
 
-    RUN_TYPE    = "branch"
-    RUN_REFCASE = "paper2021_[MODEL]_CTL_coupled"
-    RUN_REFDATE = "0201-01-01"
+#    RUN_TYPE    = "branch"
+#    RUN_REFCASE = "paper2021_[MODEL]_CTL_coupled"
+#    RUN_REFDATE = "0201-01-01"
 
     CONTINUE_RUN = "FALSE"
     RESUBMIT     = 1
