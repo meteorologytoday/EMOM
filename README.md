@@ -33,5 +33,7 @@ The standalone version currently is just to test if the driver works.
 # TODO list
 
 - `make_init` to generate initial ocean profile.
-
+- Test out energy conservation. Use the "area" variable provided in the domain file to compute the energy flux.
+- Test out coupling with CESM1-CAM5
+- Test out coupling with CESM2-CAM5
 
