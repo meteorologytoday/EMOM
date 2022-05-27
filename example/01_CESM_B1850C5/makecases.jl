@@ -40,9 +40,10 @@ for ocn_model in ocn_models
     
     casename = "$(casename_prefix)_$(ocn_model)"
     caseroot = joinpath(cases_dir, casename)
+    EMOM_config_file = joinpath(caseroot, "config.toml")
 
     Nz_bot_file = joinpath(inputdata_dir, "Nz_bot_$(ocn_model).nc")
-    init_file = "$(casename).init.snapshot.jld2"
+    init_file = joinpath(inputdata_dir, "$(casename).init.snapshot.jld2")
 
     forcing_file = forcing_files[ocn_model]
     if ! isfile(forcing_file)
@@ -85,7 +86,7 @@ julia $wdir/EMOM/tools/generate_init_files/make_Nz_bot_from_topo.jl \
     --topo-file "$topo_file"
 =#
         # Generate z_w.nc with a referenced POP2 history file
-        pleaseRun(`julia $(EMOM_root)/tools/generate_init_files/make_Nz_bot_from_ref_file.jl
+        pleaseRun(`julia $EMOM_root/tools/generate_init_files/make_Nz_bot_from_ref_file.jl
                          --ref-file $POP2_hist_file
                          --ref-var $POP2_hist_ref_var
                          --domain-file $domain_file 
@@ -98,6 +99,18 @@ julia $wdir/EMOM/tools/generate_init_files/make_Nz_bot_from_topo.jl \
 
     end
 
+    if !isfile(init_file)
+
+        # Set dummy config here because every model uses its own Nz_bot file
+        pleaseRun(`julia $EMOM_root/tools/generate_init_files/set_dummy_config.jl
+            --domain-file  $domain_file
+            --z_w-file     $z_w_file
+            --Nz_bot-file  $Nz_bot_file
+            --config       $dummy_config_file
+        `)
+ 
+        pleaseRun(`julia $EMOM_root/tools/generate_init_files/make_init_ocean.jl --config $dummy_config_file --output-filename $init_file`)
+    end
 
     println("Making cesm generation script...")
 
@@ -138,11 +151,16 @@ julia $wdir/EMOM/tools/generate_init_files/make_Nz_bot_from_topo.jl \
             --forcing-file-QFLXT $forcing_file
             --forcing-file-QFLXS $forcing_file 
             --forcing-time "0001-01-01 00:00:00" "0002-01-01 00:00:00" "0001-01-01 00:00:00"
+            --output-filename $(EMOM_config_file)
     `)
+
+    println("Validate the generated config file: $(EMOM_config_file)")
+    pleaseRun(`julia $EMOM_root/tools/generate_init_files/validate_config.jl --config $EMOM_config_file`)
 
     for (target_nml_file, provided_nml_file) in user_namelists
         if isfile(provided_nml_file)
             cp(provided_nml_file, joinpath(caseroot, target_nml_file), force=true)
         end
     end
+
 end

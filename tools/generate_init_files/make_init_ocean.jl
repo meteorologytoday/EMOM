@@ -21,6 +21,10 @@ function parse_commandline()
             arg_type = String
             default = ""
 
+        "--output-filename"
+            help = "Output filename (jld2 file)."
+            arg_type = String
+            default = ""
 
         "--init-profile-TEMP"
             help = "Initial ocean profile. It must contains: TEMP. If not specified, temperature is set to 20 degC."
@@ -54,7 +58,12 @@ println("Processing data...")
 using TOML
 config = TOML.parsefile(parsed["config"])
 
-init_file  = config["MODEL_MISC"]["init_file"]
+if parsed["output-filename"] != ""
+    init_file  = parsed["output-filename"]
+else
+    init_file  = config["MODEL_MISC"]["init_file"]
+end
+
 domain_file = config["DOMAIN"]["domain_file"]
 topo_file  = config["DOMAIN"]["topo_file"]
 z_w_file = config["DOMAIN"]["z_w_file"]

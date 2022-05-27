@@ -131,11 +131,6 @@ function parse_commandline()
             arg_type = String
             default = "config.toml"
 
-        "--output-path"
-            help = "The output path. Default is the same as RUNDIR in env_run.xml"
-            arg_type = String
-            default = ""
-
         "--finding-QFLX-timescale"
             help = "If this is set to a real number, finding QFLX mode is on. And timescale is in days."
             arg_type = Float64
@@ -271,9 +266,7 @@ config = Dict{Any, Any}(
 
 using TOML
 
-output_path = ( parsed["output-path"] == "" ) ? config["DRIVER"]["caseroot"] : parsed["output-path"]
-output_config = joinpath(output_path, "config.toml")
-println("Output file: $(output_config)")
-open(output_config, "w") do io
+println("Output file: $(parsed["output-filename"])")
+open(parsed["output-filename"], "w") do io
     TOML.print(io, config; sorted=true)
 end

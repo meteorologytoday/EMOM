@@ -14,6 +14,24 @@ function parse_commandline()
             arg_type = String
             required = true
 
+        "--domain-file"
+            help = "Domain file."
+            arg_type = String
+            required = true
+
+        "--Nz_bot-file"
+            help = "Domain file."
+            arg_type = String
+            required = true
+
+        "--z_w-file"
+            help = "Domain file."
+            arg_type = String
+            required = true
+
+
+
+
     end
 
     return parse_args(s)
@@ -25,7 +43,7 @@ parsed = parse_commandline()
 project_root_dir = @__DIR__
 data_dir = joinpath(project_root_dir, "data")
 domain_dir = joinpath(project_root_dir, "CESM_domains")
-casename = "Sandbox"
+casename = "dummy"
 
 update_config = OrderedDict{Any, Any}(
 
@@ -46,9 +64,9 @@ update_config = OrderedDict{Any, Any}(
     ),
 
     "DOMAIN" => Dict(
-        "domain_file"                  => joinpath(domain_dir, "domain.ocn.gx3v7.120323.nc"),
-        "topo_file"                    => joinpath(data_dir, "Nz_bot.nc"),
-        "z_w_file"                     => joinpath(data_dir, "z_w.nc"),
+        "domain_file"                  => parsed["domain-file"],
+        "Nz_bot_file"                  => parsed["Nz_bot-file"],
+        "z_w_file"                     => parsed["z_w-file"],
     ),
 
     "MODEL_CORE" => Dict(
