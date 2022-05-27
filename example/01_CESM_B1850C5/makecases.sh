@@ -1,18 +1,17 @@
 #!/bin/bash
 
-project_code=UCIR0040
+project_code=UMIA0022
 walltime=12:00:00
 resolution=f09_g16
 machine=cheyenne
 cesm_root=/glade/u/home/tienyiao/ucar_models/cesm1_2_2_1_lw-nudging
-ncpu=7
+ncpu=16
 cases_dir=`pwd`/cases
 inputdata_dir=`pwd`/inputdata
 domain_file=domain.ocn.gx1v6.090206.nc
 
 
-#for ocn_model in SOM ; do #MLM EMOM ; do
-for ocn_model in MLM EMOM ; do
+for ocn_model in EMOM ; do
 
     if [ "$ocn_model" = "SOM" ] ; then
         topo_file=Nz_bot_SOM.nc
@@ -21,7 +20,7 @@ for ocn_model in MLM EMOM ; do
     fi
 
 
-    casename=qco2_${ocn_model}
+    casename=EXAMPLE_${ocn_model}
 
     julia EMOM/tools/generate_cesm_case/make_cesm_sugar_script.jl \
         --project $project_code  \
@@ -29,7 +28,7 @@ for ocn_model in MLM EMOM ; do
         --root $cases_dir        \
         --walltime $walltime     \
         --resolution $resolution \
-        --compset E1850          \
+        --compset E1850C5        \
         --machine $machine       \
         --cesm-root $cesm_root   \
         --cesm-env cesm_env.toml \
@@ -73,11 +72,5 @@ for ocn_model in MLM EMOM ; do
 
 
     cp ../simulation_shared_files/shared_user_namelist/user_nl_cam_monthly $caseroot/user_nl_cam
-
-    echo "co2vmr=1138.8e-6" >> $caseroot/user_nl_cam
-
-    caserun=/glade/u/home/tienyiao/scratch-tienyiao/$casename/run
-    cp /glade/u/home/tienyiao/scratch-tienyiao/archive/paper2021_${ocn_model}_CTL_coupled/rest/0201-01-01-00000/* $caserun
-
 
 done
