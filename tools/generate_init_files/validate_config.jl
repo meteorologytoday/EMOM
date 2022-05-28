@@ -31,7 +31,12 @@ function parse_commandline()
             help = "To be or not to be."
             arg_type = Bool
             default = true
-
+        
+        "--validate-groups"
+            help = "The group names user wants to validate."
+            arg_type = String
+            nargs = '*'
+            default = ["MODEL_CORE", "MODEL_MISC", "DOMAIN", "DRIVER"]
 
     end
 
@@ -43,7 +48,7 @@ JSON.print(parsed,4)
 
 config = TOML.parsefile(parsed["config"])
 
-av_grpnames = ["MODEL_CORE", "MODEL_MISC", "DOMAIN", "DRIVER"]
+av_grpnames = parsed["validate-groups"]
 
 domain_cfgd = getDomainConfigDescriptors()
 driver_cfgd = getDriverConfigDescriptors()

@@ -14,7 +14,7 @@ machine      = "cheyenne"
 compset      = "E1850C5"
 cesm_env_file = "cesm_env.toml"
 cesm_root    = "/glade/u/home/tienyiao/ucar_models/cesm1_2_2_1_lw-nudging" # Path to the root of CESM1 code
-ncpu         = 16
+ncpu         = 18
 cases_dir    = joinpath(@__DIR__, "cases") # This directory contains cases using members of hierarchy
 inputdata_dir= joinpath(@__DIR__, "inputdata") # This directory contains inputdata needed by the ocean model such as domain files, Q-flux files, Nz_bot.nc and such
 domain_file = joinpath(EMOM_root, "data", "CESM_domains", "domain.ocn.gx1v6.090206.nc")
@@ -56,13 +56,13 @@ for ocn_model in ocn_models
     mkpath(inputdata_dir)
 
     if !isfile(dummy_config_file)    
-        pleaseRun(pipeline(`julia $EMOM_root/tools/generate_init_files/make_blank_config.jl`, stdout = dummy_config_file))
+        pleaseRun(pipeline(`julia --project=$EMOM_root $EMOM_root/tools/generate_init_files/make_blank_config.jl`, stdout = dummy_config_file))
     end
 
     if !isfile(z_w_file)
 
         # Generate z_w.nc with a referenced POP2 history file
-        pleaseRun(`julia $(EMOM_root)/tools/generate_init_files/make_z_w.jl
+        pleaseRun(`julia --project=$EMOM_root $(EMOM_root)/tools/generate_init_files/make_z_w.jl
                          --output-file $z_w_file 
                          --reference-file $POP2_hist_file
                          --reference-file-convert-factor $POP2_hist_file_z_convert_factor
@@ -70,7 +70,7 @@ for ocn_model in ocn_models
 
         # The follwing is to generate z_w.nc with explicit numbers
         #=
-        pleaseRun(`julia $EMOM_root/tools/generate_init_files/make_z_w.jl
+        pleaseRun(`julia --project=$EMOM_root $EMOM_root/tools/generate_init_files/make_z_w.jl
                          --output-file $z_w_file 
                          --z_w 0 -10 -20 -30 -40 -50 -60 -70 -80 -90 -100 -120  -140  -160  -200
 
@@ -79,14 +79,14 @@ for ocn_model in ocn_models
 
     if !isfile(Nz_bot_file)
 #=
-julia $wdir/EMOM/tools/generate_init_files/make_Nz_bot_from_topo.jl \
+julia --project=$EMOM_root $wdir/EMOM/tools/generate_init_files/make_Nz_bot_from_topo.jl \
     --output-file $Nz_bot_file \
     --domain-file $domain_file \
     --z_w-file $z_w_file \
     --topo-file "$topo_file"
 =#
         # Generate z_w.nc with a referenced POP2 history file
-        pleaseRun(`julia $EMOM_root/tools/generate_init_files/make_Nz_bot_from_ref_file.jl
+        pleaseRun(`julia --project=$EMOM_root $EMOM_root/tools/generate_init_files/make_Nz_bot_from_ref_file.jl
                          --ref-file $POP2_hist_file
                          --ref-var $POP2_hist_ref_var
                          --domain-file $domain_file 
@@ -102,21 +102,21 @@ julia $wdir/EMOM/tools/generate_init_files/make_Nz_bot_from_topo.jl \
     if !isfile(init_file)
 
         # Set dummy config here because every model uses its own Nz_bot file
-        pleaseRun(`julia $EMOM_root/tools/generate_init_files/set_dummy_config.jl
+        pleaseRun(`julia --project=$EMOM_root $EMOM_root/tools/generate_init_files/set_dummy_config.jl
             --domain-file  $domain_file
             --z_w-file     $z_w_file
             --Nz_bot-file  $Nz_bot_file
             --config       $dummy_config_file
         `)
  
-        pleaseRun(`julia $EMOM_root/tools/generate_init_files/make_init_ocean.jl --config $dummy_config_file --output-filename $init_file`)
+        pleaseRun(`julia --project=$EMOM_root $EMOM_root/tools/generate_init_files/make_init_ocean.jl --config $dummy_config_file --output-filename $init_file`)
     end
 
     println("Making cesm generation script...")
 
     try
 
-        pleaseRun(`julia $EMOM_root/tools/generate_cesm_case/make_cesm_sugar_script.jl
+        pleaseRun(`julia --project=$EMOM_root $EMOM_root/tools/generate_cesm_case/make_cesm_sugar_script.jl
             --project $project_code  
             --casename $casename     
             --root $cases_dir        
@@ -138,7 +138,7 @@ julia $wdir/EMOM/tools/generate_init_files/make_Nz_bot_from_topo.jl \
     #    echo "Something went wrong when making cesm case. Skip this case."
 #        continue
 
-    pleaseRun(`julia $EMOM_root/tools/generate_init_files/make_config_from_CESM_case.jl 
+    pleaseRun(`julia --project=$EMOM_root $EMOM_root/tools/generate_init_files/make_config_from_CESM_case.jl 
             --caseroot     $caseroot                    
             --ocn-model    $ocn_model                  
             --domain-file  $domain_file  
@@ -155,7 +155,7 @@ julia $wdir/EMOM/tools/generate_init_files/make_Nz_bot_from_topo.jl \
     `)
 
     println("Validate the generated config file: $(EMOM_config_file)")
-    pleaseRun(`julia $EMOM_root/tools/generate_init_files/validate_config.jl --config $EMOM_config_file`)
+    pleaseRun(`julia --project=$EMOM_root $EMOM_root/tools/generate_init_files/validate_config.jl --config $EMOM_config_file`)
 
     for (target_nml_file, provided_nml_file) in user_namelists
         if isfile(provided_nml_file)

@@ -7,22 +7,6 @@ This program is run after a CESM case has been setup before execute.
 It reads env_build.xml and env_run.xml to fill in paths and files.
 """)
 
-function runOneCmd(cmd)
-    println(">> ", string(cmd))
-    run(cmd)
-end
-
-
-function pleaseRun(cmd)
-    if isa(cmd, Array)
-        for i = 1:length(cmd)
-            runOneCmd(cmd[i])
-        end
-    else
-        runOneCmd(cmd)
-    end
-end
-
 function getCESMConfig(path, ids)
 
     println("CESM config path: $(path)")
