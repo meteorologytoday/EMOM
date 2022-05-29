@@ -3,23 +3,25 @@ include("RunCommands.jl")
 using .RunCommands
 using Formatting
 
-ocn_models = ["EMOM", "MLM", "SOM"]
+#ocn_models = ["EMOM", "MLM", "SOM"]
+ocn_models = ["EMOM",]
 EMOM_root = joinpath(@__DIR__, "..", "..")
 
-casename_prefix = "EXAMPLE"
-project_code = "NONE"
+casename_prefix = "EXAMPLE_g37"
+project_code = "UMIA0022"
 walltime     = "12:00:00"
-resolution   = "f09_g16"
-machine      = "tienyiah"
+resolution   = "f45_g37"
+machine      = "cheyenne"
 compset      = "E1850"
 cesm_env_file = "cesm_env.toml"
-cesm_root    = "/billevans/models/cesm1_2_2_1" # Path to the root of CESM1 code
-ncpu         = 18
+cesm_root    = "/glade/u/home/tienyiao/ucar_models/cesm1_2_2_1_lw-nudging" # Path to the root of CESM1 code
+ncpu         = 8
 cases_dir    = joinpath(@__DIR__, "cases") # This directory contains cases using members of hierarchy
 inputdata_dir= joinpath(@__DIR__, "inputdata") # This directory contains inputdata needed by the ocean model such as domain files, Q-flux files, Nz_bot.nc and such
 domain_file = joinpath(EMOM_root, "data", "CESM_domains", "domain.ocn.gx3v7.120323.nc")
 z_w_file = joinpath(inputdata_dir, "z_w.nc")
-POP2_hist_file = "/glade/scratch/tienyiao/archive/CAM5_POP2/ocn/hist/CAM5_POP2.pop.h.0001-02.nc"
+
+POP2_hist_file = "/glade/u/home/tienyiao/scratch-tienyiao/archive/TEST_gx3v7/ocn/hist/TEST_gx3v7.pop.h.0001-02.nc"
 POP2_hist_file_z_convert_factor    = - 0.01
 POP2_hist_file_hmxl_convert_factor =   0.01
 POP2_hist_ref_var = "TEMP"

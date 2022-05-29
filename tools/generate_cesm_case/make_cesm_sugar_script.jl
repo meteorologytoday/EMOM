@@ -69,7 +69,7 @@ s = ArgParseSettings()
 
 
     "--ncpu"
-        help = "The number of CPUs that IOM can use"
+        help = "The number of CPUs that EMOM can use"
         arg_type = Int64
         required = true
 
@@ -237,8 +237,9 @@ caseroot="$(cesm_env["CASEROOT"])"
 caserun="$(cesm_env["RUNDIR"])"
 archive_log_dir="$(cesm_env["DOUT_S_ROOT"])/ocn/logs"
 logfile="iom.log.\${LID}"
+EMOM_ROOT=\${caseroot}/EMOM
 
-mpiexec -n $(parsed["ncpu"]) julia --project \${caseroot}/IOM/src/CESM_driver/main.jl --config-file=\${caseroot}/config.toml &> \${caserun}/\${logfile}
+mpiexec -n $(parsed["ncpu"]) julia --project=\${EMOM_ROOT} \${EMOM_ROOT}/src/CESM_driver/main.jl --config-file=\${caseroot}/config.toml &> \${caserun}/\${logfile}
 
 
 ret_code=\$?
