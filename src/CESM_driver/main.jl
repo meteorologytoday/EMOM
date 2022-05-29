@@ -1,5 +1,5 @@
 include(joinpath(@__DIR__, "..", "share", "LogSystem.jl"))
-include(joinpath(@__DIR__, "..", "models", "EMOM", "ENGINE_EMOM.jl"))
+include(joinpath(@__DIR__, "..", "dyn_core", "ENGINE_EMOM.jl"))
 include(joinpath(@__DIR__, "..", "driver", "driver_working.jl"))
 include(joinpath(@__DIR__, "ProgramTunnel", "src", "julia", "BinaryIO.jl"))
 include(joinpath(@__DIR__, "ProgramTunnel", "src", "julia", "ProgramTunnel_fs_new.jl"))
