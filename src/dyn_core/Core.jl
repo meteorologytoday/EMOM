@@ -132,12 +132,6 @@ mutable struct Core
         sfcmask_T[1, :, :] .= 1
         mtx[:T_sfcmask_T] = spdiagm(0 => amo.T_mask_T * reshape(sfcmask_T, :))
 
-        if length(cdata_varnames) == 0
-            writeLog("No datastream variable is needed.")
-        else
-            writeLog("Needed datastream varnames: ", join(cdata_varnames, ", "))
-        end
-        
         if length(ev.cdata_varnames) == 0
             writeLog("No datastream variable is needed.")
             cdatam = nothing
