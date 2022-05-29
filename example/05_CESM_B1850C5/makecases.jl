@@ -6,6 +6,7 @@ using Formatting
 ocn_models = ["EMOM", "MLM", "SOM"]
 EMOM_root = joinpath(@__DIR__, "..", "..")
 
+git_branch = "dev/wrap-up"
 casename_prefix = "EXAMPLE"
 project_code = "UMIA0022"
 walltime     = "12:00:00"
@@ -126,7 +127,8 @@ julia --project=$EMOM_root $wdir/EMOM/tools/generate_init_files/make_Nz_bot_from
             --machine $machine       
             --cesm-root $cesm_root   
             --cesm-env $cesm_env_file
-            --ncpu $ncpu 
+            --ncpu $ncpu
+            --git-branch $git_branch
         `)
 
     catch e

@@ -236,7 +236,7 @@ LID=\$( date +%y%m%d-%H%M%S )
 caseroot="$(cesm_env["CASEROOT"])"
 caserun="$(cesm_env["RUNDIR"])"
 archive_log_dir="$(cesm_env["DOUT_S_ROOT"])/ocn/logs"
-logfile="iom.log.\${LID}"
+logfile="emom.log.\${LID}"
 EMOM_ROOT=\${caseroot}/EMOM
 
 mpiexec -n $(parsed["ncpu"]) julia --project=\${EMOM_ROOT} \${EMOM_ROOT}/src/CESM_driver/main.jl --config-file=\${caseroot}/config.toml &> \${caserun}/\${logfile}
