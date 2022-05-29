@@ -93,6 +93,7 @@ mutable struct AdvancedMatrixOperators
         mask_T         :: AbstractArray{Float64, 3},
         deepmask_T     :: AbstractArray{Float64, 3},
         bmo :: Union{Nothing, BasicMatrixOperators} = nothing,
+        onelayerΔa_T   :: Union{AbstractArray{Float64, 2}, Nothing} = nothing, 
     )
 
         # define a converter to make 2D variable repeat in z direction for Nz times
@@ -198,10 +199,19 @@ mutable struct AdvancedMatrixOperators
         UV_invΔy_UV = (gd.Δy_UV.^(-1) |>  cvt3_diagm)
         UV_invΔz_UV = (gd.Δz_UV.^(-1) |>  cvt3_diagm)
 
-        T_invΔa_T = T_invΔx_T * T_invΔy_T
+        if onelayerΔa_T == nothing 
+            Δa_T = gd.Δx_T .* gd.Δy_T
+        else
+            Δa_T = repeat(reshape(onelayerΔa_T, 1, gd.Nx, gd.Ny), outer=(gd.Nz, 1, 1))
+        end
+
+        T_Δa_T    = Δa_T         |> cvt3_diagm
+        T_invΔa_T = (Δa_T.^(-1)) |> cvt3_diagm
+
+        #T_invΔa_T = T_invΔx_T * T_invΔy_T
         
-        T_Δvol_T = T_Δx_T * T_Δy_T * T_Δz_T
-        T_invΔvol_T = T_invΔx_T * T_invΔy_T * T_invΔz_T
+        T_Δvol_T = T_Δa_T * T_Δz_T
+        T_invΔvol_T = T_invΔa_T * T_invΔz_T
 
         # Δz is special. Need to clear NaN
         function clearNaN!(m)
