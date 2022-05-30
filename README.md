@@ -20,7 +20,7 @@ We illustrate the application of the hierarchy to the problem of understanding t
 
 ## Tutorial
 
-The tutorial, including deriving the flux correction to running the hierarchy, is documented (here)[tutorial/README.md].
+The tutorial, including deriving the flux correction to running the hierarchy, is documented [here](tutorial/README.md).
 
 # TODO list
 
