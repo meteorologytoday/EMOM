@@ -85,7 +85,7 @@ if isdir(out_dir)
 end
 
 pleaseRun(`mkdir -p $(out_dir)`)
-pleaseRun(`julia make_daily_time.jl --output $(time_file) --years 1`)
+pleaseRun(`julia $(@__DIR__)/make_daily_time.jl --output $(time_file) --years 1`)
 
 println("Output directory: $(out_dir)")
 
