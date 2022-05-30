@@ -2,19 +2,41 @@ using Formatting
 using ArgParse
 using DataStructures, JSON
 
+println("""
+This program generates the TEMP SALT daily mean and five-day mean profiles from a referenced
+POP2 output. These output are meant to used for Q-flux finding.
+""")
+
+
 s = ArgParseSettings()
 @add_arg_table s begin
+
+    "--hist-dir"
+        help = "The directory that contains POP2 outputs."
+        arg_type = String
+        required = true
 
     "--casename"
         help = "Casename"
         arg_type = String
         required = true
 
+    "--output-dir"
+        help = "The directory this program outputs to."
+        arg_type = String
+        default = "output"
+
     "--year-rng"
-        help = "How many years?"
+        help = "The range of the years. It accepts exactly two integer numbers."
         arg_type = Int64
         nargs = 2
         required = true
+
+    "--layers"
+        help = "The layers cropped. For EMOM, default it uses only top 33 layers of POP2."
+        arg_type = Int64
+        default = 33
+
 
 end
 
@@ -22,14 +44,10 @@ parsed = DataStructures.OrderedDict(parse_args(ARGS, s))
 
 JSON.print(parsed, 4)
 
-
-
-
 function runOneCmd(cmd)
     println(">> ", string(cmd))
     run(cmd)
 end
-
 
 function pleaseRun(cmd)
     if isa(cmd, Array)
@@ -48,21 +66,19 @@ end_year = parsed["year-rng"][2]
 println("Begin year: $(beg_year)")
 println("End   year: $(end_year)")
 
-
-layers = 33
-in_dir = "/glade/u/home/tienyiao/scratch-tienyiao/archive/$(casename)/ocn/hist"
+layers = parsed["layers"]
+in_dir = parsed["hist-dir"]
 
 coord = "z_t,z_w,z_w_top,z_w_bot,TAREA"
 varnames = "HMXL,TEMP,SALT"
+
 year_rng      = format( "{:04d}-{:04d}",  beg_year, end_year )
 year_rng_eval = format( "{:04d}..{:04d}",  beg_year, end_year )
 
-ref_file="$(in_dir)/$(casename).pop.h.daily.$(format("{:04d}", beg_year))-01-01.nc"
-
-out_dir="./output_$(year_rng)_layers$(layers)_daily"
+ref_file = "$(in_dir)/$(casename).pop.h.daily.$(format("{:04d}", beg_year))-01-01.nc"
+out_dir  = parsed["output-dir"]
 coord_file="$(out_dir)/coord.nc"
 time_file="$(out_dir)/time.nc"
-
 
 if isdir(out_dir)
     throw(ErrorException("ERROR: directory $(out_dir) already exists."))
@@ -103,7 +119,7 @@ for varname in split(varnames, ",")
     rm(tmp_dir, recursive=true, force=true)
 end
 
-println("Converting forcing for IOM...")
+println("Converting units...")
 pleaseRun(`ncap2 -O -v -s 'HMXL=HMXL/100.0;' $(output_files["HMXL"]) $(output_files["HMXL"])`)
 
 for (_, output_file) in output_files
@@ -111,7 +127,6 @@ for (_, output_file) in output_files
     pleaseRun(`ncks -A -v $coord         $coord_file $output_file`)
     pleaseRun(`ncks -A -v time,time_bound $time_file $output_file`)
 end
-
 
 println("Doing 5 day mean")
 fivedays_mean_dir = "$(out_dir)/fivedays_mean"
