@@ -18,21 +18,14 @@ We illustrate the application of the hierarchy to the problem of understanding t
 - Julia language with packages: NCDatasets, MPI
 - MPI interface. In particular, `mpiexec` is required.
 
-## With CESM1
+## Tutorial
 
-First, create a case using CESM1 `create_case`
-
-## Standalone test
-
-The standalone version currently is just to test if the driver works. 
-
-1. Enter the subdirectory `test/test`.
-2. Run the bash file `main.sh`.
-
+The tutorial, including deriving the flux correction to running the hierarchy, is documented (here)[tutorial/README.md].
 
 # TODO list
 
-- `make_init` to generate initial ocean profile.
+- (Done, May 28) `make_init` to generate initial ocean profile.
+- Flux correction procedure.
 - Test out energy conservation. Use the "area" variable provided in the domain file to compute the energy flux.
 - Test out coupling with CESM1-CAM5
 - Test out coupling with CESM2-CAM5
