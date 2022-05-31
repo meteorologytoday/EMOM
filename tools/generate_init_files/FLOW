@@ -1,3 +1,0 @@
-1. Given domain file, zdomain file and reference files, generate Nz_bot.nc.
-2. Generate config file using `makeBlankConfig.jl`.
-3. Given init ocean profile, generate init ocean file.  
