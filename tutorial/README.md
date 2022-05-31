@@ -26,7 +26,7 @@ This project generates the CESM1 runs that couple with each model member to find
 
 ## `04_derive_flux_correction`
 
-This project is to generate the actual
+This project is to generate the flux correction files that will be used by the model
 
 1. Edit the options in `make_forcing_one_case.sh` to fit your setup.
 2. Execute `make_forcing_one_case.sh`.
