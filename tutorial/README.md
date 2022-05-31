@@ -22,6 +22,11 @@ This project is to generate the reference profile for the hierarchy. The referen
 ## `03_find_flux_correction`
 
 This project generates the CESM1 runs that couple with each model member to find the flux corrections `QFLXT`, and `QFLXS`.
+1. Edit the environment variable in the beginning part of the `makecases.jl`. The variable `ocn_models` is an array specifying which members of the hierarchy you want to generate the case with.
+2. Run `julia makecase.jl`.
+3. Follow the usual CESM1 procedure: `cesm_setup`, build.
+4. The usual cesm run file is renamed as `$CASENAME.cesm.run`. The new submit file is still `$CASENAME.run`. If users accidentally lost the `$CASENAME.run` file, run `$CASENAME.recover_run_file` to regenerate it.
+5. After the cases are all done, users are able to move onto stage 4 to derive the flux correction.
 
 
 ## `04_derive_flux_correction`
@@ -35,3 +40,8 @@ This project is to generate the flux correction files that will be used by the m
 ## `05_CESM1_B1850C5CN_hierarchy`
 
 This project generates the desire CESM1 runs that couple with each model member and use the found flux corrections from previous projects.
+
+1. Edit the environment variable in the beginning part of the `makecases.jl`. The variable `ocn_models` is an array specifying which members of the hierarchy you want to generate the case with.
+2. Run `julia makecase.jl`. Make sure in the config files, `Qflx` and `weak_restoring` are on and `Qflx_finding` is off.
+4. Follow the usual CESM1 procedure: `cesm_setup`, build.
+5. The usual cesm run file is renamed as `$CASENAME.cesm.run`. The new submit file is still `$CASENAME.run`. If users accidentally lost the `$CASENAME.run` file, run `$CASENAME.recover_run_file` to regenerate it.
