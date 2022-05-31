@@ -57,7 +57,7 @@ update_config = OrderedDict{Any, Any}(
     "MODEL_MISC" => Dict(
 
         "init_file"              => joinpath(data_dir, "init_ocn.jld2"),
-        "rpointer_file"          => "rpointer.iom",
+        "rpointer_file"          => "rpointer.emom",
         "daily_record"           => [],
         "monthly_record"         => ["{ESSENTIAL}", "QFLXT", "QFLXS"],
         "enable_archive"         => true,
