@@ -35,17 +35,17 @@ function getCompleteVariableList(
             "Q_FRZMLTPOT"        => ( mb.fi.Q_FRZMLTPOT,  :sT, :mask ),
             "Q_FRZMLTPOT_NEG"    => ( mb.fi.Q_FRZMLTPOT_NEG, :sT, :mask ),
             "Q_FRZHEAT"          => ( mb.fi.Q_FRZHEAT,    :sT, :mask ),
-            "Q_LOST"             => ( mb.fi.Q_LOST,       :sT, :mask ),
+            "Q_GHOST_REHEAT"             => ( mb.fi.Q_GHOST_REHEAT,       :sT, :mask ),
             "CHKTEMP"            => ( mb.tmpfi.sv[:CHKTEMP],  :sT, :mask ),
             "CHKSALT"            => ( mb.tmpfi.sv[:CHKSALT],  :sT, :mask ),
 
             "INTMTEMP"           => ( mb.tmpfi.sv[:INTMTEMP], :T, :mask),
             "INTMSALT"           => ( mb.tmpfi.sv[:INTMSALT], :T, :mask),
 
-            "WKRST_TARGET_TEMP"         => nothing,
-            "WKRST_TARGET_SALT"         => nothing,
-            "QFLXT"          => nothing,
-            "QFLXS"          => nothing,
+            "WKRST_TARGET_TEMP"  => nothing,
+            "WKRST_TARGET_SALT"  => nothing,
+            "QFLXT"              => nothing,
+            "QFLXS"              => nothing,
  
             "Ks_H_U"    => ( mb.tmpfi.check_usage[:Ks_H_U], :U, nothing),
             "Ks_H_V"    => ( mb.tmpfi.check_usage[:Ks_H_V], :V, nothing),
@@ -146,7 +146,7 @@ function getDynamicVariableList(
                 "Q_FRZMLTPOT",
                 "Q_FRZMLTPOT_NEG",
                 "Q_FRZHEAT",
-                "Q_LOST",
+                "Q_GHOST_REHEAT",
                 "CHKTEMP",
                 "CHKSALT",
 

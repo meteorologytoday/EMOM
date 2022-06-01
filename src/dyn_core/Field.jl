@@ -38,7 +38,7 @@ mutable struct Field
     Q_FRZHEAT       :: AbstractArray{Float64, 3}
     Q_FRZMLTPOT_NEG :: AbstractArray{Float64, 3}
     Q_FRZMLTPOT     :: AbstractArray{Float64, 3}
-    Q_LOST          :: AbstractArray{Float64, 3}
+    Q_GHOST_REHEAT  :: AbstractArray{Float64, 3}
 
 
     # sugar view
@@ -97,7 +97,7 @@ mutable struct Field
         Q_FRZHEAT       = zeros(Float64, 1, Nx, Ny)
         Q_FRZMLTPOT_NEG = zeros(Float64, 1, Nx, Ny)
         Q_FRZMLTPOT     = zeros(Float64, 1, Nx, Ny)
-        Q_LOST          = zeros(Float64, 1, Nx, Ny)
+        Q_GHOST_REHEAT  = zeros(Float64, 1, Nx, Ny)
  
          
         fi = new(
@@ -138,7 +138,7 @@ mutable struct Field
             Q_FRZHEAT,
             Q_FRZMLTPOT_NEG,
             Q_FRZMLTPOT,
-            Q_LOST,
+            Q_GHOST_REHEAT,
 
             nothing,
         )

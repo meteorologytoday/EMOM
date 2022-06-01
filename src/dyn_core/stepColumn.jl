@@ -205,12 +205,12 @@ function stepColumn!(
     Q_FRZHEAT        = reshape(fi.Q_FRZHEAT,       :)
     Q_FRZMLTPOT      = reshape(fi.Q_FRZMLTPOT,     :)
     Q_FRZMLTPOT_NEG  = reshape(fi.Q_FRZMLTPOT_NEG, :)
-    Q_LOST           = reshape(fi.Q_LOST,          :)
+    Q_GHOST_REHEAT   = reshape(fi.Q_GHOST_REHEAT,  :)
 
     Q_FRZHEAT       .= 0.0
     Q_FRZMLTPOT     .= 0.0
     Q_FRZMLTPOT_NEG .= 0.0
-    Q_LOST          .= 0.0
+    Q_GHOST_REHEAT  .= 0.0
 
     @. ΔT_sT = NEWSST - T_sw_frz
     below_frz_mask_sT = ΔT_sT .< 0.0
@@ -226,15 +226,15 @@ function stepColumn!(
     Q_FRZHEAT[:]   = ρcp_sw * sfcΔz_sT .* (op_frz * (NEWSST .- T_sw_frz))
   
     # Capping freezing potential at 10 W/m^2 to avoid instability
-    # in cice model due to advection noise in Ekman flow. However, 
-    # this breaks energy conservation so we record this with Q_LOST.
+    # in cice model due to advection noise in Ekman flow. The energy that, 
+    # is reduced, is used to reheat the ocean grid, recorded as Q_GHOST_REHEAT.
     for (i, q_frzheat) in enumerate(Q_FRZHEAT)
         if q_frzheat > 10.0
             Q_FRZHEAT[i] = 10.0
-            Q_LOST[i] = q_frzheat - 10.0
+            Q_GHOST_REHEAT[i] = q_frzheat - 10.0
         end    
     end
-    #Q_FRZHEAT[Q_FRZHEAT .> 10.0] .= 10.0
+    NEWSST .+= Q_GHOST_REHEAT
 
     @. tmp_sT = - ρcp_sw * sfcΔz_sT * ΔT_sT / Δt
 
