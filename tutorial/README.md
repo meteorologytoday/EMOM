@@ -29,7 +29,7 @@ This project is to generate the reference profile for the hierarchy. The referen
 ## Step 3: Find flux correction (`03_find_flux_correction`)
 
 This project generates the CESM1 runs that couple with each model member to find the flux corrections `QFLXT`, and `QFLXS`.
-1. Edit the environment variable in the beginning part of the `makecases.jl`. The variable `ocn_models` is an array specifying which members of the hierarchy you want to generate the case with.
+1. Edit the environment variable in the beginning part of the `makecases.jl`. Most importantly the `forcing_files` needs to be set. The variable `ocn_models` is an array specifying which members of the hierarchy you want to generate the case with.
 2. Run `julia makecase.jl`.
 3. Follow the usual CESM1 procedure: `cesm_setup`, build.
 4. The usual cesm run file is renamed as `$CASENAME.cesm.run`. The new submit file is still `$CASENAME.run`. If users accidentally lost the `$CASENAME.run` file, run `$CASENAME.recover_run_file` to regenerate it.
