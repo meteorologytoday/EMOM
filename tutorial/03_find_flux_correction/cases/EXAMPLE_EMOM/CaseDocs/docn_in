@@ -1,0 +1,4 @@
+&docn_nml
+ decomp = '1d'
+ ocn_in = 'docn_ocn_in'
+/

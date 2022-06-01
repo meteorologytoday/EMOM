@@ -1,0 +1,11 @@
+&modelio
+ diri = '/glade/scratch/tienyiao/EXAMPLE_EMOM/bld/lnd'
+ diro = '/glade/scratch/tienyiao/EXAMPLE_EMOM/run'
+ logfile = 'lnd.log.220601-171115'
+/
+&pio_inparm
+ pio_numiotasks = -99
+ pio_root = -99
+ pio_stride = -99
+ pio_typename = 'nothing'
+/

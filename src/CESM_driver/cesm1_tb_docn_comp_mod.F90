@@ -943,8 +943,8 @@ subroutine docn_comp_run( EClock, cdata,  x2o, o2x)
         
         call copy_from_blob(x_blob_recv, lsize, 1, somtp) 
         call copy_from_blob(x_blob_recv, lsize, 2, x_q)
-        call copy_from_blob(x_blob_recv, lsize, 3, ku)
-        call copy_from_blob(x_blob_recv, lsize, 4, kv)
+        call copy_from_blob(x_blob_recv, lsize, 3, x_u)
+        call copy_from_blob(x_blob_recv, lsize, 4, x_v)
 
         do n = 1, lsize
           if (imask(n) /= 0) then

@@ -1,0 +1,53 @@
+
+Lmod is automatically replacing "mpt/2.25" with "openmpi/4.1.1".
+
+
+The following have been reloaded with a version change:
+  1) openmpi/4.1.1 => openmpi/4.0.3
+
+
+The following have been reloaded with a version change:
+  1) julia/1.6.0 => julia/1.7.1
+
+-------------------------------------------------------------------------
+ CESM BUILDNML SCRIPT STARTING
+ - To prestage restarts, untar a restart.tar file into /glade/scratch/tienyiao/EXAMPLE_EMOM/run
+ERROR: The following package names could not be resolved:
+ * MPI (not found in project or manifest)
+
+Stacktrace:
+ [1] pkgerror(msg::String)
+   @ Pkg.Types /glade/u/apps/ch/opt/julia/1.7.1/share/julia/stdlib/v1.7/Pkg/src/Types.jl:68
+ [2] ensure_resolved(manifest::Pkg.Types.Manifest, pkgs::Vector{Pkg.Types.PackageSpec}; registry::Bool)
+   @ Pkg.Types /glade/u/apps/ch/opt/julia/1.7.1/share/julia/stdlib/v1.7/Pkg/src/Types.jl:915
+ [3] ensure_resolved
+   @ /glade/u/apps/ch/opt/julia/1.7.1/share/julia/stdlib/v1.7/Pkg/src/Types.jl:878 [inlined]
+ [4] build(ctx::Pkg.Types.Context, pkgs::Vector{Pkg.Types.PackageSpec}; verbose::Bool, kwargs::Base.Pairs{Symbol, IOStream, Tuple{Symbol}, NamedTuple{(:io,), Tuple{IOStream}}})
+   @ Pkg.API /glade/u/apps/ch/opt/julia/1.7.1/share/julia/stdlib/v1.7/Pkg/src/API.jl:991
+ [5] build(pkgs::Vector{Pkg.Types.PackageSpec}; io::IOStream, kwargs::Base.Pairs{Symbol, Bool, Tuple{Symbol}, NamedTuple{(:verbose,), Tuple{Bool}}})
+   @ Pkg.API /glade/u/apps/ch/opt/julia/1.7.1/share/julia/stdlib/v1.7/Pkg/src/API.jl:149
+ [6] #build#99
+   @ /glade/u/apps/ch/opt/julia/1.7.1/share/julia/stdlib/v1.7/Pkg/src/API.jl:142 [inlined]
+ [7] #build#98
+   @ /glade/u/apps/ch/opt/julia/1.7.1/share/julia/stdlib/v1.7/Pkg/src/API.jl:141 [inlined]
+ [8] top-level scope
+   @ none:1
+ infile is /glade/work/tienyiao/projects/CAM5_coupling/99_EMOM_dev/EMOM/tutorial/03_find_flux_correction/cases/EXAMPLE_EMOM/Buildconf/cplconf/cesm_namelist 
+CAM writing dry deposition namelist to drv_flds_in 
+CAM writing namelist to atm_in 
+CLM configure done.
+CLM adding use_case 1850_control defaults for var sim_year with val 1850 
+CLM adding use_case 1850_control defaults for var sim_year_range with val constant 
+CLM adding use_case 1850_control defaults for var use_case_desc with val Conditions to simulate 1850 land-use 
+CICE configure done.
+Return code: 1
+Program ends abnomally. Please check.
+ CESM BUILDNML SCRIPT HAS FINISHED SUCCESSFULLY
+-------------------------------------------------------------------------
+-------------------------------------------------------------------------
+ CESM PRESTAGE SCRIPT STARTING
+ - Case input data directory, DIN_LOC_ROOT, is /glade/p/cesmdata/cseg/inputdata
+ - Checking the existence of input datasets in DIN_LOC_ROOT
+ CESM PRESTAGE SCRIPT HAS FINISHED SUCCESSFULLY
+-------------------------------------------------------------------------
+Wed Jun  1 17:08:21 MDT 2022 -- CSM EXECUTION BEGINS HERE

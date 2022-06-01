@@ -7,7 +7,7 @@ ocn_models = ["EMOM", "MLM", "SOM"]
 ocn_models = ["EMOM", ]
 EMOM_root = joinpath(@__DIR__, "..", "..")
 
-git_branch = "dev/wrap-up"
+git_branch = "dev/fix-area-UV"
 casename_prefix = "EXAMPLE"
 project_code = "UMIA0022"
 walltime     = "12:00:00"
