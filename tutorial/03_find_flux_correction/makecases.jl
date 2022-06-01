@@ -4,6 +4,7 @@ using .RunCommands
 using Formatting
 
 ocn_models = ["EMOM", "MLM", "SOM"]
+ocn_models = ["EMOM", ]
 EMOM_root = joinpath(@__DIR__, "..", "..")
 
 git_branch = "dev/wrap-up"

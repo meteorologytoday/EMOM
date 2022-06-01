@@ -1,4 +1,0 @@
-#!/bin/bash
-cp "EXAMPLE_EMOM.run" "EXAMPLE_EMOM.cesm.run"
-cp "backup_EXAMPLE_EMOM.run" "EXAMPLE_EMOM.run"
-
