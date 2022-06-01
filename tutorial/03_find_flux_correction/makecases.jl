@@ -141,7 +141,7 @@ for ocn_model in ocn_models
     `)
     
     # Activate the flux-correction mode
-    pleaseRun(`julia --project=$EMOM_root $EMOM_root/tools/generate_init_files/activate_finding_flux_correction.jl
+    pleaseRun(`julia --project=$EMOM_root activate_finding_flux_correction.jl
             --config       $(EMOM_config_file)
     `)
  

@@ -17,6 +17,7 @@ end
 for pkg_name in pkg_names
     println("I am adding the package: $pkg_name")
     Pkg.add(pkg_name)
+    Pkg.build(pkg_name)
 end
 
 

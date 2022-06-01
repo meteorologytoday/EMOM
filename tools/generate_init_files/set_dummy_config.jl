@@ -79,6 +79,7 @@ update_config = OrderedDict{Any, Any}(
 
         "substeps"                     =>  8,
         "MLD_scheme"                   => "static",
+        "UV_sfc_scheme"                => "static",
         "Qflx"                         => "off",
         "Qflx_finding"                 => "off",
         "convective_adjustment"        => "on",

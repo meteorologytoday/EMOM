@@ -70,7 +70,7 @@ layers = parsed["layers"]
 in_dir = parsed["hist-dir"]
 
 coord = "z_t,z_w,z_w_top,z_w_bot,TAREA"
-varnames = "HMXL,TEMP,SALT"
+varnames = "HMXL,TEMP,SALT,UVEL,VVEL"
 
 year_rng      = format( "{:04d}-{:04d}",  beg_year, end_year )
 year_rng_eval = format( "{:04d}..{:04d}",  beg_year, end_year )
@@ -127,6 +127,25 @@ for (_, output_file) in output_files
     pleaseRun(`ncks -A -v $coord         $coord_file $output_file`)
     pleaseRun(`ncks -A -v time,time_bound $time_file $output_file`)
 end
+
+
+# Get surface U and V
+for (varname, old_output_file) in output_files
+    if varname in ["UVEL", "VVEL"]
+
+        new_varname = Dict(
+            "UVEL" => "USFC",
+            "VVEL" => "VSFC",
+        )[varname]
+
+        new_output_file = "$(out_dir)/$(new_varname).nc"
+
+        pleaseRun(`bash -c "ncks -O -F -d z_t,1,1 -v $(varname) $(output_file) $(new_output_file)"`)
+        pleaseRun(`bash -c "ncrename -v $(varname),$(new_varname) $(new_output_file)"`)
+        output_files[new_varname] = new_output_file
+    end
+end
+
 
 println("Doing 5 day mean")
 fivedays_mean_dir = "$(out_dir)/fivedays_mean"
