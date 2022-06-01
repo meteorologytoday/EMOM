@@ -15,6 +15,11 @@ function updateDatastream!(
             mb.fi.HMXL .= datastream["HMXL"]
         end
         
+        if cfg_core["UV_sfc_scheme"] == "datastream"
+            mb.fi.U_sfc .= datastream["U"]
+            mb.fi.V_sfc .= datastream["V"]
+        end
+ 
         if cfg_core["Qflx"] == "on"
             mb.fi._QFLXX_[:, 1] .= reshape(datastream["QFLXT"], :)
             mb.fi._QFLXX_[:, 2] .= reshape(datastream["QFLXS"], :)

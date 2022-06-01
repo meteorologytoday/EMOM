@@ -194,6 +194,8 @@ module ENGINE_EMOM
 
             o2x = Dict(
                 "SST"         => my_mb.fi.sv[:SST],
+                "U_sfc"       => my_mb.fi.sv[:U_sfc],
+                "V_sfc"       => my_mb.fi.sv[:V_sfc],
                 "Q_FRZMLTPOT" => my_mb.fi.Q_FRZMLTPOT,
                 "mask"        => my_mb.ev.topo.sfcmask_sT,
             )
@@ -240,6 +242,8 @@ module ENGINE_EMOM
                 "QFLXS",
                 "Ks_H_U",
                 "Ks_H_V",
+                "U_sfc",
+                "V_sfc",
             ),
 
             # These states are synced from 
@@ -516,6 +520,7 @@ module ENGINE_EMOM
 
             EMOM.reset!(MD.mb.co.wksp)
             EMOM.updateDatastream!(MD.mb, MD.clock)
+            EMOM.updateUVsfc!(MD.mb)
             EMOM.checkBudget!(MD.mb, Δt_float; stage=:BEFORE_STEPPING)
 
             Δz_min = minimum(view(MD.mb.ev.gd.Δz_T, :, 1, 1))

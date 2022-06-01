@@ -132,6 +132,14 @@ function getEMOMConfigDescriptors()
             ),
 
             ConfigEntry(
+                "UV_sfc_scheme",
+                :required,
+                ["prognostic", "datastream", "static"],
+                "static",
+            ),
+
+
+            ConfigEntry(
                 "Qflx",
                 :optional,
                 ["on", "off"],
