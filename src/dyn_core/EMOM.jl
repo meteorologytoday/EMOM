@@ -85,7 +85,7 @@ module EMOM
     @hinclude("snapshot_funcs.jl")
     
     @hinclude("updateDatastream.jl")
-    @hinclude("updateUVsfc.jl")
+    @hinclude("updateUVSFC.jl")
     @hinclude("updateBuoyancy.jl")
 
 end

@@ -22,8 +22,8 @@ mutable struct Field
 
 
     HMXL     :: AbstractArray{Float64, 3}
-    U_sfc    :: AbstractArray{Float64, 3}
-    V_sfc    :: AbstractArray{Float64, 3}
+    USFC    :: AbstractArray{Float64, 3}
+    VSFC    :: AbstractArray{Float64, 3}
 
     SWFLX    :: AbstractArray{Float64, 3}
     NSWFLX   :: AbstractArray{Float64, 3}
@@ -83,8 +83,8 @@ mutable struct Field
         _QFLXX_  = zeros(Float64, T_pts, 2)
 
         HMXL = zeros(Float64, 1, Nx, Ny)
-        U_sfc = zeros(Float64, 1, Nx, Ny)
-        V_sfc = zeros(Float64, 1, Nx, Ny)
+        USFC = zeros(Float64, 1, Nx, Ny)
+        VSFC = zeros(Float64, 1, Nx, Ny)
         SWFLX = zeros(Float64, 1, Nx, Ny)
         NSWFLX = zeros(Float64, 1, Nx, Ny)
         VSFLX = zeros(Float64, 1, Nx, Ny)
@@ -122,8 +122,8 @@ mutable struct Field
             _QFLXX_,
 
             HMXL,
-            U_sfc,
-            V_sfc,
+            USFC,
+            VSFC,
 
             SWFLX,
             NSWFLX,
@@ -178,8 +178,8 @@ function getSugarView(
         
     sv[:SST] = view(sv[:TEMP], 1:1, :, :)
     sv[:SSS] = view(sv[:SALT], 1:1, :, :)
-    sv[:UVEL_sfc] = view(sv[:UVEL], 1:1, :, :)
-    sv[:VVEL_sfc] = view(sv[:VVEL], 1:1, :, :)
+    sv[:USFC] = view(sv[:UVEL], 1:1, :, :)
+    sv[:VSFC] = view(sv[:VVEL], 1:1, :, :)
     
     return sv
 end

@@ -26,6 +26,7 @@ update_config = OrderedDict{Any, Any}(
         "Qflx"                         => "off",
         "Qflx_finding"                 => "on",
         "weak_restoring"               => "off",
+        "UVsfc_scheme"                 => "datastream",
     ),
 )
 

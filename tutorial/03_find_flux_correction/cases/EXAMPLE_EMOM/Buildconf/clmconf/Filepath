@@ -1,0 +1,7 @@
+/glade/work/tienyiao/projects/CAM5_coupling/99_EMOM_dev/EMOM/tutorial/03_find_flux_correction/cases/EXAMPLE_EMOM/SourceMods/src.clm
+/glade/u/home/tienyiao/ucar_models/cesm1_2_2_1_lw-nudging/models/lnd/clm/src/cpl_share
+/glade/u/home/tienyiao/ucar_models/cesm1_2_2_1_lw-nudging/models/lnd/clm/src/util_share
+/glade/u/home/tienyiao/ucar_models/cesm1_2_2_1_lw-nudging/models/lnd/clm/src/clm4_0/main
+/glade/u/home/tienyiao/ucar_models/cesm1_2_2_1_lw-nudging/models/lnd/clm/src/clm4_0/biogeophys
+/glade/u/home/tienyiao/ucar_models/cesm1_2_2_1_lw-nudging/models/lnd/clm/src/clm4_0/biogeochem
+/glade/u/home/tienyiao/ucar_models/cesm1_2_2_1_lw-nudging/models/lnd/clm/src/cpl_mct

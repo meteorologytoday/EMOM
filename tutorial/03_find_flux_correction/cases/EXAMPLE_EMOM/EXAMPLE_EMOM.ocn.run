@@ -1,0 +1,29 @@
+#!/bin/bash
+
+LID=$( date +%y%m%d-%H%M%S )
+
+caseroot="/glade/work/tienyiao/projects/CAM5_coupling/99_EMOM_dev/EMOM/tutorial/03_find_flux_correction/cases/EXAMPLE_EMOM"
+caserun="/glade/scratch/tienyiao/EXAMPLE_EMOM/run"
+archive_log_dir="/glade/scratch/tienyiao/archive/EXAMPLE_EMOM/ocn/logs"
+logfile="emom.log.${LID}"
+EMOM_ROOT=${caseroot}/EMOM
+
+ml load openmpi/4.0.3
+ml load julia/1.6.0
+julia --project=${EMOM_ROOT} -e 'ENV["JULIA_MPI_BINARY"]="system"; using Pkg; Pkg.build("MPI"; verbose=true)'
+
+
+mpiexec -n 18 julia --project=${EMOM_ROOT} ${EMOM_ROOT}/src/CESM_driver/main.jl --config-file=${caseroot}/config.toml &> ${caserun}/${logfile}
+
+
+ret_code=$?
+echo "Return code: $ret_code"
+
+if [ $ret_code -eq 0 ]; then 
+    echo "Program ends succefully. Move log file to arcihve."
+    mv "${caserun}/${logfile}" "${archive_log_dir}/"
+else
+    echo "Program ends abnomally. Please check."
+fi
+
+

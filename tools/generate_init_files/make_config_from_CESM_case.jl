@@ -231,6 +231,7 @@ config = Dict{Any, Any}(
 
         "substeps"                     => 8,
         "MLD_scheme"                   => "datastream",
+        "UVsfc_scheme"                   => "datastream",
         "Qflx"                         => Qflx,
         "Qflx_finding"                 => "off",
         "convective_adjustment"        => "on",

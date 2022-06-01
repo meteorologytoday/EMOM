@@ -1,0 +1,17 @@
+/glade/work/tienyiao/projects/CAM5_coupling/99_EMOM_dev/EMOM/tutorial/03_find_flux_correction/cases/EXAMPLE_EMOM/SourceMods/src.cam
+/glade/u/home/tienyiao/ucar_models/cesm1_2_2_1_lw-nudging/models/atm/cam/src/chemistry/pp_trop_mam3
+/glade/u/home/tienyiao/ucar_models/cesm1_2_2_1_lw-nudging/models/atm/cam/src/chemistry/modal_aero
+/glade/u/home/tienyiao/ucar_models/cesm1_2_2_1_lw-nudging/models/atm/cam/src/chemistry/mozart
+/glade/u/home/tienyiao/ucar_models/cesm1_2_2_1_lw-nudging/models/atm/cam/src/chemistry/bulk_aero
+/glade/u/home/tienyiao/ucar_models/cesm1_2_2_1_lw-nudging/models/atm/cam/src/chemistry/utils
+/glade/u/home/tienyiao/ucar_models/cesm1_2_2_1_lw-nudging/models/atm/cam/src/physics/rrtmg
+/glade/u/home/tienyiao/ucar_models/cesm1_2_2_1_lw-nudging/models/atm/cam/src/physics/rrtmg/ext/rrtmg_mcica
+/glade/u/home/tienyiao/ucar_models/cesm1_2_2_1_lw-nudging/models/atm/cam/src/physics/rrtmg/ext/rrtmg_lw
+/glade/u/home/tienyiao/ucar_models/cesm1_2_2_1_lw-nudging/models/atm/cam/src/physics/rrtmg/ext/rrtmg_sw
+/glade/u/home/tienyiao/ucar_models/cesm1_2_2_1_lw-nudging/models/atm/cam/src/physics/cam
+/glade/u/home/tienyiao/ucar_models/cesm1_2_2_1_lw-nudging/models/atm/cam/src/dynamics/fv
+/glade/u/home/tienyiao/ucar_models/cesm1_2_2_1_lw-nudging/models/atm/cam/src/utils/pilgrim
+/glade/u/home/tienyiao/ucar_models/cesm1_2_2_1_lw-nudging/models/atm/cam/src/cpl_mct
+/glade/u/home/tienyiao/ucar_models/cesm1_2_2_1_lw-nudging/models/atm/cam/src/cpl_share
+/glade/u/home/tienyiao/ucar_models/cesm1_2_2_1_lw-nudging/models/atm/cam/src/control
+/glade/u/home/tienyiao/ucar_models/cesm1_2_2_1_lw-nudging/models/atm/cam/src/utils

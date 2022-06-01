@@ -54,9 +54,9 @@ mutable struct Env
             push!(cdata_varnames, "HMXL")
         end
 
-        if cfgs["MODEL_CORE"]["UV_sfc_scheme"] == "datastream"
-            push!(cdata_varnames, "U")
-            push!(cdata_varnames, "V")
+        if cfgs["MODEL_CORE"]["UVSFC_scheme"] == "datastream"
+            push!(cdata_varnames, "USFC")
+            push!(cdata_varnames, "VSFC")
         end
  
         if cfgs["MODEL_CORE"]["Qflx"] == "on"

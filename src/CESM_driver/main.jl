@@ -127,7 +127,7 @@ coupler_funcs = (
 
         global lsize = parse(Int64, msg["LSIZE"])
 
-        global send_data_list = [OMDATA.o2x["SST"], OMDATA.o2x["Q_FRZMLTPOT"], OMDATA.o2x["U_sfc"], OMDATA.o2x["V_sfc"]]
+        global send_data_list = [OMDATA.o2x["SST"], OMDATA.o2x["Q_FRZMLTPOT"], OMDATA.o2x["USFC"], OMDATA.o2x["VSFC"]]
         global recv_data_list = []
 
         global x2o_available_varnames = split(msg["VAR2D"], ",")

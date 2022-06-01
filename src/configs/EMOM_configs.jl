@@ -132,7 +132,7 @@ function getEMOMConfigDescriptors()
             ),
 
             ConfigEntry(
-                "UV_sfc_scheme",
+                "UVSFC_scheme",
                 :required,
                 ["prognostic", "datastream", "static"],
                 "static",
