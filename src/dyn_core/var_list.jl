@@ -23,6 +23,8 @@ function getCompleteVariableList(
             "ADVT"               => ( mb.fi.sv[:ADVT],     :T, :mask ),
             "ADVS"               => ( mb.fi.sv[:ADVS],     :T, :mask ),
             "HMXL"               => ( mb.fi.HMXL,          :sT, :mask ),
+            "USFC"               => ( mb.fi.USFC,          :sT, :mask ),
+            "VSFC"               => ( mb.fi.VSFC,          :sT, :mask ),
             
             "WKRSTT"       => ( mb.fi.sv[:WKRSTT], :T, :mask),
             "WKRSTS"       => ( mb.fi.sv[:WKRSTS], :T, :mask),
@@ -64,12 +66,15 @@ function getCompleteVariableList(
 
     elseif vartype == :static
 
+        area = view(mb.ev.gf.area, :, mb.ev.sub_yrng)
+        area_sT = reshape( area, 1, size(area)... )
+
         d = Dict(
             # COORDINATE
             "deepmask_T"=> ( mb.ev.topo.deepmask_T, :T, nothing),
             "topoz_sT"  => ( mb.ev.topo.topoz_sT, :sT, nothing),
             "Nz_bot_sT" => ( mb.ev.topo.Nz_bot_sT, :sT, nothing),
-            "area_sT"   => ( reshape(mb.ev.gf.area, 1, size(mb.ev.gf.area)...), :sT, nothing),
+            "area_sT"   => ( area_sT, :sT, nothing),
             "mask_sT"   => ( mb.ev.topo.sfcmask_sT, :sT, nothing),
             "z_cW"      => ( reshape(mb.ev.z_w, :, 1, 1), :cW, nothing),
             "dz_cT"     => ( mb.ev.gd.Δz_T[:, 1:1, 1:1], :cT, nothing),

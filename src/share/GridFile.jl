@@ -43,7 +43,7 @@ mutable struct CurvilinearSphericalGridFile <: GridFile
         close(ds)
 
         
-        _area .= (4 * π * R^2) / sum(_area)
+        _area .*= (4 * π * R^2) / sum(_area)
 
         return new(
             R, Ω,

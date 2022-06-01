@@ -49,7 +49,7 @@ update_config = OrderedDict{Any, Any}(
 
     "DOMAIN" => Dict(
         "domain_file"                  => joinpath(domain_dir, "domain.ocn.gx3v7.120323.nc"),
-        "topo_file"                    => joinpath(data_dir, "Nz_bot.nc"),
+        "Nz_bot_file"                    => joinpath(data_dir, "Nz_bot.nc"),
         "z_w_file"                     => joinpath(data_dir, "z_w.nc"),
     ),
 
