@@ -125,7 +125,7 @@ module docn_comp_mod
         "evap        ","meltw       ","roff        ","ioff        ",                &
         "t           ","u           ","v           ","dhdx        ","dhdy        ", &
         "s           ","q           ","MLD         ","Qflx_T      ","Qflx_S      ", &
-        "T_clim      ","S_clim      ","IFRAC_clim  "  /)
+        "T_clim      ","S_clim      ","IFRAC_clim  " /)
   character(12),parameter  :: avofld(1:ktrans) = &
      (/ "Si_ifrac    ","Sa_pslv     ","So_duu10n   ","Foxx_taux   ","Foxx_tauy   ", &
         "Foxx_swnet  ","Foxx_lat    ","Foxx_sen    ","Foxx_lwup   ","Faxa_lwdn   ", &
@@ -133,7 +133,7 @@ module docn_comp_mod
         "Foxx_evap   ","Fioi_meltw  ","Forr_roff   ","Forr_ioff   ",                &
         "So_t        ","So_u        ","So_v        ","So_dhdx     ","So_dhdy     ", &
         "So_s        ","Fioo_q      ","strm_MLD    ","strm_Qflx_T ","strm_Qflx_S ", &
-        "strm_T_clim ","strm_S_clim ","strm_IF_clim"  /)
+        "strm_T_clim ","strm_S_clim ","strm_IF_clim" /)
 
 
   ! ===== XTT MODIFIED END =====
@@ -152,7 +152,7 @@ module docn_comp_mod
                            x_ifrac(:), x_q(:), x_frwflx(:), x_vsflx(:),    &
                            x_qflx_t(:), x_qflx_s(:),                       &
                            x_t_clim(:),  x_s_clim(:), x_ifrac_clim(:),     &
-                           x_mld(:), x_mask(:)
+                           x_mld(:), x_mask(:), x_u(:), x_v(:)
 
   real(R8), pointer     :: x_blob_send(:), x_blob_recv(:)
   real(R8)              :: x_nullbin(1) = (/ 0.0 /)
@@ -767,19 +767,21 @@ subroutine docn_comp_run( EClock, cdata,  x2o, o2x)
         allocate(x_mask(lsize))
         allocate(x_frwflx(lsize))
         allocate(x_vsflx(lsize))
+        allocate(x_u(lsize))
+        allocate(x_v(lsize))
 
         allocate(x_blob_send(lsize*6))
-        allocate(x_blob_recv(lsize*2))
+        allocate(x_blob_recv(lsize*4)) ! SST, QFLX (ice), ocn U, ocn V
 
         do n = 1,lsize
             if (.not. read_restart) then
                 somtp(n) = o2x%rAttr(kt,n) + TkFrz
             end if
 
-            x_qflx_t(n)    = 0.0_R8
-            x_qflx_s(n)    = 0.0_R8
-            x_t_clim(n)   = 0.0_R8
-            x_s_clim(n)   = 0.0_R8
+            x_qflx_t(n)  = 0.0_R8
+            x_qflx_s(n)  = 0.0_R8
+            x_t_clim(n)  = 0.0_R8
+            x_s_clim(n)  = 0.0_R8
             x_ifrac_clim(n)   = 0.0_R8
             x_mld(n)     = 0.0_R8
             x_q(n)       = 0.0_R8 
@@ -789,11 +791,15 @@ subroutine docn_comp_run( EClock, cdata,  x2o, o2x)
             x_tauy(n)    = 0.0_R8
             x_ifrac(n)   = 0.0_R8
             x_frwflx(n)  = 0.0_R8
-            x_vsflx(n)  = 0.0_R8
+            x_vsflx(n)   = 0.0_R8
             x_mask(n)    = 0.0_R8
+            x_u(n)       = 0.0_R8
+            x_v(n)       = 0.0_R8
 
             o2x%rAttr(kt,n) = somtp(n)
             o2x%rAttr(kq,n) = x_q(n)
+            o2x%rAttr(ku,n) = x_u(n)
+            o2x%rAttr(kv,n) = x_v(n)
 
         end do
         
@@ -830,6 +836,8 @@ subroutine docn_comp_run( EClock, cdata,  x2o, o2x)
         
         call copy_from_blob(x_blob_recv, lsize, 1, somtp) 
         call copy_from_blob(x_blob_recv, lsize, 2, x_q)
+        call copy_from_blob(x_blob_recv, lsize, 3, x_u)
+        call copy_from_blob(x_blob_recv, lsize, 4, x_v)
         
         call stop_if_bad(ptm_recvData(x_PTI, x_msg, x_blob_recv(1:lsize)), "INIT_RECV_MASK")
         call copy_from_blob(x_blob_recv, lsize, 1, x_mask)
@@ -845,6 +853,8 @@ subroutine docn_comp_run( EClock, cdata,  x2o, o2x)
             somtp(n) = somtp(n) + TkFrz
             o2x%rAttr(kt,n) = somtp(n)
             o2x%rAttr(kq,n) = x_q(n)
+            o2x%rAttr(ku,n) = x_u(n)
+            o2x%rAttr(kv,n) = x_v(n)
           end if
         end do
 
@@ -905,32 +915,9 @@ subroutine docn_comp_run( EClock, cdata,  x2o, o2x)
             x_tauy(n)  = x2o%rAttr(ktauy,n)
             x_ifrac(n) = x2o%rAttr(kifrac,n)
 
-            !x_qflx_t(n)     = avstrm%rAttr(kqflx_t,n)
-            !x_qflx_s(n)     = avstrm%rAttr(kqflx_s,n)
-            !x_t_clim(n)     = avstrm%rAttr(kt_clim,n)
-            !x_s_clim(n)     = avstrm%rAttr(ks_clim,n)
-            !x_ifrac_clim(n) = avstrm%rAttr(kifrac_clim,n)
-            !x_mld(n)        = avstrm%rAttr(kmld,n)
-           
-            !tmp = tmp + x_ifrac_clim(n) 
           end if
         end do
         
-        !print *, "sum of ifrac_clim: ", tmp
-        !call copy_into_blob(x_blob_send, lsize, 1, x_qflx_t) 
-        !call copy_into_blob(x_blob_send, lsize, 2, x_qflx_s) 
-        !call copy_into_blob(x_blob_send, lsize, 3, x_t_clim) 
-        !call copy_into_blob(x_blob_send, lsize, 4, x_s_clim) 
-        !call copy_into_blob(x_blob_send, lsize, 5, x_ifrac_clim) 
-        !call copy_into_blob(x_blob_send, lsize, 6, x_mld) 
-        !call copy_into_blob(x_blob_send, lsize, 7, x_nswflx) 
-        !call copy_into_blob(x_blob_send, lsize, 8, x_swflx) 
-        !call copy_into_blob(x_blob_send, lsize, 9, x_taux) 
-        !call copy_into_blob(x_blob_send, lsize, 10, x_tauy) 
-        !call copy_into_blob(x_blob_send, lsize, 11, x_ifrac) 
-        !call copy_into_blob(x_blob_send, lsize, 12, x_frwflx) 
-        !call copy_into_blob(x_blob_send, lsize, 13, x_vsflx) 
- 
         call copy_into_blob(x_blob_send, lsize, 1, x_nswflx) 
         call copy_into_blob(x_blob_send, lsize, 2, x_swflx) 
         call copy_into_blob(x_blob_send, lsize, 3, x_taux) 
@@ -956,6 +943,8 @@ subroutine docn_comp_run( EClock, cdata,  x2o, o2x)
         
         call copy_from_blob(x_blob_recv, lsize, 1, somtp) 
         call copy_from_blob(x_blob_recv, lsize, 2, x_q)
+        call copy_from_blob(x_blob_recv, lsize, 3, ku)
+        call copy_from_blob(x_blob_recv, lsize, 4, kv)
 
         do n = 1, lsize
           if (imask(n) /= 0) then
@@ -965,6 +954,8 @@ subroutine docn_comp_run( EClock, cdata,  x2o, o2x)
             somtp(n) = somtp(n) + TkFrz
             o2x%rAttr(kt,n) = somtp(n)
             o2x%rAttr(kq,n) = x_q(n)
+            o2x%rAttr(ku,n) = x_u(n)
+            o2x%rAttr(kv,n) = x_v(n)
           end if
         end do
          
