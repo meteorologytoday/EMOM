@@ -34,12 +34,14 @@ mutable struct Core
             gd = gd_slab,
             mask_T     = ev.topo.sfcmask_sT,
             deepmask_T = ev.topo.sfcmask_sT,
+            onelayerΔa_T = gf.area,
         )
 
         amo = AdvancedMatrixOperators(;
             gd = gd,
             mask_T = ev.topo.mask_T,
             deepmask_T = ev.topo.deepmask_T,
+            onelayerΔa_T = gf.area,
         )
 
         # Build Advection Matrix

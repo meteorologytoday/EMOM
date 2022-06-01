@@ -42,6 +42,9 @@ mutable struct CurvilinearSphericalGridFile <: GridFile
         _Ny  = ds.dim["nj"]
         close(ds)
 
+        
+        _area .= (4 * π * R^2) / sum(_area)
+
         return new(
             R, Ω,
             _Nx, _Ny, _Nx * _Ny,
