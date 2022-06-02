@@ -83,7 +83,7 @@ cd $casename
 
 setXML "env_run.xml" "${env_run[@]}"
 setXML "env_mach_pes.xml" "${env_mach_pes[@]}"
-cp $wdir/POP2_SourceMods/* SourceMods/src.pop2/
+cp $wdir/POP2_SourceMods_daily/* SourceMods/src.pop2/
 
 # copy user namelist
 if [ "$user_namelist_dir" != "" ]; then
