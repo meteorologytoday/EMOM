@@ -54,7 +54,7 @@ function getCompleteVariableList(
         
         if mb.tmpfi.datastream != nothing 
 
-            if mb.ev.cfg_core["weak_restoring"] == "on"
+            if mb.ev.cfgs["MODEL_CORE"]["weak_restoring"] == "on"
                 d["WKRST_TARGET_TEMP"] = ( mb.tmpfi.datastream["TEMP"], :T , :mask)
                 d["WKRST_TARGET_SALT"] = ( mb.tmpfi.datastream["SALT"], :T , :mask)
             end
@@ -136,6 +136,8 @@ function getDynamicVariableList(
                 "ADVT",
                 "ADVS",
                 "HMXL",
+                "USFC",
+                "VSFC",
                 
                 "WKRSTT",
                 "WKRSTS",
@@ -150,6 +152,8 @@ function getDynamicVariableList(
                 "CHKTEMP",
                 "CHKSALT",
 
+                "QFLXT",
+                "QFLXS",
             ])
 
         else

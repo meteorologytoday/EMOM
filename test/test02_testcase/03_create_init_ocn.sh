@@ -25,3 +25,7 @@ julia $wdir/EMOM/tools/generate_init_files/make_init_ocean.jl \
     --config $config_file \
     --default-TEMP 0.0 \
     --default-SALT 35.0
+
+
+echo "Making forcing file"
+julia $wdir/make_forcing.jl

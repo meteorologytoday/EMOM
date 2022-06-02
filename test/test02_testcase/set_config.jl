@@ -41,15 +41,15 @@ update_config = OrderedDict{Any, Any}(
     "MODEL_MISC" => Dict(
 
         "init_file"              => joinpath(data_dir, "init_ocn.jld2"),
-        "rpointer_file"          => "rpointer.iom",
-        "daily_record"           => ["{ESSENTIAL}"],
-        "monthly_record"         => ["{ESSENTIAL}", "QFLXT", "QFLXS"],
+        "rpointer_file"          => "rpointer.emom",
+        "daily_record"           => ["{ESSENTIAL}",],
+        "monthly_record"         => ["{ESSENTIAL}",],
         "enable_archive"         => true,
     ),
 
     "DOMAIN" => Dict(
         "domain_file"                  => joinpath(domain_dir, "domain.ocn.gx3v7.120323.nc"),
-        "Nz_bot_file"                    => joinpath(data_dir, "Nz_bot.nc"),
+        "Nz_bot_file"                  => joinpath(data_dir, "Nz_bot.nc"),
         "z_w_file"                     => joinpath(data_dir, "z_w.nc"),
     ),
 
@@ -61,11 +61,17 @@ update_config = OrderedDict{Any, Any}(
         "cdata_end_time"               => "0002-01-01 00:00:00",
         "cdata_align_time"             => "0001-01-01 00:00:00",
 
+        "cdata_var_file_QFLXT"         => joinpath(data_dir, "forcing.nc"),
+        "cdata_var_file_QFLXS"         => joinpath(data_dir, "forcing.nc"),
+        "cdata_var_file_HMXL"          => joinpath(data_dir, "forcing.nc"),
+        "cdata_var_file_USFC"          => joinpath(data_dir, "forcing.nc"),
+        "cdata_var_file_VSFC"          => joinpath(data_dir, "forcing.nc"),
+
         "substeps"                     => 8,
         "MLD_scheme"                   => "static",
         "Qflx"                         => "on",
         "Qflx_finding"                 => "off",
-        "convective_adjustment"        => "on",
+        "convective_adjustment"        => "off",
         "advection_scheme"             => "ekman_AGA2020",
 
         "weak_restoring"               => "off",

@@ -143,46 +143,48 @@ mutable struct Core
         else
             writeLog("Needed datastream varnames: ", join(ev.cdata_varnames, ", "))
             
-            if (! haskey(cfg_core, "cdata_var_file_map" ) ) || cfg_core["cdata_var_file_map"] == nothing
-                throw(ErrorException("Some config require cyclic data forcing file: $(ev.cdata_varnames)"))
-            else
-                function parseDateTime(timetype, str)
-                    m = match(r"(?<year>[0-9]+)-(?<month>[0-9]{2})-(?<day>[0-9]{2})\s+(?<hour>[0-9]{2}):(?<min>[0-9]{2}):(?<sec>[0-9]{2})", str)
-                    if m == nothing
-                        throw(ErrorException("Unknown time format: " * (str)))
-                    end
-
-                    return timetype(
-                        parse(Int64, m[:year]),
-                        parse(Int64, m[:month]),
-                        parse(Int64, m[:day]),
-                        parse(Int64, m[:hour]),
-                        parse(Int64, m[:min]),
-                        parse(Int64, m[:sec]),
-                    )
+            for varname in ev.cdata_varnames
+                if (! haskey(cfg_core, "cdata_var_file_$varname" ) )
+                    throw(ErrorException("Need config: cdata_var_file_$varname"))
                 end
-               
-                timetype   = getproperty(CFTime, Symbol(cfg_core["timetype"]))
-                tmpfi.datastream = Dict()
+            end
 
-
-                for varname in ev.cdata_varnames
-                
-                    var_file_map = Dict()
-                    var_file_map[varname] = cfg_core["cdata_var_file_map"][varname]
-
-                    cdatam = CyclicDataManager(;
-                        timetype     = timetype,
-                        var_file_map = var_file_map,
-                        beg_time     = parseDateTime(timetype, cfg_core["cdata_beg_time"]),
-                        end_time     = parseDateTime(timetype, cfg_core["cdata_end_time"]),
-                        align_time   = parseDateTime(timetype, cfg_core["cdata_align_time"]),
-                        sub_yrng     = ev.sub_yrng,
-                    )
-
-                    tmpfi.datastream[varname] = makeDataContainer(cdatam)
-                    cdatams[varname] = cdatam
+            function parseDateTime(timetype, str)
+                m = match(r"(?<year>[0-9]+)-(?<month>[0-9]{2})-(?<day>[0-9]{2})\s+(?<hour>[0-9]{2}):(?<min>[0-9]{2}):(?<sec>[0-9]{2})", str)
+                if m == nothing
+                    throw(ErrorException("Unknown time format: " * (str)))
                 end
+
+                return timetype(
+                    parse(Int64, m[:year]),
+                    parse(Int64, m[:month]),
+                    parse(Int64, m[:day]),
+                    parse(Int64, m[:hour]),
+                    parse(Int64, m[:min]),
+                    parse(Int64, m[:sec]),
+                )
+            end
+           
+            timetype   = getproperty(CFTime, Symbol(cfg_core["timetype"]))
+            tmpfi.datastream = Dict()
+
+
+            for varname in ev.cdata_varnames
+            
+                var_file_map = Dict()
+                var_file_map[varname] = cfg_core["cdata_var_file_$varname"]
+
+                cdatam = CyclicDataManager(;
+                    timetype     = timetype,
+                    var_file_map = var_file_map,
+                    beg_time     = parseDateTime(timetype, cfg_core["cdata_beg_time"]),
+                    end_time     = parseDateTime(timetype, cfg_core["cdata_end_time"]),
+                    align_time   = parseDateTime(timetype, cfg_core["cdata_align_time"]),
+                    sub_yrng     = ev.sub_yrng,
+                )
+
+                tmpfi.datastream[varname] = makeDataContainer(cdatam)
+                cdatams[varname] = cdatam
             end
         end
 
