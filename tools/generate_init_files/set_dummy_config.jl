@@ -59,7 +59,7 @@ update_config = OrderedDict{Any, Any}(
         "init_file"              => joinpath(data_dir, "init_ocn.jld2"),
         "rpointer_file"          => "rpointer.emom",
         "daily_record"           => [],
-        "monthly_record"         => ["{ESSENTIAL}", "QFLXT", "QFLXS"],
+        "monthly_record"         => ["{ESSENTIAL}"],
         "enable_archive"         => true,
     ),
 
@@ -91,8 +91,8 @@ update_config = OrderedDict{Any, Any}(
 
 
         "τfrz"                         => 3600.0,
-        "Ekman_layers"                 => 3,
-        "Returnflow_layers"            => 7,
+        "Ekman_layers"                 => 8,
+        "Returnflow_layers"            => 25,
     
         "transform_vector_field"       => true,
     ),
