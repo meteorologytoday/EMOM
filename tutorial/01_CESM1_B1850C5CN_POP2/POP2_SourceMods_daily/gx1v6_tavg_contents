@@ -1,11 +1,11 @@
 #  An integer [1,9] in the first column identifies the field's output stream number. 
 #  To deactivate a field, replace the output stream number with  # or ! 
-1  QFLUX
+2  QFLUX
 1  BSF
-1  TFW_T
-1  TFW_S
-1  RESID_T
-1  RESID_S
+2  TFW_T
+2  TFW_S
+2  RESID_T
+2  RESID_S
 1  QSW_HTP
 1  QSW_HBL
 #1  SHF
@@ -36,7 +36,7 @@
 1  HBLT
 1  XBLT
 1  TBLT
-1  FW
+2  FW
 1  ADVT
 1  ADVS
 1  HDIFT
