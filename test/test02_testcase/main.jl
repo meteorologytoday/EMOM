@@ -51,13 +51,6 @@ if is_master
     Δt = Dates.Second(Δt_float)
     read_restart = false
 
-    cfgmc = config["MODEL_CORE"]
-    cfgmm = config["MODEL_MISC"]
-
-    cfgmc["Qflx"] = "off"
-    cfgmc["weak_restoring"] = "off"
-    cfgmc["transform_vector_field"] = false
-    
     first_run = true
 
 

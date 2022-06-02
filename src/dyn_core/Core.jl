@@ -9,7 +9,7 @@ mutable struct Core
 
     vd        :: VerticalDiffusion
 
-    cdatam     :: Union{CyclicDataManager, Nothing}
+    cdatams    :: Union{Dict, Nothing}
     
     function Core(
         ev :: Env,
@@ -136,37 +136,43 @@ mutable struct Core
         sfcmask_T[1, :, :] .= 1
         mtx[:T_sfcmask_T] = spdiagm(0 => amo.T_mask_T * reshape(sfcmask_T, :))
 
+        cdatams = Dict()
+        
         if length(ev.cdata_varnames) == 0
             writeLog("No datastream variable is needed.")
-            cdatam = nothing
         else
             writeLog("Needed datastream varnames: ", join(ev.cdata_varnames, ", "))
             
-            if (! haskey(cfg_core, "cdata_var_file_map" ) ) || cfg_core["cdata_var_file_map"] == nothing
-                throw(ErrorException("Some config require cyclic data forcing file: $(ev.cdata_varnames)"))
-            else
-                function parseDateTime(timetype, str)
-                    m = match(r"(?<year>[0-9]+)-(?<month>[0-9]{2})-(?<day>[0-9]{2})\s+(?<hour>[0-9]{2}):(?<min>[0-9]{2}):(?<sec>[0-9]{2})", str)
-                    if m == nothing
-                        throw(ErrorException("Unknown time format: " * (str)))
-                    end
-
-                    return timetype(
-                        parse(Int64, m[:year]),
-                        parse(Int64, m[:month]),
-                        parse(Int64, m[:day]),
-                        parse(Int64, m[:hour]),
-                        parse(Int64, m[:min]),
-                        parse(Int64, m[:sec]),
-                    )
+            for varname in ev.cdata_varnames
+                if (! haskey(cfg_core, "cdata_var_file_$varname" ) )
+                    throw(ErrorException("Need config: cdata_var_file_$varname"))
                 end
-               
-                timetype   = getproperty(CFTime, Symbol(cfg_core["timetype"]))
+            end
 
+            function parseDateTime(timetype, str)
+                m = match(r"(?<year>[0-9]+)-(?<month>[0-9]{2})-(?<day>[0-9]{2})\s+(?<hour>[0-9]{2}):(?<min>[0-9]{2}):(?<sec>[0-9]{2})", str)
+                if m == nothing
+                    throw(ErrorException("Unknown time format: " * (str)))
+                end
+
+                return timetype(
+                    parse(Int64, m[:year]),
+                    parse(Int64, m[:month]),
+                    parse(Int64, m[:day]),
+                    parse(Int64, m[:hour]),
+                    parse(Int64, m[:min]),
+                    parse(Int64, m[:sec]),
+                )
+            end
+           
+            timetype   = getproperty(CFTime, Symbol(cfg_core["timetype"]))
+            tmpfi.datastream = Dict()
+
+
+            for varname in ev.cdata_varnames
+            
                 var_file_map = Dict()
-                for varname in ev.cdata_varnames
-                    var_file_map[varname] = cfg_core["cdata_var_file_map"][varname]
-                end
+                var_file_map[varname] = cfg_core["cdata_var_file_$varname"]
 
                 cdatam = CyclicDataManager(;
                     timetype     = timetype,
@@ -177,7 +183,8 @@ mutable struct Core
                     sub_yrng     = ev.sub_yrng,
                 )
 
-                tmpfi.datastream = makeDataContainer(cdatam)
+                tmpfi.datastream[varname] = makeDataContainer(cdatam)
+                cdatams[varname] = cdatam
             end
         end
 
@@ -202,8 +209,7 @@ mutable struct Core
 
             vd,
 
-            cdatam,
-
+            cdatams,
 
         )
     end

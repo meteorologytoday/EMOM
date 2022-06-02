@@ -4,10 +4,12 @@ using .RunCommands
 using Formatting
 
 ocn_models = ["EMOM", "MLM", "SOM"]
-EMOM_root = joinpath(@__DIR__, "..", "..")
+#ocn_models = ["EMOM", ]
 
-git_branch = "dev/wrap-up"
-casename_prefix = "EXAMPLE"
+EMOM_root = joinpath(@__DIR__, "..", "..") |> normpath
+
+git_branch = "dev/fix-area-UV"
+casename_prefix = "CTL"
 project_code = "UMIA0022"
 walltime     = "12:00:00"
 resolution   = "f09_g16"
@@ -25,10 +27,11 @@ POP2_hist_file_z_convert_factor    = - 0.01
 POP2_hist_file_hmxl_convert_factor =   0.01
 POP2_hist_ref_var = "TEMP"
 
+ref_dir = joinpath(@__DIR__, "..", "04_derive_flux_correction", "output") |> normpath
 forcing_files = Dict(
-    "SOM" => "",
-    "MLM" => "",
-    "EMOM" => "",
+    "SOM" => "",  
+    "MLM" => "",  
+    "EMOM" => "",  
 )
 
 user_namelists = Dict(
@@ -36,6 +39,13 @@ user_namelists = Dict(
 )
 
 dummy_config_file = joinpath(inputdata_dir, "dummy_config.toml")
+
+for (ocn_model, forcing_file) in forcing_files
+    println("Checking existence of forcing file of $ocn_model : $forcing_file")
+    if forcing_file != "" && (! isfile(forcing_file))
+        println("Warning: Forcing file $forcing_file does not exist. ")
+    end
+end
 
 for ocn_model in ocn_models
     
@@ -47,11 +57,6 @@ for ocn_model in ocn_models
     init_file = joinpath(inputdata_dir, "$(casename).init.snapshot.jld2")
 
     forcing_file = forcing_files[ocn_model]
-    if ! isfile(forcing_file)
-        println("Forcing file $forcing_file does not exist. Re-assign forcing file as empty.")
-        forcing_file = ""
-    end
-
 
     # Create init ocean restart files
     mkpath(inputdata_dir)
@@ -69,23 +74,10 @@ for ocn_model in ocn_models
                          --reference-file-convert-factor $POP2_hist_file_z_convert_factor
         `)
 
-        # The follwing is to generate z_w.nc with explicit numbers
-        #=
-        pleaseRun(`julia --project=$EMOM_root $EMOM_root/tools/generate_init_files/make_z_w.jl
-                         --output-file $z_w_file 
-                         --z_w 0 -10 -20 -30 -40 -50 -60 -70 -80 -90 -100 -120  -140  -160  -200
-
-        =#
     end
 
     if !isfile(Nz_bot_file)
-#=
-julia --project=$EMOM_root $wdir/EMOM/tools/generate_init_files/make_Nz_bot_from_topo.jl \
-    --output-file $Nz_bot_file \
-    --domain-file $domain_file \
-    --z_w-file $z_w_file \
-    --topo-file "$topo_file"
-=#
+        
         # Generate z_w.nc with a referenced POP2 history file
         pleaseRun(`julia --project=$EMOM_root $EMOM_root/tools/generate_init_files/make_Nz_bot_from_ref_file.jl
                          --ref-file $POP2_hist_file
@@ -136,9 +128,6 @@ julia --project=$EMOM_root $wdir/EMOM/tools/generate_init_files/make_Nz_bot_from
         println("Something happened. Abort this case and move onto the next.")
         continue
     end
-    #if [ ! "$?" = "0" ] ; then
-    #    echo "Something went wrong when making cesm case. Skip this case."
-#        continue
 
     pleaseRun(`julia --project=$EMOM_root $EMOM_root/tools/generate_init_files/make_config_from_CESM_case.jl 
             --caseroot     $caseroot                    
@@ -147,15 +136,17 @@ julia --project=$EMOM_root $wdir/EMOM/tools/generate_init_files/make_Nz_bot_from
             --z_w-file $z_w_file 
             --Nz_bot-file    $Nz_bot_file    
             --init-file    $init_file    
-            --forcing-file-HMXL $forcing_file 
-            --forcing-file-TEMP $forcing_file 
-            --forcing-file-SALT $forcing_file 
-            --forcing-file-QFLXT $forcing_file
-            --forcing-file-QFLXS $forcing_file 
+            --forcing-file-HMXL  $(forcing_file) 
+            --forcing-file-TEMP  $(forcing_file)
+            --forcing-file-SALT  $(forcing_file)
+            --forcing-file-QFLXT $(forcing_file)
+            --forcing-file-QFLXS $(forcing_file) 
+            --forcing-file-USFC  $(forcing_file) 
+            --forcing-file-VSFC  $(forcing_file)
             --forcing-time "0001-01-01 00:00:00" "0002-01-01 00:00:00" "0001-01-01 00:00:00"
             --output-filename $(EMOM_config_file)
     `)
-
+    
     println("Validate the generated config file: $(EMOM_config_file)")
     pleaseRun(`julia --project=$EMOM_root $EMOM_root/tools/generate_init_files/validate_config.jl --config $EMOM_config_file`)
 

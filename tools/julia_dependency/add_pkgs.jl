@@ -1,7 +1,7 @@
 using Pkg
 
 pkg_names = []
-open("package_list", "r") do io
+open(joinpath(@__DIR__, "package_list"), "r") do io
 
     while ! eof(io)
         pkg_name = readline(io) |> chomp |> lstrip |> rstrip

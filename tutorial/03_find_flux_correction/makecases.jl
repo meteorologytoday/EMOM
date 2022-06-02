@@ -4,8 +4,9 @@ using .RunCommands
 using Formatting
 
 ocn_models = ["EMOM", "MLM", "SOM"]
-ocn_models = ["EMOM", ]
-EMOM_root = joinpath(@__DIR__, "..", "..")
+#ocn_models = ["EMOM", ]
+
+EMOM_root = joinpath(@__DIR__, "..", "..") |> normpath
 
 git_branch = "dev/fix-area-UV"
 casename_prefix = "EXAMPLE"
@@ -26,10 +27,15 @@ POP2_hist_file_z_convert_factor    = - 0.01
 POP2_hist_file_hmxl_convert_factor =   0.01
 POP2_hist_ref_var = "TEMP"
 
+ref_dir = joinpath(@__DIR__, "..", "02_derive_reference_profile", "output") |> normpath
 forcing_files = Dict(
-    "SOM" => "",
-    "MLM" => "",
-    "EMOM" => "",
+    "HMXL" => joinpath(ref_dir, "fivedays_mean", "HMXL.nc"),
+    "TEMP" => joinpath(ref_dir, "fivedays_mean", "TEMP.nc"),
+    "SALT" => joinpath(ref_dir, "fivedays_mean", "SALT.nc"),
+    "USFC" => joinpath(ref_dir, "USFC.nc"),
+    "VSFC" => joinpath(ref_dir, "VSFC.nc"),
+    "QFLXT" => "",  # supposed to be empty
+    "QFLXS" => "",  # supposed to be empty
 )
 
 user_namelists = Dict(
@@ -37,6 +43,13 @@ user_namelists = Dict(
 )
 
 dummy_config_file = joinpath(inputdata_dir, "dummy_config.toml")
+
+for (varname, forcing_file) in forcing_files
+    println("Checking existence of forcing file of $varname : $forcing_file")
+    if forcing_file != "" && (! isfile(forcing_file))
+        println("Warning: Forcing file $forcing_file does not exist. ")
+    end
+end
 
 for ocn_model in ocn_models
     
@@ -47,11 +60,6 @@ for ocn_model in ocn_models
     Nz_bot_file = joinpath(inputdata_dir, "Nz_bot_$(ocn_model).nc")
     init_file = joinpath(inputdata_dir, "$(casename).init.snapshot.jld2")
 
-    forcing_file = forcing_files[ocn_model]
-    if ! isfile(forcing_file)
-        println("Forcing file $forcing_file does not exist. Re-assign forcing file as empty.")
-        forcing_file = ""
-    end
 
 
     # Create init ocean restart files
@@ -132,11 +140,13 @@ for ocn_model in ocn_models
             --z_w-file $z_w_file 
             --Nz_bot-file    $Nz_bot_file    
             --init-file    $init_file    
-            --forcing-file-HMXL $forcing_file 
-            --forcing-file-TEMP $forcing_file 
-            --forcing-file-SALT $forcing_file 
-            --forcing-file-QFLXT $forcing_file
-            --forcing-file-QFLXS $forcing_file 
+            --forcing-file-HMXL  $(forcing_files["HMXL"]) 
+            --forcing-file-TEMP  $(forcing_files["TEMP"])
+            --forcing-file-SALT  $(forcing_files["SALT"])
+            --forcing-file-QFLXT $(forcing_files["QFLXT"])
+            --forcing-file-QFLXS $(forcing_files["QFLXS"]) 
+            --forcing-file-USFC  $(forcing_files["USFC"]) 
+            --forcing-file-VSFC  $(forcing_files["VSFC"])
             --forcing-time "0001-01-01 00:00:00" "0002-01-01 00:00:00" "0001-01-01 00:00:00"
             --output-filename $(EMOM_config_file)
     `)

@@ -70,22 +70,44 @@ layers = parsed["layers"]
 in_dir = parsed["hist-dir"]
 
 coord = "z_t,z_w,z_w_top,z_w_bot,TAREA"
-varnames = "HMXL,TEMP,SALT,UVEL,VVEL"
+
+varnames_daily   = ["HMXL", "TEMP", "SALT"]
+varnames_monthly = ["UVEL", "VVEL"]
+
+all_varnames = copy(varnames_daily)
+append!(all_varnames, varnames_monthly)
+
+fileformats = Dict(
+    "TEMP" => "{}.pop.h.nday1.{}-{}-01.nc",
+    "SALT" => "{}.pop.h.nday1.{}-{}-01.nc",
+    "HMXL" => "{}.pop.h.nday1.{}-{}-01.nc",
+    "UVEL" => "{}.pop.h.{}-{}.nc",
+    "VVEL" => "{}.pop.h.{}-{}.nc",
+)
 
 year_rng      = format( "{:04d}-{:04d}",  beg_year, end_year )
-year_rng_eval = format( "{:04d}..{:04d}",  beg_year, end_year )
+year_rng_eval = format( "{{{:04d}..{:04d}}}",  beg_year, end_year )
 
-ref_file = "$(in_dir)/$(casename).pop.h.daily.$(format("{:04d}", beg_year))-01-01.nc"
+ref_file = joinpath(in_dir, format(fileformats["TEMP"], casename, format("{:04d}", beg_year), "01"))
+
 out_dir  = parsed["output-dir"]
+fivedays_mean_dir = "$(out_dir)/fivedays_mean"
+monthly_mean_dir = "$(out_dir)/monthly"
+
 coord_file="$(out_dir)/coord.nc"
-time_file="$(out_dir)/time.nc"
+daily_time_file="$(out_dir)/time_daily.nc"
+monthly_time_file="$(out_dir)/time_monthly.nc"
 
 if isdir(out_dir)
     throw(ErrorException("ERROR: directory $(out_dir) already exists."))
 end
 
-pleaseRun(`mkdir -p $(out_dir)`)
-pleaseRun(`julia $(@__DIR__)/make_daily_time.jl --output $(time_file) --years 1`)
+pleaseRun(`mkdir -p $out_dir`)
+pleaseRun(`mkdir -p $fivedays_mean_dir`)
+pleaseRun(`mkdir -p $monthly_mean_dir`)
+
+pleaseRun(`julia $(@__DIR__)/make_daily_time.jl --output $(daily_time_file) --years 1`)
+pleaseRun(`julia $(@__DIR__)/make_monthly_time.jl --output $(monthly_time_file) --years 1`)
 
 println("Output directory: $(out_dir)")
 
@@ -93,28 +115,41 @@ pleaseRun(`ncks -O -F -v $coord -d z_t,1,$(layers) -d z_w_top,1,$(layers) -d z_w
 pleaseRun(`ncap2 -O -s 'z_t=-z_t/100.0;z_w_top=-z_w_top/100.0;z_w_bot=-z_w_bot/100.0;z_w=-z_w/100.0' $coord_file $coord_file`)
 
 output_files = Dict()
+output_monthly_files = Dict()
 
-for varname in split(varnames, ",")
+for varname in all_varnames
 
     output_file = "$(out_dir)/$(varname).nc"
     output_files[varname] = output_file
+ 
+    output_monthly_file = "$(monthly_mean_dir)/$(varname).nc"
+    output_monthly_files[varname] = output_monthly_file
     
-    println("Averaging var: $varname to $(output_file)")
+    println("Averaging var: $varname to $(output_file) and $(output_monthly_file)")
 
     tmp_dir = "tmp_$(varname)" 
     mkpath(tmp_dir)
     
+    fileformat = fileformats[varname]
     filenames = []
+    monthly_filenames = []
+
     for m=1:12
         
         m_str = format("{:02d}", m)
         tmp_file = "$(tmp_dir)/$(varname)_$(m_str).nc"
-        pleaseRun(`bash -c "ncea -O -F -d z_t,1,$(layers) -d z_w_top,1,$(layers) -d z_w_bot,1,$(layers) -v $varname $(in_dir)/$(casename).pop.h.daily.{$(year_rng_eval)}-$(m_str)-01.nc $tmp_file"`)
+        tmp_monthly_file = "$(tmp_dir)/$(varname)_monthly_$(m_str).nc"
+        files = format(fileformat, casename, year_rng_eval, m_str)
+        files = "$in_dir/$files"
+        pleaseRun(`bash -c "ncea -O -F -d z_t,1,$(layers) -d z_w_top,1,$(layers) -d z_w_bot,1,$(layers) -v $varname $files $tmp_file"`)
+        pleaseRun(`bash -c "ncra -O $tmp_file $tmp_monthly_file"`)
 
         push!(filenames, tmp_file)
+        push!(monthly_filenames, tmp_monthly_file)
     end
 
     pleaseRun(`bash -c "ncrcat -O -F $(join(filenames, " ")) $(output_file)"`)
+    pleaseRun(`bash -c "ncrcat -O -F $(join(monthly_filenames, " ")) $(output_monthly_file)"`)
     
     rm(tmp_dir, recursive=true, force=true)
 end
@@ -122,15 +157,23 @@ end
 println("Converting units...")
 pleaseRun(`ncap2 -O -v -s 'HMXL=HMXL/100.0;' $(output_files["HMXL"]) $(output_files["HMXL"])`)
 
-for (_, output_file) in output_files
+for varname in varnames_daily
+    output_file = output_files[varname]
     println(coord_file, "; ", output_file)
     pleaseRun(`ncks -A -v $coord         $coord_file $output_file`)
-    pleaseRun(`ncks -A -v time,time_bound $time_file $output_file`)
+    pleaseRun(`ncks -A -v time,time_bound $daily_time_file $output_file`)
+end
+
+for varname in varnames_monthly
+    output_file = output_files[varname]
+    println(coord_file, "; ", output_file)
+    pleaseRun(`ncks -A -v $coord         $coord_file $output_file`)
+    pleaseRun(`ncks -A -v time,time_bound $monthly_time_file $output_file`)
 end
 
 
 # Get surface U and V
-for (varname, old_output_file) in output_files
+for (varname, old_output_file) in output_monthly_files
     if varname in ["UVEL", "VVEL"]
 
         new_varname = Dict(
@@ -138,19 +181,18 @@ for (varname, old_output_file) in output_files
             "VVEL" => "VSFC",
         )[varname]
 
-        new_output_file = "$(out_dir)/$(new_varname).nc"
+        new_output_file = "$(monthly_mean_dir)/$(new_varname).nc"
 
-        pleaseRun(`bash -c "ncks -O -F -d z_t,1,1 -v $(varname) $(output_file) $(new_output_file)"`)
+        pleaseRun(`bash -c "ncks -O -F -d z_t,1,1 -v $(varname) $(old_output_file) $(new_output_file)"`)
         pleaseRun(`bash -c "ncrename -v $(varname),$(new_varname) $(new_output_file)"`)
         output_files[new_varname] = new_output_file
     end
 end
 
-
-println("Doing 5 day mean")
+println("Doing 5 day mean of variables: ", join(varnames_daily, ","))
 fivedays_mean_dir = "$(out_dir)/fivedays_mean"
-mkpath(fivedays_mean_dir)
-for (varname, daily_output_file) in output_files
+for varname in varnames_daily
+    daily_output_file = output_files[varname]
     fivedays_mean_output_file = "$(fivedays_mean_dir)/$(varname).nc"
     println("$daily_output_file => $fivedays_mean_output_file")
     pleaseRun(`ncra --mro -d time,0,,5,5 $daily_output_file $fivedays_mean_output_file`)
