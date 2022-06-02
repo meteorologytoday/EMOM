@@ -235,7 +235,7 @@ logfile="emom.log.\${LID}"
 EMOM_ROOT=\${caseroot}/EMOM
 
 ml load openmpi/4.0.3
-ml load julia/1.6.0
+ml load julia/1.7.1
 julia -e 'ENV["JULIA_MPI_BINARY"]="system"; using Pkg; Pkg.build("MPI"; verbose=true)'
 
 
