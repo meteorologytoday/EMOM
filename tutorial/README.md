@@ -4,7 +4,7 @@ This tutorial folder contains the steps to derive the flux correction as describ
 
 ## Setup Julia package
 
-The Julia programming language is needed (version >= 1.6). Follow the steps to install the necessary tools. Run `julia tools/julia_dependency/add_pkgs.jl` to ssetup all the packages. 
+The Julia programming language is needed (version >= 1.6). Follow the steps to install the necessary tools. Run `julia tools/julia_dependency/add_pkgs.jl` to setup all the packages. 
 
 
 ## Step 1: Creating reference case (`01_CESM1_B1850C5CN_POP2`)
