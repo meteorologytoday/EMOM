@@ -9,7 +9,7 @@ mutable struct Core
 
     vd        :: VerticalDiffusion
 
-    cdatam     :: Union{CyclicDataManager, Nothing}
+    cdatams    :: Union{Dict, Nothing}
     
     function Core(
         ev :: Env,
@@ -136,9 +136,10 @@ mutable struct Core
         sfcmask_T[1, :, :] .= 1
         mtx[:T_sfcmask_T] = spdiagm(0 => amo.T_mask_T * reshape(sfcmask_T, :))
 
+        cdatams = Dict()
+        
         if length(ev.cdata_varnames) == 0
             writeLog("No datastream variable is needed.")
-            cdatam = nothing
         else
             writeLog("Needed datastream varnames: ", join(ev.cdata_varnames, ", "))
             
@@ -162,22 +163,26 @@ mutable struct Core
                 end
                
                 timetype   = getproperty(CFTime, Symbol(cfg_core["timetype"]))
+                tmpfi.datastream = Dict()
 
-                var_file_map = Dict()
+
                 for varname in ev.cdata_varnames
+                
+                    var_file_map = Dict()
                     var_file_map[varname] = cfg_core["cdata_var_file_map"][varname]
+
+                    cdatam = CyclicDataManager(;
+                        timetype     = timetype,
+                        var_file_map = var_file_map,
+                        beg_time     = parseDateTime(timetype, cfg_core["cdata_beg_time"]),
+                        end_time     = parseDateTime(timetype, cfg_core["cdata_end_time"]),
+                        align_time   = parseDateTime(timetype, cfg_core["cdata_align_time"]),
+                        sub_yrng     = ev.sub_yrng,
+                    )
+
+                    tmpfi.datastream[varname] = makeDataContainer(cdatam)
+                    cdatams[varname] = cdatam
                 end
-
-                cdatam = CyclicDataManager(;
-                    timetype     = timetype,
-                    var_file_map = var_file_map,
-                    beg_time     = parseDateTime(timetype, cfg_core["cdata_beg_time"]),
-                    end_time     = parseDateTime(timetype, cfg_core["cdata_end_time"]),
-                    align_time   = parseDateTime(timetype, cfg_core["cdata_align_time"]),
-                    sub_yrng     = ev.sub_yrng,
-                )
-
-                tmpfi.datastream = makeDataContainer(cdatam)
             end
         end
 
@@ -202,8 +207,7 @@ mutable struct Core
 
             vd,
 
-            cdatam,
-
+            cdatams,
 
         )
     end
