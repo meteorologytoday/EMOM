@@ -92,6 +92,18 @@ function parse_commandline()
             arg_type = String
             default = ""
 
+        "--forcing-file-USFC"
+            help = "The forcing file"
+            arg_type = String
+            default = ""
+
+        "--forcing-file-VSFC"
+            help = "The forcing file"
+            arg_type = String
+            default = ""
+
+
+
         "--forcing-time"
             help = "Beg, end, align"
             arg_type = String
@@ -188,13 +200,6 @@ end
 
 var_file_map = Dict()
 
-for var in ["HMXL", "TEMP", "SALT", "QFLXT", "QFLXS"]
-    file = parsed["forcing-file-$(var)"]
-    if file != ""
-        var_file_map[var] = file
-    end
-end
-
 
 
 config = Dict{Any, Any}(
@@ -223,8 +228,6 @@ config = Dict{Any, Any}(
 
     "MODEL_CORE" => Dict(
 
-        "cdata_var_file_map"           => var_file_map,
-
         "cdata_beg_time"               => parsed["forcing-time"][1],
         "cdata_end_time"               => parsed["forcing-time"][2],
         "cdata_align_time"             => parsed["forcing-time"][3],
@@ -248,6 +251,10 @@ config = Dict{Any, Any}(
     ),
 
 )
+
+for var in ["HMXL", "TEMP", "SALT", "QFLXT", "QFLXS", "USFC", "VSFC"]
+    config["MODEL_CORE"]["cdata_var_file_$(var)"] = parsed["forcing-file-$(var)"]
+end
 
 using TOML
 
