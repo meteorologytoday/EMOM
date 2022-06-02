@@ -93,8 +93,6 @@ ref_file = joinpath(in_dir, format(fileformats["TEMP"], casename, format("{:04d}
 out_dir  = parsed["output-dir"]
 fivedays_mean_dir = "$(out_dir)/fivedays_mean"
 monthly_mean_dir = "$(out_dir)/monthly"
-mkpath(fivedays_mean_dir)
-mkpath(monthly_mean_dir)
 
 coord_file="$(out_dir)/coord.nc"
 daily_time_file="$(out_dir)/time_daily.nc"
@@ -104,7 +102,10 @@ if isdir(out_dir)
     throw(ErrorException("ERROR: directory $(out_dir) already exists."))
 end
 
-pleaseRun(`mkdir -p $(out_dir)`)
+pleaseRun(`mkdir -p $out_dir`)
+pleaseRun(`mkdir -p $fivedays_mean_dir`)
+pleaseRun(`mkdir -p $monthly_mean_dir`)
+
 pleaseRun(`julia $(@__DIR__)/make_daily_time.jl --output $(daily_time_file) --years 1`)
 pleaseRun(`julia $(@__DIR__)/make_monthly_time.jl --output $(monthly_time_file) --years 1`)
 
@@ -141,7 +142,7 @@ for varname in all_varnames
         files = format(fileformat, casename, year_rng_eval, m_str)
         files = "$in_dir/$files"
         pleaseRun(`bash -c "ncea -O -F -d z_t,1,$(layers) -d z_w_top,1,$(layers) -d z_w_bot,1,$(layers) -v $varname $files $tmp_file"`)
-        pleaseRun(`bash -c "ncra -O -F -d z_t,1,$(layers) -d z_w_top,1,$(layers) -d z_w_bot,1,$(layers) -v $varname $tmp_file $tmp_monthly_file"`)
+        pleaseRun(`bash -c "ncra -O $tmp_file $tmp_monthly_file"`)
 
         push!(filenames, tmp_file)
         push!(monthly_filenames, tmp_monthly_file)
