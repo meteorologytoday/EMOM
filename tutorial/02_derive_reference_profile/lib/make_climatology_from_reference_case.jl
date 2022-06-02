@@ -91,6 +91,11 @@ year_rng_eval = format( "{{{:04d}..{:04d}}}",  beg_year, end_year )
 ref_file = joinpath(in_dir, format(fileformats["TEMP"], casename, format("{:04d}", beg_year), "01"))
 
 out_dir  = parsed["output-dir"]
+fivedays_mean_dir = "$(out_dir)/fivedays_mean"
+monthly_mean_dir = "$(out_dir)/monthly"
+mkpath(fivedays_mean_dir)
+mkpath(monthly_mean_dir)
+
 coord_file="$(out_dir)/coord.nc"
 daily_time_file="$(out_dir)/time_daily.nc"
 monthly_time_file="$(out_dir)/time_monthly.nc"
@@ -109,32 +114,41 @@ pleaseRun(`ncks -O -F -v $coord -d z_t,1,$(layers) -d z_w_top,1,$(layers) -d z_w
 pleaseRun(`ncap2 -O -s 'z_t=-z_t/100.0;z_w_top=-z_w_top/100.0;z_w_bot=-z_w_bot/100.0;z_w=-z_w/100.0' $coord_file $coord_file`)
 
 output_files = Dict()
+output_monthly_files = Dict()
 
 for varname in all_varnames
 
     output_file = "$(out_dir)/$(varname).nc"
     output_files[varname] = output_file
+ 
+    output_monthly_file = "$(monthly_mean_dir)/$(varname).nc"
+    output_monthly_files[varname] = output_monthly_file
     
-    println("Averaging var: $varname to $(output_file)")
+    println("Averaging var: $varname to $(output_file) and $(output_monthly_file)")
 
     tmp_dir = "tmp_$(varname)" 
     mkpath(tmp_dir)
     
     fileformat = fileformats[varname]
     filenames = []
+    monthly_filenames = []
 
     for m=1:2
         
         m_str = format("{:02d}", m)
         tmp_file = "$(tmp_dir)/$(varname)_$(m_str).nc"
+        tmp_monthly_file = "$(tmp_dir)/$(varname)_monthly_$(m_str).nc"
         files = format(fileformat, casename, year_rng_eval, m_str)
         files = "$in_dir/$files"
         pleaseRun(`bash -c "ncea -O -F -d z_t,1,$(layers) -d z_w_top,1,$(layers) -d z_w_bot,1,$(layers) -v $varname $files $tmp_file"`)
+        pleaseRun(`bash -c "ncra -O -F -d z_t,1,$(layers) -d z_w_top,1,$(layers) -d z_w_bot,1,$(layers) -v $varname $tmp_file $tmp_monthly_file"`)
 
         push!(filenames, tmp_file)
+        push!(monthly_filenames, tmp_monthly_file)
     end
 
     pleaseRun(`bash -c "ncrcat -O -F $(join(filenames, " ")) $(output_file)"`)
+    pleaseRun(`bash -c "ncrcat -O -F $(join(monthly_filenames, " ")) $(output_monthly_file)"`)
     
     rm(tmp_dir, recursive=true, force=true)
 end
@@ -158,7 +172,7 @@ end
 
 
 # Get surface U and V
-for (varname, old_output_file) in output_files
+for (varname, old_output_file) in output_monthly_files
     if varname in ["UVEL", "VVEL"]
 
         new_varname = Dict(
@@ -166,7 +180,7 @@ for (varname, old_output_file) in output_files
             "VVEL" => "VSFC",
         )[varname]
 
-        new_output_file = "$(out_dir)/$(new_varname).nc"
+        new_output_file = "$(monthly_mean_dir)/$(new_varname).nc"
 
         pleaseRun(`bash -c "ncks -O -F -d z_t,1,1 -v $(varname) $(old_output_file) $(new_output_file)"`)
         pleaseRun(`bash -c "ncrename -v $(varname),$(new_varname) $(new_output_file)"`)
@@ -174,10 +188,8 @@ for (varname, old_output_file) in output_files
     end
 end
 
-
 println("Doing 5 day mean of variables: ", join(varnames_daily, ","))
 fivedays_mean_dir = "$(out_dir)/fivedays_mean"
-mkpath(fivedays_mean_dir)
 for varname in varnames_daily
     daily_output_file = output_files[varname]
     fivedays_mean_output_file = "$(fivedays_mean_dir)/$(varname).nc"
