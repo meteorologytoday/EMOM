@@ -93,7 +93,7 @@ coupler_funcs = (
         
         end
 
-        OMDATA.x2o["NSWFLX"] .=  -2000.0
+        OMDATA.x2o["NSWFLX"] .=  200.0
 
         write_restart = OMDATA.clock.time == t_end
         end_phase = OMDATA.clock.time > t_end

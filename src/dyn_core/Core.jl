@@ -30,7 +30,8 @@ mutable struct Core
         gd      = ev.gd
         gd_slab = ev.gd_slab
 
-        onelayerΔa_T = view(gf.area, :, ev.sub_yrng)
+        #onelayerΔa_T = view(gf.area, :, ev.sub_yrng)  # Use domain provided area
+        onelayerΔa_T = nothing # Use self-computed area
         amo_slab = AdvancedMatrixOperators(;
             gd = gd_slab,
             mask_T     = ev.topo.sfcmask_sT,
