@@ -42,7 +42,7 @@ update_config = OrderedDict{Any, Any}(
 
         "init_file"              => joinpath(data_dir, "init_ocn.jld2"),
         "rpointer_file"          => "rpointer.iom",
-        "daily_record"           => [],
+        "daily_record"           => ["{ESSENTIAL}"],
         "monthly_record"         => ["{ESSENTIAL}", "QFLXT", "QFLXS"],
         "enable_archive"         => true,
     ),
