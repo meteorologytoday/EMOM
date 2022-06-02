@@ -70,7 +70,12 @@ layers = parsed["layers"]
 in_dir = parsed["hist-dir"]
 
 coord = "z_t,z_w,z_w_top,z_w_bot,TAREA"
-varnames = "HMXL,TEMP,SALT,UVEL,VVEL"
+varnames = "HMXL,TEMP,SALT"
+fileformats = Dict(
+    "TEMP" => "{}.pop.h.nday1.{{{}}}-{}-01.nc",
+    "SALT" => "{}.pop.h.nday1.{{{}}}-{}-01.nc",
+    "HMXL" => "{}.pop.h.nday1.{{{}}}-{}-01.nc",
+)
 
 year_rng      = format( "{:04d}-{:04d}",  beg_year, end_year )
 year_rng_eval = format( "{:04d}..{:04d}",  beg_year, end_year )
@@ -104,12 +109,16 @@ for varname in split(varnames, ",")
     tmp_dir = "tmp_$(varname)" 
     mkpath(tmp_dir)
     
+    fileformat = fileformats[varname]
     filenames = []
+
     for m=1:12
         
         m_str = format("{:02d}", m)
         tmp_file = "$(tmp_dir)/$(varname)_$(m_str).nc"
-        pleaseRun(`bash -c "ncea -O -F -d z_t,1,$(layers) -d z_w_top,1,$(layers) -d z_w_bot,1,$(layers) -v $varname $(in_dir)/$(casename).pop.h.daily.{$(year_rng_eval)}-$(m_str)-01.nc $tmp_file"`)
+        files = format(fileformat, casename, year_rng_eval, m_str)
+        files = "$in_dir/$files"
+        pleaseRun(`bash -c "ncea -O -F -d z_t,1,$(layers) -d z_w_top,1,$(layers) -d z_w_bot,1,$(layers) -v $varname $files $tmp_file"`)
 
         push!(filenames, tmp_file)
     end
@@ -129,6 +138,7 @@ for (_, output_file) in output_files
 end
 
 
+#= For some reason I cannot make POP2 output daily UVEL and VVEL
 # Get surface U and V
 for (varname, old_output_file) in output_files
     if varname in ["UVEL", "VVEL"]
@@ -145,7 +155,7 @@ for (varname, old_output_file) in output_files
         output_files[new_varname] = new_output_file
     end
 end
-
+=#
 
 println("Doing 5 day mean")
 fivedays_mean_dir = "$(out_dir)/fivedays_mean"
