@@ -123,7 +123,7 @@ for varname in all_varnames
     fileformat = fileformats[varname]
     filenames = []
 
-    for m=1:12
+    for m=1:2
         
         m_str = format("{:02d}", m)
         tmp_file = "$(tmp_dir)/$(varname)_$(m_str).nc"
