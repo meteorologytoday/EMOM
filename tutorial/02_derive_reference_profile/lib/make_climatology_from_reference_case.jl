@@ -70,7 +70,12 @@ layers = parsed["layers"]
 in_dir = parsed["hist-dir"]
 
 coord = "z_t,z_w,z_w_top,z_w_bot,TAREA"
-varnames = "HMXL,TEMP,SALT"
+
+varnames_daily   = ["HMXL", "TEMP", "SALT"]
+varnames_monthly = ["UVEL", "VVEL"]
+
+all_varnames = copy(varnames_daily)
+append!(all_varnames, varnames_monthly)
 
 fileformats = Dict(
     "TEMP" => "{}.pop.h.nday1.{}-{}-01.nc",
@@ -87,14 +92,16 @@ ref_file = joinpath(in_dir, format(fileformats["TEMP"], casename, format("{:04d}
 
 out_dir  = parsed["output-dir"]
 coord_file="$(out_dir)/coord.nc"
-time_file="$(out_dir)/time.nc"
+daily_time_file="$(out_dir)/time_daily.nc"
+monthly_time_file="$(out_dir)/time_monthly.nc"
 
 if isdir(out_dir)
     throw(ErrorException("ERROR: directory $(out_dir) already exists."))
 end
 
 pleaseRun(`mkdir -p $(out_dir)`)
-pleaseRun(`julia $(@__DIR__)/make_daily_time.jl --output $(time_file) --years 1`)
+pleaseRun(`julia $(@__DIR__)/make_daily_time.jl --output $(daily_time_file) --years 1`)
+pleaseRun(`julia $(@__DIR__)/make_monthly_time.jl --output $(monthly_time_file) --years 1`)
 
 println("Output directory: $(out_dir)")
 
@@ -103,7 +110,7 @@ pleaseRun(`ncap2 -O -s 'z_t=-z_t/100.0;z_w_top=-z_w_top/100.0;z_w_bot=-z_w_bot/1
 
 output_files = Dict()
 
-for varname in split(varnames, ",")
+for varname in all_varnames
 
     output_file = "$(out_dir)/$(varname).nc"
     output_files[varname] = output_file
@@ -135,11 +142,20 @@ end
 println("Converting units...")
 pleaseRun(`ncap2 -O -v -s 'HMXL=HMXL/100.0;' $(output_files["HMXL"]) $(output_files["HMXL"])`)
 
-for (_, output_file) in output_files
+for varname in varnames_daily
+    output_file = output_files[varname]
     println(coord_file, "; ", output_file)
     pleaseRun(`ncks -A -v $coord         $coord_file $output_file`)
-    pleaseRun(`ncks -A -v time,time_bound $time_file $output_file`)
+    pleaseRun(`ncks -A -v time,time_bound $daily_time_file $output_file`)
 end
+
+for varname in varnames_monthly
+    output_file = output_files[varname]
+    println(coord_file, "; ", output_file)
+    pleaseRun(`ncks -A -v $coord         $coord_file $output_file`)
+    pleaseRun(`ncks -A -v time,time_bound $monthly_time_file $output_file`)
+end
+
 
 # Get surface U and V
 for (varname, old_output_file) in output_files
@@ -152,17 +168,17 @@ for (varname, old_output_file) in output_files
 
         new_output_file = "$(out_dir)/$(new_varname).nc"
 
-        pleaseRun(`bash -c "ncks -O -F -d z_t,1,1 -v $(varname) $(output_file) $(new_output_file)"`)
+        pleaseRun(`bash -c "ncks -O -F -d z_t,1,1 -v $(varname) $(old_output_file) $(new_output_file)"`)
         pleaseRun(`bash -c "ncrename -v $(varname),$(new_varname) $(new_output_file)"`)
         output_files[new_varname] = new_output_file
     end
 end
 
-varnames_daily = ["HMXL", "TEMP", "SALT"]
+
 println("Doing 5 day mean of variables: ", join(varnames_daily, ","))
 fivedays_mean_dir = "$(out_dir)/fivedays_mean"
 mkpath(fivedays_mean_dir)
-for varname in varnames_5days
+for varname in varnames_daily
     daily_output_file = output_files[varname]
     fivedays_mean_output_file = "$(fivedays_mean_dir)/$(varname).nc"
     println("$daily_output_file => $fivedays_mean_output_file")
