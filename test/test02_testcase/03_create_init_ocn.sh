@@ -20,6 +20,8 @@ julia $wdir/EMOM/tools/generate_init_files/make_Nz_bot_from_topo.jl \
 
 julia set_config.jl --config $wdir/data/config.toml
 
-#echo "Making an empty ocean with constant temperature and salinity."
+echo "Making an empty ocean with constant temperature and salinity."
 julia $wdir/EMOM/tools/generate_init_files/make_init_ocean.jl \
-    --config $config_file
+    --config $config_file \
+    --default-TEMP 0.0 \
+    --default-SALT 35.0

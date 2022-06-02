@@ -27,12 +27,12 @@ function parse_commandline()
             default = ""
 
         "--init-profile-TEMP"
-            help = "Initial ocean profile. It must contains: TEMP. If not specified, temperature is set to 20 degC."
+            help = "Initial ocean profile. It must contains: TEMP. If not specified, `default-TEMP` is used."
             arg_type = String
             default = ""
 
         "--init-profile-SALT"
-            help = "Initial ocean profile. It must contains: SALT. If not specified, salinity is set to 35 PSU."
+            help = "Initial ocean profile. It must contains: SALT. If not specified, `default-SALT` is used."
             arg_type = String
             default = ""
 
@@ -41,6 +41,18 @@ function parse_commandline()
             help = "Initial ocean profile. It must contains: HMXL. If not specified, mixed layer depth is set to 50m."
             arg_type = String
             default = ""
+
+        "--default-TEMP"
+            help = "Default temperature if `init-profile-TEMP` is not provided (in degC)."
+            arg_type = Float64
+            default = 10.0
+
+        "--default-SALT"
+            help = "Default salinity if `init-profile-SALT` is not provided (in PSU)."
+            arg_type = Float64
+            default = 35.0
+
+
 
     end
 
@@ -89,8 +101,9 @@ if parsed["init-profile-TEMP"] != ""
         global TEMP = permutedims(nomissing(ds["TEMP"][:, :, 1:Nz, 1],  NaN), [3, 1, 2])
     end
 else
+    println("No profile provided. Use the default temperature: ", parsed["default-TEMP"])
     TEMP = zeros(Float64, Nz, Nx, Ny)
-    TEMP .= 20.0
+    TEMP .= parsed["default-TEMP"]
 end
 
 if parsed["init-profile-SALT"] != ""
@@ -99,7 +112,8 @@ if parsed["init-profile-SALT"] != ""
     end
 else
     SALT = zeros(Float64, Nz, Nx, Ny)
-    SALT .= 35.0
+    println("No profile provided. Use the default salinity: ", parsed["default-SALT"])
+    SALT .= parsed["default-SALT"]
 end
 
 if parsed["init-profile-HMXL"] != ""

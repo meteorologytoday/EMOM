@@ -89,6 +89,20 @@ function getEMOMConfigDescriptors()
             ),
 
             ConfigEntry(
+                "cdata_var_file_USFC",
+                :optional,
+                [String,],
+                "",
+            ),
+
+            ConfigEntry(
+                "cdata_var_file_VSFC",
+                :optional,
+                [String,],
+                "",
+            ),
+
+            ConfigEntry(
                 "cdata_beg_time",
                 :optional,
                 [Any,],

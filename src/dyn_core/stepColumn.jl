@@ -234,7 +234,8 @@ function stepColumn!(
             Q_GHOST_REHEAT[i] = q_frzheat - 10.0
         end    
     end
-    NEWSST .+= Q_GHOST_REHEAT
+
+    @. NEWSST += Q_GHOST_REHEAT / sfcΔz_sT / ρcp_sw
 
     @. tmp_sT = - ρcp_sw * sfcΔz_sT * ΔT_sT / Δt
 
