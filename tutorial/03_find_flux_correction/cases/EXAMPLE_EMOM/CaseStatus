@@ -1,8 +1,0 @@
-create_newcase -case EXAMPLE_EMOM -compset E1850C5 -res f09_g16 -mach cheyenne
-case created 2022-06-01 17:00:56
-cesm_setup -clean 2022-06-01 17:01:10
- 
-build complete 2022-06-01 17:03:43
-run started 2022-06-01 17:05:46
-run started 2022-06-01 17:08:13
-run started 2022-06-01 17:11:15
