@@ -27,12 +27,12 @@ s = ArgParseSettings()
         arg_type = String
         required = true
 
-    "--HMXL-file"
+    "--SOM-HMXL-file"
         help = "The file containing HMXL. If --SOM is set then it has to be given."
         arg_type = String
         default = ""
 
-    "--HMXL-convert-factor"
+    "--SOM-HMXL-convert-factor"
         help = "Conversion used to multiply HMXL variable and end in meters."
         arg_type = Float64
         default = 1.0
@@ -53,7 +53,7 @@ s = ArgParseSettings()
         default = false
 
     "--SOM"
-        help = "If set then `HMXL-file` and `HMXL-convert-factor` have to be given."
+        help = "If set then `SOM-HMXL-file` and `SOM-HMXL-convert-factor` have to be given."
         arg_type = Bool
         default = false
 end
@@ -63,7 +63,7 @@ parsed = DataStructures.OrderedDict(parse_args(ARGS, s))
 JSON.print(parsed, 4)
 
 if parsed["SOM"]
-    for optname in ["HMXL-file", "HMXL-convert-factor"]
+    for optname in ["SOM-HMXL-file", "SOM-HMXL-convert-factor"]
         if parsed[optname] == ""
             throw(ErrorException("Error: `$(optname)` must be set because `SOM` is set."))
         end
@@ -116,12 +116,12 @@ Nz_bot = zeros(Int64, Nx, Ny)
 
 if parsed["SOM"]
 
-    Dataset(parsed["HMXL-file"], "r") do ds
-        global HMXL = reshape(nomissing(ds["HMXL"][:], NaN), Nx, Ny) * parsed["HMXL-convert-factor"]
+    Dataset(parsed["SOM-HMXL-file"], "r") do ds
+        global SOM_HMXL = reshape(nomissing(ds["HMXL"][:], NaN), Nx, Ny) * parsed["SOM-HMXL-convert-factor"]
     end
 
     for i=1:Nx, j=1:Ny
-        h = HMXL[i, j]
+        h = SOM_HMXL[i, j]
         if isnan(h)
             Nz_bot[i, j] = 0
         else

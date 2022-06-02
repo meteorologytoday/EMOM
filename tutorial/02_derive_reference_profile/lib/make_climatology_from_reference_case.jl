@@ -93,6 +93,7 @@ ref_file = joinpath(in_dir, format(fileformats["TEMP"], casename, format("{:04d}
 out_dir  = parsed["output-dir"]
 fivedays_mean_dir = "$(out_dir)/fivedays_mean"
 monthly_mean_dir = "$(out_dir)/monthly"
+annual_mean_dir = "$(out_dir)/annual"
 
 coord_file="$(out_dir)/coord.nc"
 daily_time_file="$(out_dir)/time_daily.nc"
@@ -105,6 +106,7 @@ end
 pleaseRun(`mkdir -p $out_dir`)
 pleaseRun(`mkdir -p $fivedays_mean_dir`)
 pleaseRun(`mkdir -p $monthly_mean_dir`)
+pleaseRun(`mkdir -p $annual_mean_dir`)
 
 pleaseRun(`julia $(@__DIR__)/make_daily_time.jl --output $(daily_time_file) --years 1`)
 pleaseRun(`julia $(@__DIR__)/make_monthly_time.jl --output $(monthly_time_file) --years 1`)
@@ -156,6 +158,9 @@ end
 
 println("Converting units...")
 pleaseRun(`ncap2 -O -v -s 'HMXL=HMXL/100.0;' $(output_files["HMXL"]) $(output_files["HMXL"])`)
+
+println("Make a mean HMXL file for SOM")
+pleaseRun(`ncra -O $(output_files["HMXL"]) $annual_mean_dir/HMXL.nc`)
 
 for varname in varnames_daily
     output_file = output_files[varname]

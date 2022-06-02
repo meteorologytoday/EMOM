@@ -23,13 +23,18 @@ inputdata_dir= joinpath(@__DIR__, "inputdata") # This directory contains inputda
 domain_file = joinpath(EMOM_root, "data", "CESM_domains", "domain.ocn.gx1v6.090206.nc")
 z_w_file = joinpath(inputdata_dir, "z_w.nc")
 
+ref_dir = joinpath(@__DIR__, "..", "02_derive_reference_profile", "output") |> normpath
+
 POP2_hist_file = "/glade/scratch/tienyiao/archive/CAM5_POP2_f09_g16/ocn/hist/CAM5_POP2_f09_g16.pop.h.nday1.0001-02-01.nc"
+POP2_hist_ref_var = "TEMP"
+POP2_HMXL_hist_file = joinpath(ref_dir, "annual", "HMXL.nc")
+
 POP2_hist_file_z_convert_factor    = - 0.01
 POP2_hist_file_hmxl_convert_factor =   0.01
-POP2_hist_ref_var = "TEMP"
+
 Nz = 33
 
-ref_dir = joinpath(@__DIR__, "..", "02_derive_reference_profile", "output") |> normpath
+
 forcing_files = Dict(
     "HMXL" => joinpath(ref_dir, "fivedays_mean", "HMXL.nc"),
     "TEMP" => joinpath(ref_dir, "fivedays_mean", "TEMP.nc"),
@@ -91,8 +96,8 @@ for ocn_model in ocn_models
                          --ref-var $POP2_hist_ref_var
                          --domain-file $domain_file 
                          --z_w-file $z_w_file
-                         --HMXL-file $POP2_hist_file 
-                         --HMXL-convert-factor $POP2_hist_file_hmxl_convert_factor
+                         --SOM-HMXL-file $POP2_HMXL_hist_file 
+                         --SOM-HMXL-convert-factor $POP2_hist_file_hmxl_convert_factor
                          --SOM $(ocn_model == "SOM")
                          --crop-with-z_w true
                          --output-file $Nz_bot_file

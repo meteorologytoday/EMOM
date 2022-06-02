@@ -236,10 +236,10 @@ EMOM_ROOT=\${caseroot}/EMOM
 
 ml load openmpi/4.0.3
 ml load julia/1.6.0
-julia --project=\${EMOM_ROOT} -e 'ENV["JULIA_MPI_BINARY"]="system"; using Pkg; Pkg.build("MPI"; verbose=true)'
+julia -e 'ENV["JULIA_MPI_BINARY"]="system"; using Pkg; Pkg.build("MPI"; verbose=true)'
 
 
-mpiexec -n $(parsed["ncpu"]) julia --project=\${EMOM_ROOT} \${EMOM_ROOT}/src/CESM_driver/main.jl --config-file=\${caseroot}/config.toml &> \${caserun}/\${logfile}
+mpiexec -n $(parsed["ncpu"]) julia \${EMOM_ROOT}/src/CESM_driver/main.jl --config-file=\${caseroot}/config.toml &> \${caserun}/\${logfile}
 
 
 ret_code=\$?
