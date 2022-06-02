@@ -33,7 +33,12 @@ s = ArgParseSettings()
         arg_type = Float64
         default = 1.0
 
+     "--Nz"
+        help = "Specifying the output layers."
+        arg_type = Int64
+        default = -1
 
+   
 
 end
 
@@ -71,6 +76,16 @@ if z_w[1] != 0.0
     throw(ErrorException("Error: The first value of `--z_w` must be 0.0."))
 end
 
+if parsed["Nz"] == -1
+    println("The option `--Nz` is not set. Use the full z_w.")
+elseif parsed["Nz"] != -1
+    println("The option `--Nz` is provided: ", parsed["Nz"], ". Crop z_w.")
+
+    if parsed["Nz"] > length(z_w) - 1
+        throw(ErrorException("The option `--Nz` is larger than the available z_w."))
+    end
+    z_w = z_w[1:parsed["Nz"]+1]
+end
 
 dz = z_w[1:end-1] - z_w[2:end]
 if any(dz .<= 0)

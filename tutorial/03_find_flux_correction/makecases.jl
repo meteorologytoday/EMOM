@@ -4,12 +4,12 @@ using .RunCommands
 using Formatting
 
 ocn_models = ["EMOM", "MLM", "SOM"]
-#ocn_models = ["EMOM", ]
+ocn_models = ["EMOM", ]
 
 EMOM_root = joinpath(@__DIR__, "..", "..") |> normpath
 
 git_branch = "dev/fix-area-UV"
-casename_prefix = "EXAMPLE"
+casename_prefix = "QFLX_FND"
 project_code = "UMIA0022"
 walltime     = "12:00:00"
 resolution   = "f09_g16"
@@ -22,18 +22,20 @@ cases_dir    = joinpath(@__DIR__, "cases") # This directory contains cases using
 inputdata_dir= joinpath(@__DIR__, "inputdata") # This directory contains inputdata needed by the ocean model such as domain files, Q-flux files, Nz_bot.nc and such
 domain_file = joinpath(EMOM_root, "data", "CESM_domains", "domain.ocn.gx1v6.090206.nc")
 z_w_file = joinpath(inputdata_dir, "z_w.nc")
-POP2_hist_file = "/glade/scratch/tienyiao/archive/CAM5_POP2/ocn/hist/CAM5_POP2.pop.h.0001-02.nc"
+
+POP2_hist_file = "/glade/scratch/tienyiao/archive/CAM5_POP2_f09_g16/ocn/hist/CAM5_POP2_f09_g16.pop.h.nday1.0001-02-01.nc"
 POP2_hist_file_z_convert_factor    = - 0.01
 POP2_hist_file_hmxl_convert_factor =   0.01
 POP2_hist_ref_var = "TEMP"
+Nz = 33
 
 ref_dir = joinpath(@__DIR__, "..", "02_derive_reference_profile", "output") |> normpath
 forcing_files = Dict(
     "HMXL" => joinpath(ref_dir, "fivedays_mean", "HMXL.nc"),
     "TEMP" => joinpath(ref_dir, "fivedays_mean", "TEMP.nc"),
     "SALT" => joinpath(ref_dir, "fivedays_mean", "SALT.nc"),
-    "USFC" => joinpath(ref_dir, "USFC.nc"),
-    "VSFC" => joinpath(ref_dir, "VSFC.nc"),
+    "USFC" => joinpath(ref_dir, "monthly", "USFC.nc"),
+    "VSFC" => joinpath(ref_dir, "monthly", "VSFC.nc"),
     "QFLXT" => "",  # supposed to be empty
     "QFLXS" => "",  # supposed to be empty
 )
@@ -76,6 +78,7 @@ for ocn_model in ocn_models
                          --output-file $z_w_file 
                          --reference-file $POP2_hist_file
                          --reference-file-convert-factor $POP2_hist_file_z_convert_factor
+                         --Nz $Nz
         `)
 
     end
@@ -91,6 +94,7 @@ for ocn_model in ocn_models
                          --HMXL-file $POP2_hist_file 
                          --HMXL-convert-factor $POP2_hist_file_hmxl_convert_factor
                          --SOM $(ocn_model == "SOM")
+                         --crop-with-z_w true
                          --output-file $Nz_bot_file
         `)
 

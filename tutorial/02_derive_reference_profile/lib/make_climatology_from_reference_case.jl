@@ -80,7 +80,7 @@ append!(all_varnames, varnames_monthly)
 fileformats = Dict(
     "TEMP" => "{}.pop.h.nday1.{}-{}-01.nc",
     "SALT" => "{}.pop.h.nday1.{}-{}-01.nc",
-    "HMXL" => "{}.pop.h.nday1.{}-{}-01.nc",
+    "HMXL" => "{}.pop.h.nday2.{}-{}-01.nc",
     "UVEL" => "{}.pop.h.{}-{}.nc",
     "VVEL" => "{}.pop.h.{}-{}.nc",
 )

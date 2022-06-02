@@ -91,8 +91,8 @@ update_config = OrderedDict{Any, Any}(
 
 
         "τfrz"                         => 3600.0,
-        "Ekman_layers"                 => 8,
-        "Returnflow_layers"            => 25,
+        "Ekman_layers"                 => 5,
+        "Returnflow_layers"            => 28,
     
         "transform_vector_field"       => true,
     ),

@@ -4,7 +4,7 @@ This tutorial folder contains the steps to derive the flux correction as describ
 
 ## Setup Julia package
 
-The Julia programming language is needed (version >= 1.6). Follow the steps to install the necessary tools.
+The Julia programming language is needed (version >= 1.7). Follow the steps to install the necessary tools.
 
 1. Please `cd` into `tools/julia_dependency`
 2. Run `julia add_pkgs.jl`
@@ -44,7 +44,7 @@ This project is to generate the flux correction files that will be used by the m
 2. Execute `make_forcing_one_case.sh`.
 3. The file `make_forcing_batch.sh` gives an example of making flux correction files of the entire hierarchy.
 
-## Step 5: Setup the hierarchy for usage (`05_CESM1_B1850C5CN_hierarchy`)
+## Step 5: Setup the hierarchy for usage (`05_CESM1_B1850C5`)
 
 This project generates the desire CESM1 runs that couple with each model member and use the found flux corrections from previous projects.
 

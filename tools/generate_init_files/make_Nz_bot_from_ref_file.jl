@@ -38,7 +38,7 @@ s = ArgParseSettings()
         default = 1.0
 
     "--Nz-max"
-        help = "Referenced variable name in `ref-file`."
+        help = "The maximum layers in the output."
         arg_type = Int64
         default = -1
 
@@ -46,6 +46,11 @@ s = ArgParseSettings()
         help = "Name of the output Nz file"
         arg_type = String
         required = true
+
+    "--crop-with-z_w"
+        help = "Crop the reference file with z_w file's dimension."
+        arg_type = Bool
+        default = false
 
     "--SOM"
         help = "If set then `HMXL-file` and `HMXL-convert-factor` have to be given."
@@ -81,6 +86,19 @@ Dataset(parsed["ref-file"], "r") do ds
     global ref_var  = permutedims(nomissing(ds[parsed["ref-var"]][:, :, :, 1],  NaN), [3, 1, 2])
     
     global Nz, Nx, Ny = size(ref_var)
+
+    if Nz == length(z_w_top)
+        println("The dimension of input file z_w is consistent with the input reference file.")
+    else
+        println("The dimension of input file z_w is not consistent with the input reference file.")
+        if parsed["crop-with-z_w"]
+            println("The option `--crop-with-z_w` is on. Crop it.") 
+            ref_var = ref_var[1:length(z_w_top), :, :]
+            Nz = length(z_w_top)
+        else
+            throw(ErrorException("The Nz derived from the z_w file is not consistent with the input file. Please specify `--crop-with-z_w` to crop the domain easily."))
+        end
+    end
 
     if parsed["Nz-max"] != -1
         Nz = parsed["Nz-max"]
