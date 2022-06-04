@@ -10,9 +10,10 @@ using .PolelikeCoordinate
 
 
 domain_file = joinpath(EMOM_root, "data", "CESM_domains", "domain.ocn.gx1v6.090206.nc")
-
-
 pop2_tarea_file = joinpath(EMOM_root, "data", "POP2_ref", "POP2_coord.nc")
+
+
+
 Dataset(pop2_tarea_file, "r") do ds
     global area_pop2 = ds["TAREA"][:] / 1e4    # POP2 comes in cm^2
 
