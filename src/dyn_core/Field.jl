@@ -83,8 +83,8 @@ mutable struct Field
         _QFLXX_  = zeros(Float64, T_pts, 2)
 
         HMXL = zeros(Float64, 1, Nx, Ny)
-        USFC = zeros(Float64, 1, Nx, Ny)
-        VSFC = zeros(Float64, 1, Nx, Ny)
+        USFC = zeros(Float64, 1, Nx, Ny)   # Notice that USFC is on T grid
+        VSFC = zeros(Float64, 1, Nx, Ny)   # Notice that VSFC is on T grid
         SWFLX = zeros(Float64, 1, Nx, Ny)
         NSWFLX = zeros(Float64, 1, Nx, Ny)
         VSFLX = zeros(Float64, 1, Nx, Ny)
@@ -178,8 +178,8 @@ function getSugarView(
         
     sv[:SST] = view(sv[:TEMP], 1:1, :, :)
     sv[:SSS] = view(sv[:SALT], 1:1, :, :)
-    sv[:USFC] = view(sv[:UVEL], 1:1, :, :)
-    sv[:VSFC] = view(sv[:VVEL], 1:1, :, :)
+    #sv[:USFC] = view(sv[:UVEL], 1:1, :, :)
+    #sv[:VSFC] = view(sv[:VVEL], 1:1, :, :)
     
     return sv
 end

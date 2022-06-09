@@ -830,8 +830,8 @@ subroutine docn_comp_run( EClock, cdata,  x2o, o2x)
         call stop_if_bad(ptm_recvData(x_PTI, x_msg, x_blob_recv), "INIT_RECV")
 
         if (ptm_messageCompare(x_msg, "OK") .neqv. .true.) then
-            print *, "IOM init failed. Recive message: ", x_msg
-            call shr_sys_abort ('IOM init failed.')
+            print *, "EMOM init failed. Recive message: ", x_msg
+            call shr_sys_abort ('EMOM init failed.')
         end if
         
         call copy_from_blob(x_blob_recv, lsize, 1, somtp) 

@@ -194,9 +194,9 @@ module ENGINE_EMOM
 
             o2x = Dict(
                 "SST"         => my_mb.fi.sv[:SST],
-                "USFC"       => my_mb.fi.sv[:USFC],
-                "VSFC"       => my_mb.fi.sv[:VSFC],
                 "Q_FRZMLTPOT" => my_mb.fi.Q_FRZMLTPOT,
+                "USFC"        => my_mb.fi.USFC,
+                "VSFC"        => my_mb.fi.VSFC,
                 "mask"        => my_mb.ev.topo.sfcmask_sT,
             )
 

@@ -27,7 +27,9 @@ This project is a reference case that using purely CESM1 (i.e. with POP2).
 This project is to generate the reference profile for the hierarchy. The reference output is from `01_CESM1_B1850C5CN_POP2`.
 
 1. Edit the options in `run.sh` to fit your setup.
-2. Execute `main.sh`
+2. Execute `run.sh`
+3. Execute `julia test_read_cyclicdata.jl` to see if the interpolation data looks reasonable.
+4. Move on the step 3.
 
 ## Step 3: Find flux correction (`03_find_flux_correction`)
 
