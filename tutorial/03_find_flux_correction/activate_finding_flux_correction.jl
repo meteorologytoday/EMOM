@@ -25,8 +25,10 @@ update_config = OrderedDict{Any, Any}(
     "MODEL_CORE" => Dict(
         "Qflx"                         => "off",
         "Qflx_finding"                 => "on",
-        "weak_restoring"               => "off",
+        "weak_restoring"               => "on",
         "UVSFC_scheme"                 => "datastream",
+        "τwk_SALT"                     => 15 * 86400.0,
+        "τwk_TEMP"                     => 15 * 86400.0,
     ),
 )
 

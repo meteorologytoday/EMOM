@@ -26,16 +26,16 @@ function getCompleteVariableList(
             "USFC"               => ( mb.fi.USFC,          :sT, :mask ),
             "VSFC"               => ( mb.fi.VSFC,          :sT, :mask ),
             
-            "WKRSTT"       => ( mb.fi.sv[:WKRSTT], :T, :mask),
-            "WKRSTS"       => ( mb.fi.sv[:WKRSTS], :T, :mask),
+            "WKRSTT"             => ( mb.fi.sv[:WKRSTT], :T, :mask),
+            "WKRSTS"             => ( mb.fi.sv[:WKRSTS], :T, :mask),
  
-            "VDIFFT"       => ( mb.fi.sv[:VDIFFT], :T, :mask),
-            "VDIFFS"       => ( mb.fi.sv[:VDIFFS], :T, :mask),
+            "VDIFFT"             => ( mb.fi.sv[:VDIFFT], :T, :mask),
+            "VDIFFS"             => ( mb.fi.sv[:VDIFFS], :T, :mask),
             
             "Q_FRZMLTPOT"        => ( mb.fi.Q_FRZMLTPOT,  :sT, :mask ),
             "Q_FRZMLTPOT_NEG"    => ( mb.fi.Q_FRZMLTPOT_NEG, :sT, :mask ),
             "Q_FRZHEAT"          => ( mb.fi.Q_FRZHEAT,    :sT, :mask ),
-            "Q_GHOST_REHEAT"             => ( mb.fi.Q_GHOST_REHEAT,       :sT, :mask ),
+            "Q_GHOST_REHEAT"     => ( mb.fi.Q_GHOST_REHEAT,       :sT, :mask ),
             "CHKTEMP"            => ( mb.tmpfi.sv[:CHKTEMP],  :sT, :mask ),
             "CHKSALT"            => ( mb.tmpfi.sv[:CHKSALT],  :sT, :mask ),
 
@@ -55,8 +55,8 @@ function getCompleteVariableList(
         if mb.tmpfi.datastream != nothing 
 
             if mb.ev.cfgs["MODEL_CORE"]["weak_restoring"] == "on"
-                d["WKRST_TARGET_TEMP"] = ( mb.tmpfi.datastream["TEMP"], :T , :mask)
-                d["WKRST_TARGET_SALT"] = ( mb.tmpfi.datastream["SALT"], :T , :mask)
+                d["WKRST_TARGET_TEMP"] = ( mb.tmpfi.datastream["TEMP"]["TEMP"], :T , :mask)
+                d["WKRST_TARGET_SALT"] = ( mb.tmpfi.datastream["SALT"]["SALT"], :T , :mask)
             end
 
         end
