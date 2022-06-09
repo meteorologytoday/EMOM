@@ -43,7 +43,7 @@ function checkBudget!(
         tmpfi._CHKX_[:, 2] .-= - view(fi.VSFLX, :)
 
         # Freezing melt potential check
-        tmpfi._CHKX_[:, 1] .-= ( reshape( fi.Q_FRZHEAT, :) .+ reshape(fi.Q_GHOST_REHEAT, :) ) ./ ρcp_sw
+        tmpfi._CHKX_[:, 1] .-= reshape( fi.Q_FRZHEAT, :) ./ ρcp_sw
 
         # Weak restoring check
         if cfg["weak_restoring"] == "on" 

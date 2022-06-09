@@ -55,7 +55,7 @@ if is_master
 
 
     t_start = DateTimeNoLeap(1, 1, 1, 0, 0, 0)
-    t_end   = DateTimeNoLeap(1, 3, 1, 0, 0, 0)
+    t_end   = DateTimeNoLeap(2, 1, 1, 0, 0, 0)
 
 
 end
@@ -86,7 +86,7 @@ coupler_funcs = (
         
         end
 
-        OMDATA.x2o["NSWFLX"] .=  200.0
+        OMDATA.x2o["NSWFLX"] .=  10.0
 
         write_restart = OMDATA.clock.time == t_end
         end_phase = OMDATA.clock.time > t_end

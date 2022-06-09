@@ -209,12 +209,12 @@ function stepColumn!(
     Q_FRZHEAT        = reshape(fi.Q_FRZHEAT,       :)
     Q_FRZMLTPOT      = reshape(fi.Q_FRZMLTPOT,     :)
     Q_FRZMLTPOT_NEG  = reshape(fi.Q_FRZMLTPOT_NEG, :)
-    Q_GHOST_REHEAT   = reshape(fi.Q_GHOST_REHEAT,  :)
+    Q_FRZHEAT_OVERFLOW   = reshape(fi.Q_FRZHEAT_OVERFLOW,  :)
 
     Q_FRZHEAT       .= 0.0
     Q_FRZMLTPOT     .= 0.0
     Q_FRZMLTPOT_NEG .= 0.0
-    Q_GHOST_REHEAT  .= 0.0
+    Q_FRZHEAT_OVERFLOW  .= 0.0
 
     @. ΔT_sT = NEWSST - T_sw_frz
     below_frz_mask_sT = ΔT_sT .< 0.0
@@ -231,15 +231,15 @@ function stepColumn!(
   
     # Capping freezing potential at 10 W/m^2 to avoid instability
     # in cice model due to advection noise in Ekman flow. The energy that, 
-    # is reduced, is used to reheat the ocean grid, recorded as Q_GHOST_REHEAT.
+    # is reduced, is used to reheat the ocean grid, recorded as Q_FRZHEAT_OVERFLOW.
     for (i, q_frzheat) in enumerate(Q_FRZHEAT)
         if q_frzheat > 10.0
             Q_FRZHEAT[i] = 10.0
-            Q_GHOST_REHEAT[i] = q_frzheat - 10.0
+            Q_FRZHEAT_OVERFLOW[i] = q_frzheat - 10.0
         end    
     end
 
-    @. NEWSST += Δt * Q_GHOST_REHEAT / sfcΔz_sT / ρcp_sw
+    @. NEWSST -= Δt * Q_FRZHEAT_OVERFLOW / sfcΔz_sT / ρcp_sw
 
     @. tmp_sT = - ρcp_sw * sfcΔz_sT * ΔT_sT / Δt
 
@@ -248,13 +248,4 @@ function stepColumn!(
     Q_FRZMLTPOT[above_frz_mask_sT]     = tmp_sT[above_frz_mask_sT]
     Q_FRZMLTPOT[below_frz_mask_sT]     = Q_FRZHEAT[below_frz_mask_sT]
  
-    #= 
-    if any(fi.Q_FRZMLTPOT_NEG .> 0)
-        throw(ErrorException("[1] Something is wrong when computing freeze melt potential."))
-    end
-   
-    if any(fi.Q_FRZHEAT .< 0)
-        throw(ErrorException("[2] Something is wrong when computing freeze melt potential."))
-    end    
-    =#
 end

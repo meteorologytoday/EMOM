@@ -35,7 +35,7 @@ function getCompleteVariableList(
             "Q_FRZMLTPOT"        => ( mb.fi.Q_FRZMLTPOT,  :sT, :mask ),
             "Q_FRZMLTPOT_NEG"    => ( mb.fi.Q_FRZMLTPOT_NEG, :sT, :mask ),
             "Q_FRZHEAT"          => ( mb.fi.Q_FRZHEAT,    :sT, :mask ),
-            "Q_GHOST_REHEAT"     => ( mb.fi.Q_GHOST_REHEAT,       :sT, :mask ),
+            "Q_FRZHEAT_OVERFLOW"     => ( mb.fi.Q_FRZHEAT_OVERFLOW,       :sT, :mask ),
             "CHKTEMP"            => ( mb.tmpfi.sv[:CHKTEMP],  :sT, :mask ),
             "CHKSALT"            => ( mb.tmpfi.sv[:CHKSALT],  :sT, :mask ),
 
@@ -148,7 +148,7 @@ function getDynamicVariableList(
                 "Q_FRZMLTPOT",
                 "Q_FRZMLTPOT_NEG",
                 "Q_FRZHEAT",
-                "Q_GHOST_REHEAT",
+                "Q_FRZHEAT_OVERFLOW",
                 "CHKTEMP",
                 "CHKSALT",
 

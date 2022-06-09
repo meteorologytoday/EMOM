@@ -237,7 +237,7 @@ module ENGINE_EMOM
                 "Q_FRZMLTPOT",
                 "Q_FRZMLTPOT_NEG",
                 "Q_FRZHEAT",
-                "Q_GHOST_REHEAT",
+                "Q_FRZHEAT_OVERFLOW",
                 "QFLXT",
                 "QFLXS",
                 "Ks_H_U",
