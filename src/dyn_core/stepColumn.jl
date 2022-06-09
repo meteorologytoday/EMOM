@@ -70,15 +70,19 @@ function stepColumn!(
     RHS_SALT[:] = _INTMS_
 
     if cfg["weak_restoring"] == "on"
+
+        st_TEMP = tmpfi.datastream["TEMP"]["TEMP"]
+        st_SALT = tmpfi.datastream["SALT"]["SALT"]
+
         op_TEMP   += co.mtx[:T_invτwk_TEMP_T]
         op_SALT   += co.mtx[:T_invτwk_SALT_T]
         
-        idx = isnan.(tmpfi.datastream["TEMP"])
-        tmpfi.datastream["TEMP"][idx] .= 0.0
-        tmpfi.datastream["SALT"][idx] .= 0.0
+        idx = isnan.(st_TEMP)
+        st_TEMP[idx] .= 0.0
+        st_SALT[idx] .= 0.0
  
-        RHS_TEMP .-= Δt * co.amo.T_mask_T * co.mtx[:T_invτwk_TEMP_T] * reshape( tmpfi.datastream["TEMP"] , :)
-        RHS_SALT .-= Δt * co.amo.T_mask_T * co.mtx[:T_invτwk_SALT_T] * reshape( tmpfi.datastream["SALT"] , :)
+        RHS_TEMP .-= Δt * co.amo.T_mask_T * co.mtx[:T_invτwk_TEMP_T] * reshape( st_TEMP , :)
+        RHS_SALT .-= Δt * co.amo.T_mask_T * co.mtx[:T_invτwk_SALT_T] * reshape( st_SALT , :)
     end
  
     F_EBM_TEMP = lu( I - Δt * op_TEMP )
@@ -116,8 +120,8 @@ function stepColumn!(
 
     # Compute source and sink of tracers due to weak restoring
     if cfg["weak_restoring"] == "on"
-        tmpfi._WKRSTΔX_[:, 1] = tmpfi._NEWX_[:, 1] - reshape(tmpfi.datastream["TEMP"], :)
-        tmpfi._WKRSTΔX_[:, 2] = tmpfi._NEWX_[:, 2] - reshape(tmpfi.datastream["SALT"], :)
+        tmpfi._WKRSTΔX_[:, 1] = tmpfi._NEWX_[:, 1] - reshape(st_TEMP, :)
+        tmpfi._WKRSTΔX_[:, 2] = tmpfi._NEWX_[:, 2] - reshape(st_SALT, :)
         fi._WKRSTX_[:, 1] = co.mtx[:T_invτwk_TEMP_T] * view(tmpfi._WKRSTΔX_, :, 1)
         fi._WKRSTX_[:, 2] = co.mtx[:T_invτwk_SALT_T] * view(tmpfi._WKRSTΔX_, :, 2)
     else
