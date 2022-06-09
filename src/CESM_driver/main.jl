@@ -204,7 +204,7 @@ coupler_funcs = (
 
     master_after_model_run! = function(OMMODULE, OMDATA)
         #writeLog("[Coupler] After model run")
-        global send_data_list = [OMDATA.o2x["SST"], OMDATA.o2x["Q_FRZMLTPOT"]]
+        global send_data_list = [OMDATA.o2x["SST"], OMDATA.o2x["Q_FRZMLTPOT"], OMDATA.o2x["USFC"], OMDATA.o2x["VSFC"]]
         sendData(PTI, "OK", send_data_list)
     end,
 
