@@ -144,6 +144,13 @@ for varname in all_varnames
         files = format(fileformat, casename, year_rng_eval, m_str)
         files = "$in_dir/$files"
         pleaseRun(`bash -c "ncea -O -F -d z_t,1,$(layers) -d z_w_top,1,$(layers) -d z_w_bot,1,$(layers) -v $varname $files $tmp_file"`)
+        
+        if varname in ["HMXL", "VVEL", "UVEL"]
+            println("Variable $varname needs to convert unit from cm to m.")
+            pleaseRun(`ncap2 -O -s "$(varname)=$(varname)/100.0;" $tmp_file $tmp_file`)
+        end
+
+       
         pleaseRun(`bash -c "ncra -O $tmp_file $tmp_monthly_file"`)
 
         push!(filenames, tmp_file)
@@ -156,16 +163,16 @@ for varname in all_varnames
     rm(tmp_dir, recursive=true, force=true)
 end
 
-println("Converting units...")
-for varname in ["HMXL", "VVEL", "UVEL"]
-    pleaseRun(`ncap2 -O -v -s "$(varname)=$(varname)/100.0;" $(output_files[varname]) $(output_files[varname])`)
-    pleaseRun(`ncap2 -O -v -s "$(varname)=$(varname)/100.0;" $(output_monthly_files[varname]) $(output_monthly_files[varname])`)
-end
+#println("Converting units...")
+#for varname in ["HMXL", "VVEL", "UVEL"]
+#    pleaseRun(`ncap2 -O -v -s "$(varname)=$(varname)/100.0;" $(output_files[varname]) $(output_files[varname])`)
+#    pleaseRun(`ncap2 -O -v -s "$(varname)=$(varname)/100.0;" $(output_monthly_files[varname]) $(output_monthly_files[varname])`)
+#end
 
 println("Make a mean HMXL file for SOM")
 pleaseRun(`ncra -O $(output_files["HMXL"]) $annual_mean_dir/HMXL.nc`)
 
-println("Updating time info of daily files...")
+println("Updating time and coordinate info of daily files...")
 for varname in varnames_daily
     output_file = output_files[varname]
     println(coord_file, "; ", output_file)
@@ -173,7 +180,7 @@ for varname in varnames_daily
     pleaseRun(`ncks -A -v time,time_bound $daily_time_file $output_file`)
 end
 
-println("Updating time info of monthly files...")
+println("Updating time and coordinate info of monthly files...")
 for varname in varnames_monthly
     output_file = output_monthly_files[varname]
     println(coord_file, "; ", output_file)
