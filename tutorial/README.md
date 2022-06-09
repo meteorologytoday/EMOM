@@ -13,7 +13,7 @@ The `mpiexec` is required. OpenMP v4.1 has been tested. Cheyenne users can load 
 The Julia programming language is needed (version >= 1.7). Cheyenne users can load with `module load julia/1.7`. Follow the steps to install the necessary tools. Run `julia tools/julia_dependency/add_pkgs.jl` to setup all the packages. 
 
 
-## Step 1: Creating reference case (`01_CESM1_B1850C5CN_POP2`)
+## Step 1: Creating reference case (`01_CESM1_B1850C5_POP2`)
 
 This project is a reference case that using purely CESM1 (i.e. with POP2).
 
