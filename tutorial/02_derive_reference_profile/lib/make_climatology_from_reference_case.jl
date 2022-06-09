@@ -157,11 +157,15 @@ for varname in all_varnames
 end
 
 println("Converting units...")
-pleaseRun(`ncap2 -O -v -s 'HMXL=HMXL/100.0;' $(output_files["HMXL"]) $(output_files["HMXL"])`)
+for varname in ["HMXL", "VVEL", "UVEL"]
+    pleaseRun(`ncap2 -O -v -s "$(varname)=$(varname)/100.0;" $(output_files[varname]) $(output_files[varname])`)
+    pleaseRun(`ncap2 -O -v -s "$(varname)=$(varname)/100.0;" $(output_monthly_files[varname]) $(output_monthly_files[varname])`)
+end
 
 println("Make a mean HMXL file for SOM")
 pleaseRun(`ncra -O $(output_files["HMXL"]) $annual_mean_dir/HMXL.nc`)
 
+println("Updating time info of daily files...")
 for varname in varnames_daily
     output_file = output_files[varname]
     println(coord_file, "; ", output_file)
@@ -169,12 +173,14 @@ for varname in varnames_daily
     pleaseRun(`ncks -A -v time,time_bound $daily_time_file $output_file`)
 end
 
+println("Updating time info of monthly files...")
 for varname in varnames_monthly
-    output_file = output_files[varname]
+    output_file = output_monthly_files[varname]
     println(coord_file, "; ", output_file)
     pleaseRun(`ncks -A -v $coord         $coord_file $output_file`)
     pleaseRun(`ncks -A -v time,time_bound $monthly_time_file $output_file`)
 end
+
 
 
 # Get surface U and V
