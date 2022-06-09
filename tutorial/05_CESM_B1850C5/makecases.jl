@@ -8,7 +8,7 @@ ocn_models = ["EMOM", "SOM"]
 
 EMOM_root = joinpath(@__DIR__, "..", "..") |> normpath
 
-git_branch = "dev/fix-area-UV"
+git_branch = "dev/tutorial"
 casename_prefix = "CTL"
 project_code = "UMIA0022"
 walltime     = "12:00:00"
