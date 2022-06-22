@@ -11,4 +11,4 @@ julia lib/make_climatology_from_reference_case.jl \
     --output-dir output     \
     --casename $casename    \
     --layers $layers        \
-    --year-rng 2 2
+    --year-rng 29 69

@@ -4,7 +4,7 @@ using .RunCommands
 using Formatting
 
 ocn_models = ["EMOM", "MLM", "SOM"]
-ocn_models = ["EMOM", ]
+#ocn_models = ["EMOM", ]
 
 EMOM_root = joinpath(@__DIR__, "..", "..") |> normpath
 
@@ -17,7 +17,7 @@ machine      = "cheyenne"
 compset      = "E1850C5"
 cesm_env_file = "cesm_env.toml"
 cesm_root    = "/glade/u/home/tienyiao/ucar_models/cesm1_2_2_1_lw-nudging" # Path to the root of CESM1 code
-ncpu         = 18
+ncpu         = 8
 cases_dir    = joinpath(@__DIR__, "cases") # This directory contains cases using members of hierarchy
 inputdata_dir= joinpath(@__DIR__, "inputdata") # This directory contains inputdata needed by the ocean model such as domain files, Q-flux files, Nz_bot.nc and such
 domain_file = joinpath(EMOM_root, "data", "CESM_domains", "domain.ocn.gx1v6.090206.nc")
