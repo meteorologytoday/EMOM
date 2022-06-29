@@ -202,7 +202,7 @@ for (varname, old_output_file) in output_monthly_files
         new_output_file = "$(monthly_mean_dir)/$(new_varname).nc"
 
         pleaseRun(`bash -c "ncks -O -F -d z_t,1,1 -v $(varname) $(old_output_file) $(new_output_file)"`)
-        pleaseRun(`bash -c "ncrename -v $(varname),$(new_varname) $(new_output_file)"`)
+        pleaseRun(`bash -c "ncrename -v $(varname),$(new_varname) -v z_t,z1 -d z_t,z1  $(new_output_file)"`)
         output_files[new_varname] = new_output_file
     end
 end
