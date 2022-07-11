@@ -239,7 +239,7 @@ function stepColumn!(
         end    
     end
 
-    @. NEWSST -= Δt * Q_FRZHEAT_OVERFLOW / sfcΔz_sT / ρcp_sw
+    #@. NEWSST -= Δt * Q_FRZHEAT_OVERFLOW / sfcΔz_sT / ρcp_sw
 
     @. tmp_sT = - ρcp_sw * sfcΔz_sT * ΔT_sT / Δt
 
