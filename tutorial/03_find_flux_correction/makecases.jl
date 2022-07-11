@@ -3,13 +3,13 @@ include("RunCommands.jl")
 using .RunCommands
 using Formatting
 
-ocn_models = ["EMOM", "MLM", "SOM"]
+ocn_models = ["EMOM", "SOM"]
 #ocn_models = ["EMOM", ]
 
 EMOM_root = joinpath(@__DIR__, "..", "..") |> normpath
 
 git_branch = "dev/tutorial"
-casename_prefix = "QFLX_FND"
+casename_prefix = "CAM4_QFLX_FND_NOUV_FRZHEAT"
 project_code = "UMIA0022"
 walltime     = "12:00:00"
 resolution   = "f09_g16"
