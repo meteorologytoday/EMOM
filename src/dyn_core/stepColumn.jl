@@ -233,9 +233,9 @@ function stepColumn!(
     # in cice model due to advection noise in Ekman flow. The energy that, 
     # is reduced, is used to reheat the ocean grid, recorded as Q_FRZHEAT_OVERFLOW.
     for (i, q_frzheat) in enumerate(Q_FRZHEAT)
-        if q_frzheat > 100.0
-            Q_FRZHEAT[i] = 100.0
-            Q_FRZHEAT_OVERFLOW[i] = q_frzheat - 100.0
+        if q_frzheat > 1e5.0
+            Q_FRZHEAT[i] = 1e5.0
+            Q_FRZHEAT_OVERFLOW[i] = q_frzheat - 1e5.0
         end    
     end
 
