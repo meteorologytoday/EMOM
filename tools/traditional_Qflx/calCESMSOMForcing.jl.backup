@@ -19,60 +19,19 @@ function pleaseRun(cmd)
         runOneCmd(cmd)
     end
 end
-
-archive_root = ""
-casename = ""
-output_dir = "output"
-
 ρ    = 1026.0  # kg / m^3
 c_p  = 3996.0  # J / kg / K
 ρcp = ρ * c_p
 
-
+input_dir = "hist"
+output_dir = "output"
 
 mkpath(output_dir)
 
-year_rng = [2, 21]
-
-for y in year_rng[1]:year_rng[2]
-    
-    for m in 1:12
-
-        input_file = ""
-        time_str   = format("{:04d}-{:02d}-01", y, m)
-        time_str_o   = format("{:04d}-{:02d}", y, m)
-
-        input_file     = joinpath(archive_root, "ocn", "hist", "$(casename).pop.h.daily.$(time_str).nc")
-        output_file_ma = joinpath(output_dir, "ma-$(time_str_o).nc")
-        output_file_da = joinpath(output_dir, "da-$(time_str_o).nc")
-
-
-        cmd_ma = `ncra -v HBLT,HMXL,SHF   $input_fille $output_file_ma`
-        cmd_da = `ncea -d z_t,0,0 -v TEMP $input_fille $output_file_da`
-
-        if !isfile(output_file_ma)
-            pleaseRun(cmd_ma)
-        end
-        
-        if !isfile(output_file_da)
-            pleaseRun(cmd_da)
-        end
-        
-    end 
-end
-
-#=
-# Compute mean mixed layer thickness
 Dataset("mixedlayer.nc", "r") do ds
     global h_mean   = mean(nomissing(ds["HBLT"][:, :, 1, :], NaN), dims=3) / 100.0
 end
 
-# Compute monthly mean values of dT/dt
-Dataset("mixedlayer.nc", "r") do ds
-    global h_mean   = mean(nomissing(ds["HBLT"][:, :, 1, :], NaN), dims=3) / 100.0
-end
-
-# Compute the mean 
 for y=2:3, m=1:12
 
     time_str = format("{:04d}-{:02d}-01", y, m)
@@ -130,4 +89,4 @@ for y=2:3, m=1:12
 
 end
 
-=#
+
