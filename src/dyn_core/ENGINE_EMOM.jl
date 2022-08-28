@@ -490,6 +490,16 @@ module ENGINE_EMOM
         ) 
       
  
+        # Setup HMXL depth
+        if ! is_master
+            if MD.config["MODEL_CORE"]["MLD_scheme"] == "SOM"
+                MD.mb.fi.HMXL .= - MD.mb.ev.topo.topoz_sT
+                if any(MD.mb.fi.HMXL .< 0)
+                    throw(ErrorException("Some HMXL is negative. Please check."))
+                end
+            end
+        end
+
         return MD
 
     end

@@ -141,7 +141,7 @@ function getEMOMConfigDescriptors()
             ConfigEntry(
                 "MLD_scheme",
                 :required,
-                ["prognostic", "datastream", "static"],
+                ["prognostic", "datastream", "static", "SOM"],
                 "static",
             ),
 
