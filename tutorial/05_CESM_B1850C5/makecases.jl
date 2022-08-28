@@ -4,17 +4,16 @@ using .RunCommands
 using Formatting
 
 ocn_models = ["EMOM", "MLM", "SOM"]
-ocn_models = ["EMOM", "SOM"]
 
 EMOM_root = joinpath(@__DIR__, "..", "..") |> normpath
 
-git_branch = "dev/tutorial"
-casename_prefix = "CTL"
+git_branch = "dev/test_frzheat"
+casename_prefix = "CTL_FRZHEAT"
 project_code = "UMIA0022"
 walltime     = "12:00:00"
 resolution   = "f09_g16"
 machine      = "cheyenne"
-compset      = "E1850C5"
+compset      = "E1850"
 cesm_env_file = "cesm_env.toml"
 cesm_root    = "/glade/u/home/tienyiao/ucar_models/cesm1_2_2_1_lw-nudging" # Path to the root of CESM1 code
 ncpu         = 8
@@ -23,14 +22,16 @@ inputdata_dir= joinpath(@__DIR__, "inputdata") # This directory contains inputda
 domain_file = joinpath(EMOM_root, "data", "CESM_domains", "domain.ocn.gx1v6.090206.nc")
 z_w_file = joinpath(inputdata_dir, "z_w.nc")
 
-ref_dir = joinpath(@__DIR__, "..", "02_derive_reference_profile", "output") |> normpath
+#ref_dir = joinpath(@__DIR__, "..", "02_derive_reference_profile", "output") |> normpath
+ref_dir = "/glade/u/home/tienyiao/work-tienyiao/projects/CAM4_coupling/EMOM/tutorial/02_derive_reference_profile/output"
 
-POP2_hist_file = "/glade/scratch/tienyiao/archive/CAM5_POP2_f09_g16/ocn/hist/CAM5_POP2_f09_g16.pop.h.nday1.0001-02-01.nc"
+POP2_hist_file = "/glade/scratch/tienyiao/archive/CAM4_POP2_f09_g16/ocn/hist/CAM4_POP2_f09_g16.pop.h.nday1.0001-02-01.nc"
+#POP2_hist_file = "/glade/scratch/tienyiao/archive/CAM5_POP2_f09_g16/ocn/hist/CAM5_POP2_f09_g16.pop.h.nday1.0001-02-01.nc"
 POP2_hist_ref_var = "TEMP"
 POP2_HMXL_hist_file = joinpath(ref_dir, "annual", "HMXL.nc")
 
 POP2_hist_file_z_convert_factor    = - 0.01
-POP2_hist_file_hmxl_convert_factor =   0.01
+POP2_hist_file_hmxl_convert_factor =   1.00
 
 Nz = 33
 

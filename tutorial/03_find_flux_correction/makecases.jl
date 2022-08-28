@@ -3,7 +3,7 @@ include("RunCommands.jl")
 using .RunCommands
 using Formatting
 
-ocn_models = ["EMOM", "SOM"]
+ocn_models = ["EMOM", "SOM", "MLM"]
 #ocn_models = ["EMOM", ]
 
 EMOM_root = joinpath(@__DIR__, "..", "..") |> normpath
@@ -31,7 +31,7 @@ POP2_hist_ref_var = "TEMP"
 POP2_HMXL_hist_file = joinpath(ref_dir, "annual", "HMXL.nc")
 
 POP2_hist_file_z_convert_factor    = - 0.01
-POP2_hist_file_hmxl_convert_factor =   0.01
+POP2_hist_file_hmxl_convert_factor =   1.00
 
 Nz = 33
 
