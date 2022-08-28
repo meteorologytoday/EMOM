@@ -142,10 +142,13 @@ JSON.print(parsed,4)
 
 if parsed["ocn-model"] == "SOM"
     advection_scheme = "static"
+    MLD_scheme = "SOM"
 elseif parsed["ocn-model"] == "MLM"
     advection_scheme = "static"
+    MLD_scheme = "datastream"
 elseif parsed["ocn-model"] in ["EOM", "EMOM"]
     advection_scheme = "ekman_CO2012"
+    MLD_scheme = "datastream"
 else
     throw(ErrorException("Error: Unknown ocean model `$(parsed["ocn-model"])`."))
 end
@@ -233,7 +236,7 @@ config = Dict{Any, Any}(
         "cdata_align_time"             => parsed["forcing-time"][3],
 
         "substeps"                     => 8,
-        "MLD_scheme"                   => "datastream",
+        "MLD_scheme"                   => MLD_scheme,
         "UVSFC_scheme"                 => "datastream",
         "Qflx"                         => Qflx,
         "Qflx_finding"                 => "off",

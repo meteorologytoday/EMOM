@@ -9,7 +9,7 @@ ocn_models = ["EMOM", "SOM", "MLM"]
 EMOM_root = joinpath(@__DIR__, "..", "..") |> normpath
 
 git_branch = "dev/test_frzheat"
-casename_prefix = "CAM4_QFLX_FND_FRZHEAT"
+casename_prefix = "CAM5_QFLX_FND"
 project_code = "UMIA0022"
 walltime     = "12:00:00"
 resolution   = "f09_g16"
