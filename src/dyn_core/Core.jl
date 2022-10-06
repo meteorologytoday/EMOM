@@ -196,8 +196,8 @@ mutable struct Core
                 println("Read τwk from the file \"$(cfg_core["τwk_file"])\".")
                 ds = Dataset(cfg_core["τwk_file"], "r")
                 
-                _τ_TEMP = permutedims( convert(nomissing(ds["time_TEMP"][:, ev.sub_yrng, :], NaN), Array{Float64}), [3,1,2])
-                _τ_SALT = permutedims( convert(nomissing(ds["time_SALT"][:, ev.sub_yrng, :], NaN), Array{Float64}), [3,1,2])
+                _τ_TEMP = permutedims( nomissing(ds["time_TEMP"][:, ev.sub_yrng, :], NaN), [3,1,2])
+                _τ_SALT = permutedims( nomissing(ds["time_SALT"][:, ev.sub_yrng, :], NaN), [3,1,2])
                 
                 close(ds)
                 
