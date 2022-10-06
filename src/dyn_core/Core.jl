@@ -189,8 +189,42 @@ mutable struct Core
         end
 
         if cfg_core["weak_restoring"] == "on"
-            mtx[:T_invτwk_TEMP_T] = - amo.T_mask_T * spdiagm(0 => ones(Float64, amo.bmo.T_pts)) / cfg_core["τwk_TEMP"]
-            mtx[:T_invτwk_SALT_T] = - amo.T_mask_T * spdiagm(0 => ones(Float64, amo.bmo.T_pts)) / cfg_core["τwk_SALT"]
+        
+            if cfg_core["τwk_file"] != ""
+                
+                println("config `τwk_file` is non-empty.")
+                println("Read τwk from the file \"$(cfg_core["τwk_file"])\".")
+                ds = Dataset(cfg_core["τwk_file"], "r")
+                
+                _τ_TEMP = permutedims( convert(nomissing(ds["time_TEMP"][:, ev.sub_yrng, :], NaN), Array{Float64}), [3,1,2])
+                _τ_SALT = permutedims( convert(nomissing(ds["time_SALT"][:, ev.sub_yrng, :], NaN), Array{Float64}), [3,1,2])
+                
+                close(ds)
+                
+                if any(_τ_TEMP .<= 0.0)
+                    throw(ErrorException("EMOM needs positive relaxation timescale in `time_TEMP`. Please feed in a different `τwk_file`."))
+                end
+
+                if any(_τ_SALT .<= 0.0)
+                    throw(ErrorException("EMOM needs positive relaxation timescale in `time_SALT`. Please feed in a different `τwk_file`."))
+                end
+
+                invτ_TEMP = zeros(Float64, amo.bmo.T_dim)
+                invτ_SALT = zeros(Float64, amo.bmo.T_dim)
+
+                idx = isfinite.(_τ_TEMP)
+                invτ_TEMP[idx] .= _τ_TEMP[idx].^(-1)
+
+                idx = isfinite.(_τ_SALT)
+                invτ_SALT[idx] .= _τ_SALT[idx].^(-1)
+                
+                mtx[:T_invτwk_TEMP_T] = - amo.T_mask_T * spdiagm(0 => reshape(invτ_TEMP, :))
+                mtx[:T_invτwk_SALT_T] = - amo.T_mask_T * spdiagm(0 => reshape(invτ_SALT, :))
+
+            else
+                mtx[:T_invτwk_TEMP_T] = - amo.T_mask_T * spdiagm(0 => ones(Float64, amo.bmo.T_pts)) / cfg_core["τwk_TEMP"]
+                mtx[:T_invτwk_SALT_T] = - amo.T_mask_T * spdiagm(0 => ones(Float64, amo.bmo.T_pts)) / cfg_core["τwk_SALT"]
+            end
         end
 
 

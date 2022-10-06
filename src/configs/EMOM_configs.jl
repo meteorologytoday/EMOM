@@ -222,6 +222,14 @@ function getEMOMConfigDescriptors()
             ),
 
             ConfigEntry(
+                "τwk_file",
+                :optional,
+                [String,],
+                "";
+                desc = "If non-empty then the timescale of weak-restoring of both TEMP and SALT will be read from the specified netCDF file (in seconds)",
+            ),
+
+            ConfigEntry(
                 "τfrz",
                 :optional,
                 [Float64,],
