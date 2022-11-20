@@ -185,11 +185,23 @@ module ENGINE_EMOM
             empty_arr_sT = zeros(Float64, 1, my_ev.Nx, my_ev.Ny)
             x2o = Dict(
                 "SWFLX"       => my_mb.fi.SWFLX,
-                "NSWFLX"      => my_mb.fi.NSWFLX,
+                #"NSWFLX"      => my_mb.fi.NSWFLX,
                 "TAUX_east"   => my_mb.fi.TAUX_east,
                 "TAUY_north"  => my_mb.fi.TAUY_north,
-                "FRWFLX"      => copy(empty_arr_sT),
-                "VSFLX"       => my_mb.fi.VSFLX,
+                #"FRWFLX"      => copy(empty_arr_sT),
+                #"VSFLX"       => my_mb.fi.VSFLX,
+                "LWUP"    => my_mb.fi.LWUP,
+                "LWDN"    => my_mb.fi.LWDN,
+                "SEN"     => my_mb.fi.SEN,
+                "LAT"     => my_mb.fi.LAT,
+                "MELTH"   => my_mb.fi.MELTH,
+                "MELTW"   => my_mb.fi.MELTW,
+                "SNOW"    => my_mb.fi.SNOW,
+                "IOFF"    => my_mb.fi.IOFF,
+                "ROFF"    => my_mb.fi.ROFF,
+                "PREC"    => my_mb.fi.PREC,
+                "EVAP"    => my_mb.fi.EVAP,
+                "SALTFLX" => my_mb.fi.SALTFLX,
             )
 
             o2x = Dict(

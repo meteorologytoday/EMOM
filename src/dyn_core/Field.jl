@@ -21,14 +21,30 @@ mutable struct Field
     _QFLXX_    :: AbstractArray{Float64, 2}
 
 
-    HMXL     :: AbstractArray{Float64, 3}
+    HMXL    :: AbstractArray{Float64, 3}
     USFC    :: AbstractArray{Float64, 3}
     VSFC    :: AbstractArray{Float64, 3}
 
-    SWFLX    :: AbstractArray{Float64, 3}
-    NSWFLX   :: AbstractArray{Float64, 3}
-    VSFLX    :: AbstractArray{Float64, 3}
+    SWFLX   :: AbstractArray{Float64, 3}
+    NSWFLX  :: AbstractArray{Float64, 3}
+    VSFLX   :: AbstractArray{Float64, 3}
  
+    LWUP    :: AbstractArray{Float64, 3}
+    LWDN    :: AbstractArray{Float64, 3}
+    SEN     :: AbstractArray{Float64, 3}
+    LAT     :: AbstractArray{Float64, 3}
+    MELTH   :: AbstractArray{Float64, 3}
+
+    MELTW   :: AbstractArray{Float64, 3}
+    SNOW    :: AbstractArray{Float64, 3}
+    IOFF    :: AbstractArray{Float64, 3}
+    ROFF    :: AbstractArray{Float64, 3}
+    EVAP    :: AbstractArray{Float64, 3}
+    PREC    :: AbstractArray{Float64, 3}
+    
+    SALTFLX :: AbstractArray{Float64, 3}
+
+
     TAUX         :: AbstractArray{Float64, 3}
     TAUY         :: AbstractArray{Float64, 3}
    
@@ -88,6 +104,20 @@ mutable struct Field
         SWFLX = zeros(Float64, 1, Nx, Ny)
         NSWFLX = zeros(Float64, 1, Nx, Ny)
         VSFLX = zeros(Float64, 1, Nx, Ny)
+        
+        LWUP = zeros(Float64, 1, Nx, Ny)
+        LWDN = zeros(Float64, 1, Nx, Ny)
+        SEN = zeros(Float64, 1, Nx, Ny)
+        LAT = zeros(Float64, 1, Nx, Ny)
+        MELTH = zeros(Float64, 1, Nx, Ny)
+        MELTW = zeros(Float64, 1, Nx, Ny)
+        SNOW  = zeros(Float64, 1, Nx, Ny)
+        IOFF  = zeros(Float64, 1, Nx, Ny)
+        ROFF  = zeros(Float64, 1, Nx, Ny)
+        EVAP  = zeros(Float64, 1, Nx, Ny)
+        PREC  = zeros(Float64, 1, Nx, Ny)
+        SALTFLX = zeros(Float64, 1, Nx, Ny)
+
         TAUX_east = zeros(Float64, 1, Nx, Ny)
         TAUY_north = zeros(Float64, 1, Nx, Ny)
  
@@ -128,6 +158,18 @@ mutable struct Field
             SWFLX,
             NSWFLX,
             VSFLX,
+
+            LWUP,
+            LWDN,
+            SEN,
+            LAT,
+            MELTH,
+            MELTW,
+            IOFF,
+            ROFF,
+            EVAP,
+            PREC,
+            SALTFLX,
 
             TAUX,
             TAUY,

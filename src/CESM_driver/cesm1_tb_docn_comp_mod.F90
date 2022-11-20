@@ -148,11 +148,16 @@ module docn_comp_mod
 
   integer :: x_iostat, x_fds(2)
 
-  real(R8), pointer     :: x_nswflx(:), x_swflx(:), x_taux(:), x_tauy(:),  &
+  real(R8), pointer     :: x_nswflx(:), x_swnet(:), x_taux(:), x_tauy(:),  &
                            x_ifrac(:), x_q(:), x_frwflx(:), x_vsflx(:),    &
                            x_qflx_t(:), x_qflx_s(:),                       &
                            x_t_clim(:),  x_s_clim(:), x_ifrac_clim(:),     &
-                           x_mld(:), x_mask(:), x_u(:), x_v(:)
+                           x_mld(:), x_mask(:), x_u(:), x_v(:),            &
+                           x_lwup(:), x_lwdn(:), x_sen(:), x_lat(:),       &
+                           x_melth(:), x_meltw(:), &
+                           x_snow(:), x_ioff(:), x_roff(:), &
+                           x_evap(:), x_prec(:), &
+                           x_salt(:)
 
   real(R8), pointer     :: x_blob_send(:), x_blob_recv(:)
   real(R8)              :: x_nullbin(1) = (/ 0.0 /)
@@ -759,7 +764,7 @@ subroutine docn_comp_run( EClock, cdata,  x2o, o2x)
         allocate(x_ifrac_clim(lsize))
         allocate(x_mld(lsize))
         allocate(x_nswflx(lsize))
-        allocate(x_swflx(lsize))
+        allocate(x_swnet(lsize))
         allocate(x_taux(lsize))
         allocate(x_tauy(lsize))
         allocate(x_ifrac(lsize))
@@ -770,7 +775,24 @@ subroutine docn_comp_run( EClock, cdata,  x2o, o2x)
         allocate(x_u(lsize))
         allocate(x_v(lsize))
 
-        allocate(x_blob_send(lsize*6))
+        allocate(x_lwup(lsize))
+        allocate(x_lwdn(lsize))
+        allocate(x_sen(lsize))
+        allocate(x_lat(lsize))
+        allocate(x_melth(lsize))
+        
+        allocate(x_meltw(lsize))
+        allocate(x_snow(lsize))
+        allocate(x_ioff(lsize))
+        allocate(x_roff(lsize))
+        allocate(x_salt(lsize))
+        allocate(x_evap(lsize))
+        allocate(x_prec(lsize))
+
+
+
+
+        allocate(x_blob_send(lsize*15))
         allocate(x_blob_recv(lsize*4)) ! SST, QFLX (ice), ocn U, ocn V
 
         do n = 1,lsize
@@ -786,7 +808,7 @@ subroutine docn_comp_run( EClock, cdata,  x2o, o2x)
             x_mld(n)     = 0.0_R8
             x_q(n)       = 0.0_R8 
             x_nswflx(n)  = 0.0_R8
-            x_swflx(n)   = 0.0_R8
+            x_swnet(n)   = 0.0_R8
             x_taux(n)    = 0.0_R8
             x_tauy(n)    = 0.0_R8
             x_ifrac(n)   = 0.0_R8
@@ -795,6 +817,20 @@ subroutine docn_comp_run( EClock, cdata,  x2o, o2x)
             x_mask(n)    = 0.0_R8
             x_u(n)       = 0.0_R8
             x_v(n)       = 0.0_R8
+
+            x_lwup(n)  = 0.0_R8
+            x_lwdn(n)  = 0.0_R8
+            x_sen(n)   = 0.0_R8
+            x_lat(n)   = 0.0_R8
+            x_melth(n)  = 0.0_R8
+            x_meltw(n)  = 0.0_R8
+            x_snow(n)  = 0.0_R8
+            x_ioff(n) = 0.0_R8
+            x_roff(n) = 0.0_R8
+            x_prec(n) = 0.0_R8
+            x_evap(n) = 0.0_R8
+            x_salt(n)   = 0.0_R8
+
 
             o2x%rAttr(kt,n) = somtp(n)
             o2x%rAttr(kq,n) = x_q(n)
@@ -815,8 +851,13 @@ subroutine docn_comp_run( EClock, cdata,  x2o, o2x)
         x_msg = "MSG:INIT;CESMTIME:"//trim(x_datetime_str)//";"//trim(x_msg)
    
         ! Variable order matters
-        !x_msg = trim(x_msg)//"VAR2D:QFLX_T,QFLX_S,T_CLIM,S_CLIM,IFRAC_CLIM,MLD,NSWFLX,SWFLX,TAUX,TAUY,IFRAC,FRWFLX,VSFLX;"
-        x_msg = trim(x_msg)//"VAR2D:NSWFLX,SWFLX,TAUX_east,TAUY_north,FRWFLX,VSFLX;"
+        ! 2022/11/19 Split nswflx and frwflx into various contributions
+        ! old code: x_msg = trim(x_msg)//"VAR2D:NSWFLX,SWFLX,TAUX_east,TAUY_north,FRWFLX,VSFLX;"
+        
+        x_msg = trim(x_msg)//"VAR2D:SWFLX,LWUP,LWDN,SEN,LAT,MELTH,MELTW,SNOW,IOFF,ROFF,PREC,EVAP,SALT,TAUX_east,TAUY_north;"
+        
+         
+        
         if (read_restart) then
             x_msg = trim(x_msg)//"READ_RESTART:TRUE;"
         else
@@ -873,24 +914,45 @@ subroutine docn_comp_run( EClock, cdata,  x2o, o2x)
         do n = 1,lsize
           if (imask(n) /= 0) then
 
+            ! 2022/11/19 split nswflx into various contributions
+
+            x_swnet(n) = - x2o%rAttr(kswnet, n) 
+            x_lwup(n)  = - x2o%rAttr(klwup, n) 
+            x_lwdn(n)  = - x2o%rAttr(klwdn, n) 
+            x_sen(n)   = - x2o%rAttr(ksen, n) 
+            x_lat(n)   = - x2o%rAttr(klat, n) 
+            x_melth(n) = - x2o%rAttr(kmelth, n) 
+            
+
+            ! Below is old fomulation
             !
             ! 2020/03/30
             ! Change swflx and nswflx to be positive if the ocean is
             ! losing energy, negative if the ocean is gaining energy.
             !
+            !x_nswflx(n) = - (                                   &
+            !                  x2o%rAttr(klwup, n)               &    ! upward longwave
+            !                + x2o%rAttr(klwdn, n)               &    ! downward longwave
+            !                + x2o%rAttr(ksen, n)                &    ! sensible heat flux
+            !                + x2o%rAttr(klat, n)                &    ! latent heat flux
+            !                + x2o%rAttr(kmelth, n)              &    ! ice melt
+            !                - (   x2o%rAttr(ksnow,n)            & 
+            !                    + x2o%rAttr(kioff,n) ) * latice & ! latent by snow and roff
+            !)
 
-            x_swflx(n)  = - x2o%rAttr(kswnet, n) 
-
-            x_nswflx(n) = - (                                   &
-                              x2o%rAttr(klwup, n)               &    ! upward longwave
-                            + x2o%rAttr(klwdn, n)               &    ! downward longwave
-                            + x2o%rAttr(ksen, n)                &    ! sensible heat flux
-                            + x2o%rAttr(klat, n)                &    ! latent heat flux
-                            + x2o%rAttr(kmelth, n)              &    ! ice melt
-                            - (   x2o%rAttr(ksnow,n)            & 
-                                + x2o%rAttr(kioff,n) ) * latice & ! latent by snow and roff
-            )
  
+            ! 2022/11/19 split frwflx into various contributions
+            x_meltw(n) = - x2o%rAttr(kmeltw, n) 
+            x_snow(n)  = - x2o%rAttr(ksnow, n)    ! freshwater flux due to snow melt 
+            x_ioff(n)  = - x2o%rAttr(kioff, n)    ! freshwater flux due to ice runoff
+            x_roff(n)  = - x2o%rAttr(kroff, n)    ! freshwater flux due to river runoff
+            x_evap(n)  = - x2o%rAttr(kevap, n)
+            x_prec(n)  = - x2o%rAttr(kprec, n)
+            
+            x_salt(n)  = - x2o%rAttr(ksalt, n)    ! salt flux ( kg / m^2 / s )
+
+
+            ! Below is old fomulation
             ! ===================================================================
             ! The info is given from:
             !   (1) ocn/pop2/source/forcing_coupled.F90 [Line 800]
@@ -899,15 +961,17 @@ subroutine docn_comp_run( EClock, cdata,  x2o, o2x)
             !
             ! fresh water flux in unit of kg / m^2 / s.
             ! Positive means upward (loss), negative means downward (gain)
-            x_frwflx(n) = - ( x2o%rAttr(kevap, n)  &
-                            + x2o%rAttr(kprec, n)  &
-                            + x2o%rAttr(kmeltw, n) &
-                            + x2o%rAttr(kroff, n)  &
-                            + x2o%rAttr(kioff, n) )
+            ! x_frwflx(n) = - ( x2o%rAttr(kevap, n)  &
+            !                + x2o%rAttr(kprec, n)  &
+            !                + x2o%rAttr(kmeltw, n) &
+            !                + x2o%rAttr(kroff, n)  &
+            !                + x2o%rAttr(kioff, n) )
                          
             ! Virtual salt flux in unit of kg / m^2 / s.
             ! Positive means upward (loss), negative means downward (gain)
-            x_vsflx(n) =  - ( x2o%rAttr(ksalt, n) + x_frwflx(n) * ocnsalt / rhofw )
+            ! x_vsflx(n) =  - ( x2o%rAttr(ksalt, n) + x_frwflx(n) * ocnsalt / rhofw )
+            
+
             
             ! ===================================================================
                        
@@ -918,12 +982,22 @@ subroutine docn_comp_run( EClock, cdata,  x2o, o2x)
           end if
         end do
         
-        call copy_into_blob(x_blob_send, lsize, 1, x_nswflx) 
-        call copy_into_blob(x_blob_send, lsize, 2, x_swflx) 
-        call copy_into_blob(x_blob_send, lsize, 3, x_taux) 
-        call copy_into_blob(x_blob_send, lsize, 4, x_tauy) 
-        call copy_into_blob(x_blob_send, lsize, 5, x_frwflx) 
-        call copy_into_blob(x_blob_send, lsize, 6, x_vsflx) 
+        !call copy_into_blob(x_blob_send, lsize, 1, x_nswflx) 
+        call copy_into_blob(x_blob_send, lsize,  1, x_swnet)
+        call copy_into_blob(x_blob_send, lsize,  2, x_lwup) 
+        call copy_into_blob(x_blob_send, lsize,  3, x_lwdn) 
+        call copy_into_blob(x_blob_send, lsize,  4, x_sen) 
+        call copy_into_blob(x_blob_send, lsize,  5, x_lat) 
+        call copy_into_blob(x_blob_send, lsize,  6, x_melth) 
+        call copy_into_blob(x_blob_send, lsize,  7, x_meltw) 
+        call copy_into_blob(x_blob_send, lsize,  8, x_snow) 
+        call copy_into_blob(x_blob_send, lsize,  9, x_ioff) 
+        call copy_into_blob(x_blob_send, lsize, 10, x_roff) 
+        call copy_into_blob(x_blob_send, lsize, 11, x_prec) 
+        call copy_into_blob(x_blob_send, lsize, 12, x_evap) 
+        call copy_into_blob(x_blob_send, lsize, 13, x_salt) 
+        call copy_into_blob(x_blob_send, lsize, 14, x_taux) 
+        call copy_into_blob(x_blob_send, lsize, 15, x_tauy) 
  
         call stop_if_bad(ptm_sendData(x_PTI, x_msg, x_nullbin),  "RUN_SEND")
         call stop_if_bad(ptm_sendData(x_PTI, "DATA", x_blob_send), "RUN_SEND_DATA")
