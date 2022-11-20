@@ -937,7 +937,7 @@ subroutine docn_comp_run( EClock, cdata,  x2o, o2x)
             !                + x2o%rAttr(klat, n)                &    ! latent heat flux
             !                + x2o%rAttr(kmelth, n)              &    ! ice melt
             !                - (   x2o%rAttr(ksnow,n)            & 
-            !                    + x2o%rAttr(kioff,n) ) * latice & ! latent by snow and roff
+            !                    + x2o%rAttr(kioff,n) ) * latice & ! latent by snow and ice runoff
             !)
 
  
