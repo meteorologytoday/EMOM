@@ -12,7 +12,3 @@ mpiexec -n $1 julia --project           \
         --time-unit     month          \
         --atm-forcing   $pdir/atm_forcing.nc 
 
-
-
-
-project/Sandbox/archive/ocn/hist/Sandbox.EMOM.h0.mon.0001-01.nc
