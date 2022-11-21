@@ -87,6 +87,7 @@ module EMOM
     @hinclude("updateDatastream.jl")
     @hinclude("updateUVSFC.jl")
     @hinclude("updateBuoyancy.jl")
+    @hinclude("updateSfcFlx.jl")
 
 end
 

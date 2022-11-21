@@ -854,7 +854,7 @@ subroutine docn_comp_run( EClock, cdata,  x2o, o2x)
         ! 2022/11/19 Split nswflx and frwflx into various contributions
         ! old code: x_msg = trim(x_msg)//"VAR2D:NSWFLX,SWFLX,TAUX_east,TAUY_north,FRWFLX,VSFLX;"
         
-        x_msg = trim(x_msg)//"VAR2D:SWFLX,LWUP,LWDN,SEN,LAT,MELTH,MELTW,SNOW,IOFF,ROFF,PREC,EVAP,SALT,TAUX_east,TAUY_north;"
+        x_msg = trim(x_msg)//"VAR2D:SWFLX,LWUP,LWDN,SEN,LAT,MELTH,MELTW,SNOW,IOFF,ROFF,PREC,EVAP,SALTFLX,TAUX_east,TAUY_north;"
         
          
         

@@ -164,7 +164,9 @@ mutable struct Field
             SEN,
             LAT,
             MELTH,
+
             MELTW,
+            SNOW,
             IOFF,
             ROFF,
             EVAP,

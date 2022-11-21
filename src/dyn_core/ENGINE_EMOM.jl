@@ -534,9 +534,7 @@ module ENGINE_EMOM
         # Process surface fluxes into NSWFLX
         
         if is_master
-            fi = MD.mb.fi
-            @. fi.NSWFLX = fi.LWUP + fi.LWDN + fi.SEN + fi.SEN + fi.LAT + fi.MELTH - (fi.SNOW + fi.IOFF) * Hf_sw
-            @. fi.VSFLX  = fi.SALTFLX - ( fi.EVAP + fi.PREC + fi.MELTW + fi.ROFF + fi.IOFF ) * S_ref / ρ_fw
+            EMOM.updateSfcFlx!(MD.mb)
         end
 
         syncField!(

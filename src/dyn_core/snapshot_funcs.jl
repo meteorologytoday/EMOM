@@ -62,13 +62,18 @@ function loadSnapshot(
     for fieldname in fieldnames(Field)
 
         var = getfield(mb.fi, fieldname) 
-        loaded_var = getfield(loaded_fi, fieldname)
+        
+        if hasfield(typeof(loaded_fi), fieldname)
+            loaded_var = getfield(loaded_fi, fieldname)
 
-        if typeof(var) <: Array
-            var.= loaded_var
-            writeLog("Field loaded: {:s}", string(fieldname))
-        else
-            writeLog("Field {:s} is not raw array. Skip it.", string(fieldname))
+            if typeof(var) <: Array
+                var.= loaded_var
+                writeLog("Field loaded: {:s}", string(fieldname))
+            else
+                writeLog("Field {:s} is not raw array. Skip it.", string(fieldname))
+            end
+        else        
+            writeLog("Field {:s} does not exist in snapshot. Skip it.", string(fieldname))
         end
     end
  
