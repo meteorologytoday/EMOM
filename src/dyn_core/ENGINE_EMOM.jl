@@ -221,9 +221,20 @@ module ENGINE_EMOM
             # timestep starts.
             :forcing => (
                 "SWFLX",
-                "NSWFLX",
                 "TAUX_east",
                 "TAUY_north",
+                "LWUP",
+                "LWDN",
+                "SEN",
+                "LAT",
+                "MELTH",
+                "MELTW",
+                "SNOW",
+                "IOFF",
+                "ROFF",
+                "PREC",
+                "EVAP",
+                "SALTFLX",
             ),
 
             # These states will be synced from
@@ -256,6 +267,8 @@ module ENGINE_EMOM
                 "Ks_H_V",
                 "USFC",
                 "VSFC",
+                "NSWFLX",
+                "VSFLX",
             ),
 
             # These states are synced from 
@@ -531,12 +544,6 @@ module ENGINE_EMOM
         substeps = MD.mb.ev.cfgs["MODEL_CORE"]["substeps"]
         Δt_substep = Δt_float / substeps
 
-        # Process surface fluxes into NSWFLX
-        
-        if is_master
-            EMOM.updateSfcFlx!(MD.mb)
-        end
-
         syncField!(
             MD.sync_data[:forcing],
             MD.jdi,
@@ -547,6 +554,7 @@ module ENGINE_EMOM
         if ! is_master
 
             EMOM.reset!(MD.mb.co.wksp)
+            EMOM.updateSfcFlx!(MD.mb)
             EMOM.updateDatastream!(MD.mb, MD.clock)
             EMOM.updateUVSFC!(MD.mb)
             EMOM.checkBudget!(MD.mb, Δt_float; stage=:BEFORE_STEPPING)
