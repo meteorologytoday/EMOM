@@ -226,4 +226,17 @@ Dataset("ocn_forcing.nc", "c") do ds
 end
 
 
+println("Outputting z_w file...")
+Dataset("z_w.nc", "c") do ds
+
+    defDim(ds, "Nzp1", length(z_w))
+
+    defVar(ds, "z_w", z_w, ("Nzp1", ), ; attrib = Dict(
+        "long_name" => "W-grid",
+        "units"     => "meter",
+    ))
+
+end
+
+
 
