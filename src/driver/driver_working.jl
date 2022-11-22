@@ -137,11 +137,8 @@ function runModel(
     end
     
     writeLog("Ready to run the model.")
-    step = 0
     while true
 
-        step += 1
-       
         if is_master 
             writeLog("Current time: {:s}", clock2str(clock))
         end

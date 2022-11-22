@@ -422,6 +422,11 @@ module ENGINE_EMOM
                     return typeof(t)(y, m, 1) + Month(1)
                 end
 
+                function endOfNextMonth(t::AbstractCFDateTime)
+                    y = Dates.year(t)
+                    m = Dates.month(t)
+                    return (typeof(t)(y, m, 1) + Month(2)) - Day(1)
+                end
 
                 if "daily_record" in activated_record
                     recorder_day = MD.recorders["daily_record"]
@@ -430,7 +435,7 @@ module ENGINE_EMOM
                         clock,
                         "[Daily] Daily output",
                         clock.time + Day(1),
-                        2;  # Priority should be higher than creating record file
+                        2;  
                         callback = function (clk, alm)
                             record!(recorder_day)
                             avgAndOutput!(recorder_day) # This is important
@@ -448,8 +453,6 @@ module ENGINE_EMOM
                         end,
                         recurring = begOfNextMonth,
                     )
-
-
 
                 end
 
@@ -471,11 +474,22 @@ module ENGINE_EMOM
                         clock,
                         "[Monthly] Daily accumulation using record!",
                         clock.time + Day(1),
-                        2;
+                        3;
                         callback = function (clk, alm)
                             record!(recorder_mon)
                         end,
                         recurring = Day(1),
+                    )
+
+                    addAlarm!(
+                        clock,
+                        "[Monthly] Average and output monthly data.",
+                        begOfNextMonth(clock.time), # Start from next month
+                        2;  # Higher priority so it outputs data before creating next new monthly file
+                        callback = function (clk, alm)
+                            avgAndOutput!(recorder_mon)
+                        end,
+                        recurring = begOfNextMonth,
                     )
 
                     addAlarm!(
@@ -489,16 +503,7 @@ module ENGINE_EMOM
                         recurring = begOfNextMonth,
                     )
 
-                    addAlarm!(
-                        clock,
-                        "[Monthly] Average and output monthly data.",
-                        begOfNextMonth(clock.time), # Start from next month
-                        3;  # Higher priority so it outputs data before creating next new monthly file
-                        callback = function (clk, alm)
-                            avgAndOutput!(recorder_mon)
-                        end,
-                        recurring = begOfNextMonth,
-                    )
+
      
                 end
 
