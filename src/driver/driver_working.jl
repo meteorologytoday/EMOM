@@ -72,11 +72,12 @@ function runModel(
 
     local t_start = nothing 
     local read_restart = nothing
+    local Δt = nothing
  
     if is_master
 
         writeLog("Getting model start time.")
-        read_restart, t_start = coupler_funcs.master_before_model_init()
+        read_restart, t_start, Δt = coupler_funcs.master_before_model_init()
         
         if read_restart
 
@@ -122,7 +123,6 @@ function runModel(
 
     if is_master
         coupler_funcs.master_after_model_init!(OMMODULE, OMDATA)
-
 
         # By design, CESM ends the simulation of month m after the run of 
         # the first day of (m+1) month. For example, suppose the model 

@@ -113,9 +113,9 @@ coupler_funcs = (
  
         read_restart = (msg["READ_RESTART"] == "TRUE") ? true : false
         cesm_coupler_time = parseCESMTIME(msg["CESMTIME"], timetype)
+        Δt = Dates.Second(parse(Float64, msg["DT"]))
 
-        
-        return read_restart, cesm_coupler_time
+        return read_restart, cesm_coupler_time, Δt
         
     end,
 

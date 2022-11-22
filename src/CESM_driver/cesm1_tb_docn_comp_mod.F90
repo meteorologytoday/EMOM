@@ -863,6 +863,9 @@ subroutine docn_comp_run( EClock, cdata,  x2o, o2x)
         else
             x_msg = trim(x_msg)//"READ_RESTART:FALSE;"
         endif
+
+        write (x_msg, "(A, A, F10.2, A)") trim(x_msg), "DT:", dt, ";"
+
         print *, "Going to send: " // trim(x_msg)
         call stop_if_bad(ptm_sendData(x_PTI, x_msg, x_nullbin), "INIT_SEND")
         
