@@ -425,29 +425,30 @@ module ENGINE_EMOM
 
                 if "daily_record" in activated_record
                     recorder_day = MD.recorders["daily_record"]
-                    addAlarm!(
-                        clock,
-                        "[Daily] Create daily output file.",
-                        clock.time,
-                        2;
-                        callback = function (clk, alm)
-                            createRecordFile!(MD, "h1.day", recorder_day)
-                        end,
-                        recurring = begOfNextMonth,
-                    )
-
 
                     addAlarm!(
                         clock,
                         "[Daily] Daily output",
                         clock.time + Day(1),
-                        1;
+                        2;  # Priority should be higher than creating record file
                         callback = function (clk, alm)
                             record!(recorder_day)
                             avgAndOutput!(recorder_day) # This is important
                         end,
                         recurring = Day(1),
                     )
+
+                    addAlarm!(
+                        clock,
+                        "[Daily] Create daily output file.",
+                        clock.time,
+                        1;
+                        callback = function (clk, alm)
+                            createRecordFile!(MD, "h1.day", recorder_day)
+                        end,
+                        recurring = begOfNextMonth,
+                    )
+
 
 
                 end
@@ -468,24 +469,24 @@ module ENGINE_EMOM
 
                     addAlarm!(
                         clock,
-                        "[Monthly] Create monthly output file.",
-                        clock.time, # Rings immediately
-                        2;
-                        callback = function (clk, alm)
-                            createRecordFile!(MD, "h0.mon", recorder_mon)
-                        end,
-                        recurring = begOfNextMonth,
-                    )
-                    
-                    addAlarm!(
-                        clock,
                         "[Monthly] Daily accumulation using record!",
                         clock.time + Day(1),
-                        1;
+                        2;
                         callback = function (clk, alm)
                             record!(recorder_mon)
                         end,
                         recurring = Day(1),
+                    )
+
+                    addAlarm!(
+                        clock,
+                        "[Monthly] Create monthly output file.",
+                        clock.time, # Rings immediately
+                        1;
+                        callback = function (clk, alm)
+                            createRecordFile!(MD, "h0.mon", recorder_mon)
+                        end,
+                        recurring = begOfNextMonth,
                     )
 
                     addAlarm!(
