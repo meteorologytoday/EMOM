@@ -440,7 +440,7 @@ module ENGINE_EMOM
                     addAlarm!(
                         clock,
                         "[Daily] Daily output",
-                        clock.time,
+                        clock.time + Day(1),
                         1;
                         callback = function (clk, alm)
                             record!(recorder_day)
@@ -480,7 +480,7 @@ module ENGINE_EMOM
                     addAlarm!(
                         clock,
                         "[Monthly] Daily accumulation using record!",
-                        clock.time, # Remember we need to record the first one. So alarm rings immediately.
+                        clock.time + Day(1),
                         1;
                         callback = function (clk, alm)
                             record!(recorder_mon)

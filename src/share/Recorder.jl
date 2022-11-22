@@ -134,7 +134,7 @@ end
 function avgAndOutput!(
     rec :: Recorder
 )
-
+    
     if rec.filename == nothing
         ErrorException("Undefined record filename") |> throw
     end
@@ -144,7 +144,9 @@ function avgAndOutput!(
         if sobj.weight == 0
             ErrorException(format("StatObj for variable `{:s}` has weight 0 during normalization.", varname)) |> throw
         end
-        sobj.var /= sobj.weight
+        
+        
+        sobj.var ./= sobj.weight
 
         if sobj.missing_idx != nothing
             sobj.var[sobj.missing_idx] .= rec.missing_value

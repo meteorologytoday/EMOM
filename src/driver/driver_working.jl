@@ -122,6 +122,18 @@ function runModel(
 
     if is_master
         coupler_funcs.master_after_model_init!(OMMODULE, OMDATA)
+
+
+        # By design, CESM ends the simulation of month m after the run of 
+        # the first day of (m+1) month. For example, suppose the model 
+        # run for Jan and Feb, the restart file will be written after stepping
+        # March 1. This means, the read_restart phase is an already done step.
+        # Therefore, after the read_restart phase, we need to advance the time.
+        if read_restart
+            advanceClock!(clock, Δt)
+            dropRungAlarm!(clock)
+        end
+
     end
     
     writeLog("Ready to run the model.")
@@ -156,6 +168,8 @@ function runModel(
                 if config["DRIVER"]["compute_QFLX_direct_method"]
                     OMMODULE.syncM2S!(OMDATA)
                 end
+
+                # Do the run and THEN advance the clock
 
                 OMMODULE.run!(
                     OMDATA;
@@ -204,7 +218,9 @@ function runModel(
                 OMMODULE.syncM2S!(OMDATA)
             end
 
+
             if is_master
+                # Advance the clock AFTER the run
                 advanceClock!(clock, Δt)
                 dropRungAlarm!(clock)
             end
