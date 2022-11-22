@@ -1036,7 +1036,7 @@ subroutine docn_comp_run( EClock, cdata,  x2o, o2x)
           end if
         end do
          
-        endif
+      endif
 ! ===== XTT MODIFIED END =====
 
    case('XSOM')

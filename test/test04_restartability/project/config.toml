@@ -12,6 +12,10 @@ casename = "Sandbox"
 caserun = "/home/ged/projects/EMOM/test/test04_restartability/project/Sandbox/caserun"
 caseroot = "/home/ged/projects/EMOM/test/test04_restartability/project/Sandbox/caseroot"
 
+[DOMAIN]
+z_w_file = "/home/ged/projects/EMOM/test/test04_restartability/project/z_w.nc"
+domain_file = "/home/ged/projects/EMOM/test/test04_restartability/project/domain.nc"
+
 [MODEL_CORE]
 MLD_scheme = "datastream"
 Ekman_layers = 2
@@ -22,7 +26,6 @@ cdata_align_time = "0001-01-01 00:00:00"
 topo_file = ""
 Qflx = "on"
 cdata_end_time = "0002-01-01 00:00:00"
-domain_file = "/home/ged/projects/EMOM/test/test04_restartability/project/domain.nc"
 convective_adjustment = "on"
 Returnflow_layers = 8
 transform_vector_field = true
