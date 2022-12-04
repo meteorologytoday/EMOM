@@ -130,6 +130,8 @@ function runModel(
         # March 1. This means, the read_restart phase is an already done step.
         # Therefore, after the read_restart phase, we need to advance the time.
         if read_restart
+            writeLog("read_restart is true.")
+            writeLog("Current time: {:s}", clock2str(clock))
             advanceClock!(clock, Δt)
             dropRungAlarm!(clock)
         end
