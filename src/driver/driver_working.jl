@@ -137,6 +137,14 @@ function runModel(
         end
 
     end
+
+    # =======================================
+    # IMPORTANT: need to sync time
+    _time = MPI.bcast(clock.time, 0, comm) 
+    if !is_master
+        setClock!(clock, _time)
+    end
+    # =======================================
     
     writeLog("Ready to run the model.")
     while true
@@ -218,6 +226,7 @@ function runModel(
             end
 
 
+            # ==========================================
             if is_master
                 # Advance the clock AFTER the run
                 advanceClock!(clock, Δt)
@@ -230,6 +239,8 @@ function runModel(
             if !is_master
                 setClock!(clock, _time)
             end
+            
+            # ==========================================
 
         elseif stage == :END
 
