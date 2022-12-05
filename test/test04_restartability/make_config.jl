@@ -27,7 +27,7 @@ config = Dict{Any, Any}(
 
     "MODEL_CORE" => Dict(
 
-        "domain_file"                  => joinpath(domain_dir, "domain.nc"),
+
         "topo_file"                    => "",
 
         "cdata_var_file_map"           => Dict(
@@ -63,6 +63,10 @@ config = Dict{Any, Any}(
         "transform_vector_field"       => true,
     ),
 
+    "DOMAIN" => Dict(
+        "domain_file"                  => joinpath(domain_dir, "domain.nc"),
+        "z_w_file"                     => joinpath(domain_dir, "z_w.nc"),
+    ),
 )
 
 Dataset("ocn_forcing.nc", "r") do ds

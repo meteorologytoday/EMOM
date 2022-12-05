@@ -101,7 +101,7 @@ while true
         )
  
         # Must declare SharedArray to avoid implicit copying!!!!
-        global send_data_list_shared = SharedArray{Float64}[OMDATA.o2x["SST"], OMDATA.o2x["QFLX2ATM"]]
+        global send_data_list_shared = SharedArray{Float64}[OMDATA.o2x["SST"], OMDATA.o2x["QFLX2ATM"], OMDATA.o2x["USFC"], OMDATA.o2x["VSFC"]]
         global recv_data_list_shared = SharedArray{Float64}[]
  
         global send_data_list = Array{Float64}[OMDATA.o2x["SST"], OMDATA.o2x["QFLX2ATM"]]

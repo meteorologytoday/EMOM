@@ -1,10 +1,8 @@
+include("EMOM/src/share/LogSystem.jl")
+include("EMOM/src/share/PolelikeCoordinate.jl")
 
-
-include("IOM/src/share/LogSystem.jl")
-include("IOM/src/share/PolelikeCoordinate.jl")
-
-include("IOM/src/models/EMOM/ENGINE_EMOM.jl")
-include("IOM/src/driver/driver_working.jl")
+include("EMOM/src/dyn_core/ENGINE_EMOM.jl")
+include("EMOM/src/driver/driver_working.jl")
 
 using MPI
 using CFTime
@@ -28,7 +26,7 @@ function parse_commandline()
 
         
         "--time-unit"
-            help = "."
+            help = "Valid values: year, month, day."
             arg_type = String
     end
 

@@ -102,5 +102,5 @@ println(format("Total, Mean QFLXS   : {:.2e}, {:.2e}", total_QFLXS, mean_QFLXS))
 
 if output_file != ""
     println("Output file : $output_file")
-    pleaseRun(`ncap2 -s "QFLXT=QFLXT-($(mean_QFLXT));QFLXS=QFLXS-($(mean_QFLXS));" $(input_file) $(output_file)`)
+    pleaseRun(`ncap2 -O -s "QFLXT=QFLXT-($(mean_QFLXT));QFLXS=QFLXS-($(mean_QFLXS));" $(input_file) $(output_file)`)
 end

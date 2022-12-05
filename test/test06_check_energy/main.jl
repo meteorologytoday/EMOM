@@ -1,8 +1,8 @@
-include("IOM/src/share/LogSystem.jl")
-include("IOM/src/share/PolelikeCoordinate.jl")
-include("IOM/src/models/EMOM/ENGINE_EMOM.jl")
-include("IOM/src/driver/driver_working.jl")
-include("IOM/src/share/CyclicData.jl")
+include("EMOM/src/share/LogSystem.jl")
+include("EMOM/src/share/PolelikeCoordinate.jl")
+include("EMOM/src/dyn_core/ENGINE_EMOM.jl")
+include("EMOM/src/driver/driver_working.jl")
+include("EMOM/src/share/CyclicData.jl")
 include("DataLoader.jl")
 
 using MPI

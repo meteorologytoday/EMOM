@@ -1,5 +1,5 @@
 include(joinpath(@__DIR__, "..", "share", "LogSystem.jl"))
-include(joinpath(@__DIR__, "..", "models", "EMOM", "ENGINE_EMOM.jl"))
+include(joinpath(@__DIR__, "..", "dyn_core", "ENGINE_EMOM.jl"))
 include(joinpath(@__DIR__, "..", "driver", "driver_working.jl"))
 include(joinpath(@__DIR__, "ProgramTunnel", "src", "julia", "BinaryIO.jl"))
 include(joinpath(@__DIR__, "ProgramTunnel", "src", "julia", "ProgramTunnel_fs_new.jl"))
@@ -113,9 +113,9 @@ coupler_funcs = (
  
         read_restart = (msg["READ_RESTART"] == "TRUE") ? true : false
         cesm_coupler_time = parseCESMTIME(msg["CESMTIME"], timetype)
+        Δt = Dates.Second(parse(Float64, msg["DT"]))
 
-        
-        return read_restart, cesm_coupler_time
+        return read_restart, cesm_coupler_time, Δt
         
     end,
 
@@ -127,7 +127,7 @@ coupler_funcs = (
 
         global lsize = parse(Int64, msg["LSIZE"])
 
-        global send_data_list = [OMDATA.o2x["SST"], OMDATA.o2x["Q_FRZMLTPOT"]]
+        global send_data_list = [OMDATA.o2x["SST"], OMDATA.o2x["Q_FRZMLTPOT"], OMDATA.o2x["USFC"], OMDATA.o2x["VSFC"]]
         global recv_data_list = []
 
         global x2o_available_varnames = split(msg["VAR2D"], ",")
@@ -204,7 +204,7 @@ coupler_funcs = (
 
     master_after_model_run! = function(OMMODULE, OMDATA)
         #writeLog("[Coupler] After model run")
-        global send_data_list = [OMDATA.o2x["SST"], OMDATA.o2x["Q_FRZMLTPOT"]]
+        global send_data_list = [OMDATA.o2x["SST"], OMDATA.o2x["Q_FRZMLTPOT"], OMDATA.o2x["USFC"], OMDATA.o2x["VSFC"]]
         sendData(PTI, "OK", send_data_list)
     end,
 

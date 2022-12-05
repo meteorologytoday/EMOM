@@ -11,3 +11,21 @@ We develop a hierarchy of simplified ocean models for coupled ocean, atmosphere,
 We illustrate the application of the hierarchy to the problem of understanding the response of the climate system to the loss of Arctic sea ice. We find that the shifts in the positions of the mid-latitude westerly jet and of the Inter-tropical Convergence Zone (ITCZ) in response to sea-ice loss depend critically on upper ocean processes. Specifically, heat uptake associated with the mixed-layer entrainment influences the shift in the westerly jet and ITCZ. Moreover, the shift of ITCZ is sensitive to the form of Ekman flow parameterization.
 
 
+# Setup
+
+## Requirement
+
+- Julia language with packages: NCDatasets, MPI
+- MPI interface. In particular, `mpiexec` is required.
+
+## Tutorial
+
+The tutorial, including deriving the flux correction to running the hierarchy, is documented [here](tutorial/README.md).
+
+# TODO list
+
+- (Done, May 28) `make_init` to generate initial ocean profile.
+- Flux correction procedure.
+- Test out energy conservation. Use the "area" variable provided in the domain file to compute the energy flux.
+- Test out coupling with CESM1-CAM5
+- Test out coupling with CESM2-CAM5

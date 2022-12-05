@@ -69,7 +69,7 @@ s = ArgParseSettings()
 
 
     "--ncpu"
-        help = "The number of CPUs that IOM can use"
+        help = "The number of CPUs that EMOM can use"
         arg_type = Int64
         required = true
 
@@ -119,6 +119,10 @@ s = ArgParseSettings()
         help = "If set then will try to build the case."
         action = :store_true
 
+    "--git-branch"
+        help = "The version you are checkout. "
+        arg_type = String
+        default = "main"
 
 end
 
@@ -222,19 +226,20 @@ open(joinpath(cesm_env["CASEROOT"],"$(parsed["casename"]).ocn.run"), "w") do io
     write(io, """
 #!/bin/bash
 
-ml av
-ml load openmpi/4.0.3
-ml load julia/1.6.0
-julia --project -e 'ENV["JULIA_MPI_BINARY"]="system"; using Pkg; Pkg.build("MPI"; verbose=true)'
-
 LID=\$( date +%y%m%d-%H%M%S )
 
 caseroot="$(cesm_env["CASEROOT"])"
 caserun="$(cesm_env["RUNDIR"])"
 archive_log_dir="$(cesm_env["DOUT_S_ROOT"])/ocn/logs"
-logfile="iom.log.\${LID}"
+logfile="emom.log.\${LID}"
+EMOM_ROOT=\${caseroot}/EMOM
 
-mpiexec -n $(parsed["ncpu"]) julia --project \${caseroot}/IOM/src/CESM_driver/main.jl --config-file=\${caseroot}/config.toml &> \${caserun}/\${logfile}
+ml load openmpi/4.0.3
+ml load julia/1.7.1
+julia -e 'ENV["JULIA_MPI_BINARY"]="system"; using Pkg; Pkg.build("MPI"; verbose=true)'
+
+
+mpiexec -n $(parsed["ncpu"]) julia \${EMOM_ROOT}/src/CESM_driver/main.jl --config-file=\${caseroot}/config.toml &> \${caserun}/\${logfile}
 
 
 ret_code=\$?
@@ -285,11 +290,11 @@ fincl1='SOLIN','FSUTOA','FLUT','FLUTC','CLDHGH','CLDLOW','CLDMED','CLDTOT','FLDS
 """)
 end
 
-pleaseRun(`git clone --branch "dev/cesm-coupling" https://github.com/meteorologytoday/IOM.git`)
+pleaseRun(`git clone --branch "$(parsed["git-branch"])" https://github.com/meteorologytoday/EMOM.git`)
 
 cd(joinpath("SourceMods", "src.docn"))
-pleaseRun(`ln -s ../../IOM/src/CESM_driver/cesm1_tb_docn_comp_mod.F90 ./docn_comp_mod.F90`)
-pleaseRun(`ln -s ../../IOM/src/CESM_driver/ProgramTunnel .`)
+pleaseRun(`ln -s ../../EMOM/src/CESM_driver/cesm1_tb_docn_comp_mod.F90 ./docn_comp_mod.F90`)
+pleaseRun(`ln -s ../../EMOM/src/CESM_driver/ProgramTunnel .`)
 
 cd(joinpath("..", ".."))
 

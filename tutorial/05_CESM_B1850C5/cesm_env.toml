@@ -1,0 +1,51 @@
+[ env_run ]
+
+    STOP_OPTION = "nyears"
+    STOP_N = 5
+    OCN_NCPL = 1
+    DOCN_SOM_FILENAME = "pop_frc.gx1v6.100513.nc"
+    OCN_TIGHT_COUPLING = "FALSE"
+
+#    RUN_TYPE    = "branch"
+#    RUN_REFCASE = "paper2021_[MODEL]_CTL_coupled"
+#    RUN_REFDATE = "0201-01-01"
+
+    CONTINUE_RUN = "FALSE"
+    RESUBMIT     = 1
+
+
+[ env_mach_pes ]
+
+    NTASKS_ATM = 287
+    NTHRDS_ATM =   1
+    ROOTPE_ATM =   0
+
+    NTASKS_LND = 287
+    NTHRDS_LND =   1
+    ROOTPE_LND =   0
+
+    NTASKS_ICE = 287
+    NTHRDS_ICE =   1
+    ROOTPE_ICE =   0
+
+    NTASKS_OCN =   1
+    NTHRDS_OCN =   1
+    ROOTPE_OCN = 287
+
+    NTASKS_CPL = 287
+    NTHRDS_CPL =   1
+    ROOTPE_CPL =   0
+
+    NTASKS_GLC = 287
+    NTHRDS_GLC =   1
+    ROOTPE_GLC =   0
+
+    NTASKS_ROF = 287
+    NTHRDS_ROF =   1
+    ROOTPE_ROF =   0
+
+    NTASKS_WAV = 287
+    NTHRDS_WAV =   1
+    ROOTPE_WAV =   0
+
+

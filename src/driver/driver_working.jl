@@ -16,14 +16,16 @@ if !(:ModelClockSystem in names(Main))
 end
 using .ModelClockSystem
 
-if !(:ConfigCheck in names(Main))
-    include(normpath(joinpath(dirname(@__FILE__), "..", "share", "ConfigCheck.jl")))
+if !(:Config in names(Main))
+    include(normpath(joinpath(dirname(@__FILE__), "..", "share", "Config.jl")))
 end
-using .ConfigCheck
+using .Config
 
 if !(:appendLine in names(Main))
     include(normpath(joinpath(dirname(@__FILE__), "..", "share", "AppendLine.jl")))
 end
+    
+include(normpath(joinpath(dirname(@__FILE__), "..", "configs", "driver_configs.jl")))
 
 function runModel(
     OMMODULE      :: Any,
@@ -50,7 +52,7 @@ function runModel(
         end
 
         writeLog("Validate driver config.")
-        config["DRIVER"] = validateConfigEntries(config["DRIVER"], getDriverConfigDescriptor())
+        config["DRIVER"] = validateConfigEntries(config["DRIVER"], getDriverConfigDescriptors()["DRIVER"])
     end
 
     writeLog("Broadcast config to slaves.")
@@ -70,11 +72,12 @@ function runModel(
 
     local t_start = nothing 
     local read_restart = nothing
+    local Δt = nothing
  
     if is_master
 
         writeLog("Getting model start time.")
-        read_restart, t_start = coupler_funcs.master_before_model_init()
+        read_restart, t_start, Δt = coupler_funcs.master_before_model_init()
         
         if read_restart
 
@@ -120,14 +123,32 @@ function runModel(
 
     if is_master
         coupler_funcs.master_after_model_init!(OMMODULE, OMDATA)
+
+        # By design, CESM ends the simulation of month m after the run of 
+        # the first day of (m+1) month. For example, suppose the model 
+        # run for Jan and Feb, the restart file will be written after stepping
+        # March 1. This means, the read_restart phase is an already done step.
+        # Therefore, after the read_restart phase, we need to advance the time.
+        if read_restart
+            writeLog("read_restart is true.")
+            writeLog("Current time: {:s}", clock2str(clock))
+            advanceClock!(clock, Δt)
+            dropRungAlarm!(clock)
+        end
+
     end
+
+    # =======================================
+    # IMPORTANT: need to sync time
+    _time = MPI.bcast(clock.time, 0, comm) 
+    if !is_master
+        setClock!(clock, _time)
+    end
+    # =======================================
     
     writeLog("Ready to run the model.")
-    step = 0
     while true
 
-        step += 1
-       
         if is_master 
             writeLog("Current time: {:s}", clock2str(clock))
         end
@@ -154,6 +175,8 @@ function runModel(
                 if config["DRIVER"]["compute_QFLX_direct_method"]
                     OMMODULE.syncM2S!(OMDATA)
                 end
+
+                # Do the run and THEN advance the clock
 
                 OMMODULE.run!(
                     OMDATA;
@@ -202,7 +225,10 @@ function runModel(
                 OMMODULE.syncM2S!(OMDATA)
             end
 
+
+            # ==========================================
             if is_master
+                # Advance the clock AFTER the run
                 advanceClock!(clock, Δt)
                 dropRungAlarm!(clock)
             end
@@ -213,6 +239,8 @@ function runModel(
             if !is_master
                 setClock!(clock, _time)
             end
+            
+            # ==========================================
 
         elseif stage == :END
 
@@ -241,50 +269,6 @@ function runModel(
  
     writeLog("Program Ends.")
 
-end
-
-function getDriverConfigDescriptor()
-
-    return [
-            ConfigEntry(
-                "casename",
-                :required,
-                [String,],
-            ),
-
-            ConfigEntry(
-                "caseroot",
-                :required,
-                [String,],
-            ),
-
-            ConfigEntry(
-                "caserun",
-                :required,
-                [String,],
-            ),
-
-            ConfigEntry(
-                "archive_root",
-                :required,
-                [String,],
-            ),
-
-            ConfigEntry(
-                "archive_list",
-                :optional,
-                [String,],
-                "archive_list.txt",
-            ),
-
-            ConfigEntry(
-                "compute_QFLX_direct_method",
-                :optional,
-                [Bool,],
-                false,
-            ),
-
-   ]
 end
 
 function archive(

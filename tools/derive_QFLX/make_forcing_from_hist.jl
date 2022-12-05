@@ -143,12 +143,29 @@ pleaseRun(`bash -c "ncrcat -O tmp/monthly_mean_{01..12}.nc $output_file"`)
 pleaseRun(`ncks -O -3 $output_file $output_file`)
 pleaseRun(`ncrename -d Nx,nlon -d Ny,nlat -d Nz,z_t -v WKRSTT,QFLXT -v WKRSTS,QFLXS $output_file`)
 #pleaseRun(`ncap2 -O -s 'QFLX_TEMP=QFLX_TEMP*3996*1026;' $output_file $output_file`)
-pleaseRun(`ncks -A -v SALT,z_w_top,z_w_bot  $(parsed["data-dir"])/monthly/SALT_monthly.nc $output_file`)
-pleaseRun(`ncks -A -v TEMP                  $(parsed["data-dir"])/monthly/TEMP_monthly.nc $output_file`)
-pleaseRun(`ncks -A -v HMXL                  $(parsed["data-dir"])/monthly/HMXL_monthly.nc $output_file`)
+pleaseRun(`ncks -A -v SALT                  $(parsed["data-dir"])/monthly/SALT.nc $output_file`)
+pleaseRun(`ncks -A -v TEMP                  $(parsed["data-dir"])/monthly/TEMP.nc $output_file`)
+pleaseRun(`ncks -A -v HMXL                  $(parsed["data-dir"])/monthly/HMXL.nc $output_file`)
+
+# Copy and rename the z dimension of USFC and VSFC because they have only one layer.
+# If not changing the name of the dimension, they will have many layers but having
+# one layer of values.
+pleaseRun(`cp $(parsed["data-dir"])/monthly/USFC.nc tmp_USFC.nc`)
+pleaseRun(`cp $(parsed["data-dir"])/monthly/VSFC.nc tmp_VSFC.nc`)
+pleaseRun(`ncrename -d .z_t,z1 -v .z_t,z1 tmp_USFC.nc`)
+pleaseRun(`ncrename -d .z_t,z1 -v .z_t,z1 tmp_VSFC.nc`)
+
+pleaseRun(`ncks -A -v USFC                  tmp_USFC.nc $output_file`)
+pleaseRun(`ncks -A -v VSFC                  tmp_VSFC.nc $output_file`)
+
+# Finally, append coordinate information
+pleaseRun(`ncks -A -v z_w_top,z_w_bot       $(parsed["data-dir"])/coord.nc        $output_file`)
 pleaseRun(`ncks -A -v time                  tmp_time.nc $output_file`)
 
-rm("tmp_time.nc", force=true)
+
+#pleaseRun(`rm tmp_USFC.nc`)
+#pleaseRun(`rm tmp_VSFC.nc`)
+pleaseRun(`rm tmp_time.nc`)
 
 
 
